@@ -1,0 +1,75 @@
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "outline": "#6d7b6d",
+        "inverse-on-surface": "#f0f1f2",
+        "tertiary-fixed": "#cce5ff",
+        "secondary-fixed-dim": "#f0c12c",
+        "secondary": "#755b00",
+        "inverse-primary": "#5adf82",
+        "secondary-container": "#fccc38",
+        "on-surface": "#191c1d",
+        "secondary-fixed": "#ffdf90",
+        "surface-container-high": "#e7e8e9",
+        "surface-container-highest": "#e1e3e4",
+        "on-tertiary-fixed-variant": "#004b73",
+        "on-tertiary": "#ffffff",
+        "on-background": "#191c1d",
+        "on-surface-variant": "#3d4a3e",
+        "on-secondary-container": "#6f5600",
+        "background": "#f8f9fa",
+        "on-secondary-fixed": "#241a00",
+        "primary": "#006b32",
+        "error": "#ba1a1a",
+        "surface-tint": "#006d33",
+        "surface-container": "#edeeef",
+        "primary-container": "#008740",
+        "surface-container-low": "#f3f4f5",
+        "on-primary-fixed": "#00210b",
+        "surface-variant": "#e1e3e4",
+        "primary-fixed": "#78fc9c",
+        "tertiary-container": "#007bb9",
+        "on-error-container": "#93000a",
+        "tertiary": "#006194",
+        "primary-fixed-dim": "#5adf82",
+        "on-primary-container": "#f7fff3",
+        "on-tertiary-fixed": "#001d31",
+        "on-secondary-fixed-variant": "#584400",
+        "on-primary": "#ffffff",
+        "surface-container-lowest": "#ffffff",
+        "surface-bright": "#f8f9fa",
+        "on-primary-fixed-variant": "#005225",
+        "on-error": "#ffffff",
+        "on-tertiary-container": "#fdfcff",
+        "outline-variant": "#bccabb",
+        "on-secondary": "#ffffff",
+        "inverse-surface": "#2e3132",
+        "error-container": "#ffdad6",
+        "surface-dim": "#d9dadb",
+        "surface": "#f8f9fa",
+        "tertiary-fixed-dim": "#92ccff"
+      },
+      borderRadius: {
+        "DEFAULT": "0.5rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+      },
+      fontFamily: {
+        "headline": ["Inter", "sans-serif"],
+        "body": ["Inter", "sans-serif"],
+        "label": ["Inter", "sans-serif"],
+        "sans": ["Inter", "sans-serif"]
+      }
+    },
+  },
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/container-queries')
+  ],
+}

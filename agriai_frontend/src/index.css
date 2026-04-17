@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS từ thiết kế gốc */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.bg-agricultural-blur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuByAXqTfamsuBYLGncsWEdTsISohYYjvg-wFZ2cQJkVML6krN5kGCIlKa1jYAHCprpxPkYorNnuPXjCLvIxii53W99WXlfd_CpvYo_qWpHDsv7qDoaqFMVlBSR0tDdzkF40y1jr3kXRxWTWHFUc1jJGwe5Bpmcsxi3RyKMyUBjmp0_q1L43TN1hDDHUYch2HQzWj1sRZH7O3yAXPKtTyZ1yeTDlwyosp1yJYnLM12wwuIRJhtma6gzjohE_QGNdbF5SS46ZW5MTgul_);
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px) brightness(0.95);
+}
+
+.bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(248, 249, 250, 0.7) 100%);
+}
+
+.step-number {
+  -webkit-text-stroke: 1px #00A651;
+  color: transparent;
+}
+
+/* CSS cho thiết kế mới của Stitch */
+.hero-gradient {
+  background: linear-gradient(135deg, rgba(0, 107, 50, 0.85) 0%, rgba(0, 135, 64, 0.6) 100%);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+}
+
+.hidden-menu {
+  transform: translateY(-100%);
+}
+
+.signature-gradient {
+  background: linear-gradient(135deg, #006e2f 0%, #22c55e 100%);
+}
