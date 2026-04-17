@@ -1,6 +1,7 @@
 package com.phucnguyen.agriai.service;
 
 import com.phucnguyen.agriai.dto.VisionResultDTO;
+import com.phucnguyen.agriai.port.VisionDetectionPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
@@ -20,7 +21,7 @@ import java.util.List;
  * Response: "Disease Name" (JSON string)
  */
 @Service
-public class VisionAIService {
+public class VisionAIService implements VisionDetectionPort {
 
     @Value("${vision.ai.url:http://localhost:8000/predict}")
     private String predictUrl;
@@ -98,6 +99,7 @@ public class VisionAIService {
         }
     }
 
+    // Tạo headers cho file
     private HttpHeaders createFileHeaders() {
         HttpHeaders fileHeaders = new HttpHeaders();
         fileHeaders.setContentType(MediaType.IMAGE_JPEG);

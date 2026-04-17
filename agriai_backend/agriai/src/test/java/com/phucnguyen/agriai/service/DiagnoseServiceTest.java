@@ -111,7 +111,7 @@ class DiagnoseServiceTest {
                                 .thenReturn(Optional.of(aiModel));
                 lenient().when(aiModelRepository.findFirstByIsActiveTrueAndIsDeleteFalseOrderByIdAsc())
                                 .thenReturn(Optional.of(aiModel));
-                lenient().when(cloudinaryService.uploadImage(any())).thenReturn("https://cloudinary.com/test.jpg");
+                lenient().when(cloudinaryService.upload(any())).thenReturn("https://cloudinary.com/test.jpg");
                 lenient().when(llmService.generateGuidance(any())).thenReturn("Hướng dẫn chăm sóc.");
                 when(diagnoseHistoryRepository.save(any())).thenAnswer(i -> {
                         DiagnoseHistory h = i.getArgument(0);

@@ -8,6 +8,10 @@ import com.phucnguyen.agriai.entity.*;
 import com.phucnguyen.agriai.enums.SeverityLevel;
 import com.phucnguyen.agriai.enums.Status;
 import com.phucnguyen.agriai.exception.AppException;
+import com.phucnguyen.agriai.port.GuidancePort;
+import com.phucnguyen.agriai.port.ImageStoragePort;
+import com.phucnguyen.agriai.port.VisionDetectionPort;
+import com.phucnguyen.agriai.port.WeatherPort;
 import com.phucnguyen.agriai.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,29 +39,29 @@ public class DiagnoseService {
     private CropTypeRepository cropTypeRepository;
     @Autowired
     private AIModelRepository aiModelRepository;
-    @Autowired
-    private DiseaseRepository diseaseRepository;
+
     @Autowired
     private DiagnoseHistoryRepository diagnoseHistoryRepository;
     @Autowired
     private DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
     @Autowired
     private AttachmentRepository attachmentRepository;
-
     @Autowired
-    private CloudinaryService cloudinaryService;
+    private ImageStoragePort cloudinaryService;
     @Autowired
-    private VisionAIService visionAIService;
+    private VisionDetectionPort visionAIService;
     @Autowired
-    private WeatherApiService weatherApiService;
+    private WeatherPort weatherApiService;
     @Autowired
     private RuleEngineService ruleEngineService;
     @Autowired
-    private LLMService llmService;
+    private GuidancePort llmService;
+    @Autowired
+    private DiseaseMapper diseaseMapper;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final double MIN_CONFIDENCE = 0.3; // Ngưỡng tối thiểu 30%
+    private static final double MIN_CONFIDENCE = 0.4; // Ngưỡng tối thiểu 40%
     private static final Set<String> HEALTHY_LABELS = Set.of("healthy", "khoe", "cay_khoe", "khoe_manh");
 
     /**
@@ -88,7 +92,7 @@ public class DiagnoseService {
         // ====== BƯỚC 2: Upload ảnh lên Cloudinary ======
         String imageUrl;
         try {
-            imageUrl = cloudinaryService.uploadImage(request.getImage());
+            imageUrl = cloudinaryService.upload(request.getImage());
         } catch (Exception e) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Loi khi tai anh len: " + e.getMessage());
@@ -100,7 +104,6 @@ public class DiagnoseService {
         // ====== BƯỚC 3: Gọi song song Vision AI + Weather API ======
         CompletableFuture<List<VisionResultDTO>> visionFuture = CompletableFuture
                 .supplyAsync(() -> visionAIService.detect(imageUrl, modelFilePath));
-
         CompletableFuture<WeatherDTO> weatherFuture = CompletableFuture
                 .supplyAsync(() -> weatherApiService.getCurrentWeather(request.getLatitude(), request.getLongitude()));
 
@@ -125,18 +128,13 @@ public class DiagnoseService {
                 .collect(Collectors.toList());
 
         // ====== BƯỚC 5: Group by label → lấy MAX confidence ======
-        Map<String, VisionResultDTO> groupedResults = significantResults.stream()
-                .collect(Collectors.toMap(
-                        VisionResultDTO::getLabel,
-                        vr -> vr,
-                        (existing, replacement) -> existing.getConfidence() >= replacement.getConfidence() ? existing
-                                : replacement));
+        Map<String, VisionResultDTO> groupedResults = diseaseMapper.groupByMaxConfidence(significantResults);
 
         List<DiseaseResultDTO> diseaseResults = new ArrayList<>();
         List<Integer> diseaseIds = new ArrayList<>();
 
         for (VisionResultDTO vr : groupedResults.values()) {
-            Optional<Disease> diseaseOpt = findDisease(vr.getLabel());
+            Optional<Disease> diseaseOpt = diseaseMapper.findDisease(vr.getLabel());
             if (diseaseOpt.isPresent()) {
                 Disease disease = diseaseOpt.get();
                 diseaseIds.add(disease.getId());
@@ -222,28 +220,6 @@ public class DiagnoseService {
         }
     }
 
-    private Optional<Disease> findDisease(String label) {
-        String cleanLabel = label.trim();
-        String underscoreLabel = cleanLabel.replace(" ", "_");
-
-        // Thử mapping theo diseaseCode -> diseaseNameEn -> diseaseName (Case
-        // Insensitive)
-        Optional<Disease> result = diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(cleanLabel);
-        if (result.isEmpty()) {
-            result = diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(underscoreLabel);
-        }
-        if (result.isEmpty()) {
-            result = diseaseRepository.findByDiseaseNameEnIgnoreCaseAndIsDeleteFalse(cleanLabel);
-        }
-        if (result.isEmpty()) {
-            result = diseaseRepository.findByDiseaseNameEnIgnoreCaseAndIsDeleteFalse(underscoreLabel);
-        }
-        if (result.isEmpty()) {
-            result = diseaseRepository.findByDiseaseNameIgnoreCaseAndIsDeleteFalse(cleanLabel);
-        }
-        return result;
-    }
-
     private void saveAttachment(MultipartFile file, String imageUrl) {
         Attachment attachment = Attachment.builder()
                 .fileName(file.getOriginalFilename())
@@ -300,7 +276,7 @@ public class DiagnoseService {
                 }
 
                 // Tìm disease entity để liên kết
-                Disease diseaseEntity = findDisease(dr.getDiseaseName()).orElse(null);
+                Disease diseaseEntity = diseaseMapper.findDisease(dr.getDiseaseName()).orElse(null);
 
                 SeverityLevel severity = null;
                 try {

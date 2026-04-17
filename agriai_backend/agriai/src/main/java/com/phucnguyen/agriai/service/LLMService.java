@@ -1,6 +1,7 @@
 package com.phucnguyen.agriai.service;
 
 import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
+import com.phucnguyen.agriai.port.GuidancePort;
 import org.springframework.stereotype.Service;
 
 /**
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Service;
  * Hiện tại là mock, sau này tích hợp LangChain4J.
  */
 @Service
-public class LLMService {
+public class LLMService implements GuidancePort {
 
     /**
      * Sinh hướng dẫn từ kết quả chẩn đoán bệnh.

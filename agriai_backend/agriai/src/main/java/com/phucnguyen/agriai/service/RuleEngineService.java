@@ -143,8 +143,10 @@ public class RuleEngineService {
     private boolean isConditionViolated(TreatmentWeatherCondition cond, Double actualValue) {
         BigDecimal actual = BigDecimal.valueOf(actualValue);
         return switch (cond.getOperator()) {
-            case GREATER_THAN -> cond.getMaxValue() != null && actual.compareTo(cond.getMaxValue()) > 0;
-            case LESS_THAN -> cond.getMinValue() != null && actual.compareTo(cond.getMinValue()) < 0;
+            // GREATER_THAN: cảnh báo khi thực tế > ngưỡng tối thiểu (minValue)
+            case GREATER_THAN -> cond.getMinValue() != null && actual.compareTo(cond.getMinValue()) > 0;
+            // LESS_THAN: cảnh báo khi thực tế < ngưỡng tối đa (maxValue)
+            case LESS_THAN -> cond.getMaxValue() != null && actual.compareTo(cond.getMaxValue()) < 0;
             case BETWEEN -> (cond.getMinValue() != null && actual.compareTo(cond.getMinValue()) < 0)
                     || (cond.getMaxValue() != null && actual.compareTo(cond.getMaxValue()) > 0);
             case EQUALS -> cond.getMinValue() != null && actual.compareTo(cond.getMinValue()) != 0;

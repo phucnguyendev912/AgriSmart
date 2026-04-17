@@ -1,53 +1,119 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import axios from "axios";
 
 const AuthContext = createContext();
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
 export const AuthProvider = ({ children }) => {
-  const [accessToken, setAccessToken] = useState(null);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const refreshAuthToken = async () => {
+  const [accessToken, setAccessToken] = useState(() =>
+    localStorage.getItem("accessToken"),
+  );
+  const [user, setUser] = useState(() => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/refresh-token`, {}, {
-        withCredentials: true
-      });
+      const savedUser = localStorage.getItem("user");
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
 
-      setAccessToken(response.data.token);
-      setUser(response.data.user);
+  // Chỉ loading khi chưa có dữ liệu local
+  const [loading, setLoading] = useState(
+    () =>
+      !(localStorage.getItem("accessToken") && localStorage.getItem("user")),
+  );
+
+  const clearAuth = () => {
+    setAccessToken(null);
+    setUser(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+  };
+
+  const refreshAuthToken = useCallback(async () => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/auth/refresh-token`,
+        {},
+        { withCredentials: true },
+      );
+      console.log("Refresh token response:", response.data);
+      const newToken = response.data.token || response.data.accessToken;
+      const userData = response.data.user || response.data.data;
+      console.log("newToken:", newToken);
+      console.log("userData:", userData);
+
+      // ✅ Chỉ update nếu data thực sự có giá trị
+      if (newToken && userData) {
+        setAccessToken(newToken);
+        setUser(userData);
+        localStorage.setItem("accessToken", newToken);
+        localStorage.setItem("user", JSON.stringify(userData));
+      } else {
+        // Data không hợp lệ → giữ nguyên localStorage, không xóa
+        console.warn("⚠️ response.data thiếu token hoặc user:", response.data);
+      }
     } catch (error) {
-      setAccessToken(null);
-      setUser(null);
+      if (error.response?.status === 401) {
+        clearAuth();
+      }
+      console.error("Refresh token failed:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshAuthToken();
-  }, []);
+  }, [refreshAuthToken]);
 
   const loginContext = (token, userData) => {
     setAccessToken(token);
     setUser(userData);
+    localStorage.setItem("accessToken", token);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logoutContext = async () => {
     try {
-      await axios.post(`${API_URL}/api/auth/logout`, {}, {
-        withCredentials: true
-      });
+      await axios.post(
+        `${API_URL}/api/auth/logout`,
+        {},
+        { withCredentials: true },
+      );
+    } catch (error) {
+      console.error("Logout error:", error);
     } finally {
-      setAccessToken(null);
-      setUser(null);
+      clearAuth();
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <AuthContext.Provider value={{ accessToken, user, loginContext, logoutContext, loading }}>
-      {!loading && children}
+    <AuthContext.Provider
+      value={{
+        accessToken,
+        user,
+        loginContext,
+        logoutContext,
+        loading,
+        refreshAuthToken,
+      }}
+    >
+      {children}
     </AuthContext.Provider>
   );
 };
