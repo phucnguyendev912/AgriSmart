@@ -24,4 +24,5 @@ public class DiagnoseResponse {
     private List<TreatmentDTO> treatments;
     private List<String> cultivationMeasures;
     private String userGuidance;
+    private Boolean isHealthy;
 }
