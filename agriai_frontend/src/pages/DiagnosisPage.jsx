@@ -244,11 +244,19 @@ const DiagnosisPage = () => {
                                     </h3>
                                 </div>
                                 {diseases.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <span className="material-symbols-outlined text-5xl text-emerald-500 mb-2 block">eco</span>
-                                        <p className="text-lg font-bold text-emerald-600">Cây khỏe mạnh!</p>
-                                        <p className="text-sm text-on-surface-variant mt-1">Không phát hiện bệnh nào trên ảnh.</p>
-                                    </div>
+                                    result.isHealthy ? (
+                                        <div className="text-center py-8">
+                                            <span className="material-symbols-outlined text-5xl text-emerald-500 mb-2 block">eco</span>
+                                            <p className="text-lg font-bold text-emerald-600">Cây khỏe mạnh!</p>
+                                            <p className="text-sm text-on-surface-variant mt-1">Không có dấu hiệu tổn thương trên ảnh.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <span className="material-symbols-outlined text-5xl text-slate-400 mb-2 block">search_off</span>
+                                            <p className="text-lg font-bold text-slate-600">Không phát hiện bệnh</p>
+                                            <p className="text-sm text-on-surface-variant mt-1">Vui lòng thử lại với một bức ảnh rõ nét hơn.</p>
+                                        </div>
+                                    )
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {diseases.map((disease, idx) => (

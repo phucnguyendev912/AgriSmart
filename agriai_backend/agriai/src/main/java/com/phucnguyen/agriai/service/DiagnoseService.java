@@ -140,8 +140,11 @@ public class DiagnoseService {
             if (diseaseOpt.isPresent()) {
                 Disease disease = diseaseOpt.get();
                 diseaseIds.add(disease.getId());
+
+                String displayName = disease.getDiseaseNameEn() + " (" + disease.getDiseaseName() + ")";
+
                 diseaseResults.add(DiseaseResultDTO.builder()
-                        .diseaseName(disease.getDiseaseName())
+                        .diseaseName(displayName)
                         .confidence(vr.getConfidence())
                         .severity(vr.getSeverity() != null ? vr.getSeverity()
                                 : (disease.getSeverityLevel() != null
@@ -189,6 +192,7 @@ public class DiagnoseService {
                 .treatments(treatments)
                 .warnings(warnings)
                 .cultivationMeasures(cultivationMeasures)
+                .isHealthy(isHealthy)
                 .build();
 
         // ====== BƯỚC 8: Sinh hướng dẫn từ LLM ======
