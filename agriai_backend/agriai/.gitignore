@@ -1,0 +1,20 @@
+# Maven build output
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# System
+.DS_Store
+Thumbs.db
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Secrets (IMPORTANT: add real secrets to environment variables, not here)
+# application.properties contains DB password and API keys - be careful with public repos

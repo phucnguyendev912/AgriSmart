@@ -1,0 +1,254 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
+const RegisterPage = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+    password: '',
+    passwordConfirm: '',
+    terms: false
+  });
+
+  const [formErrors, setFormErrors] = useState({});
+
+  const handleChange = (e) => {
+    const { id, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [id]: type === 'checkbox' ? checked : value
+    });
+    if (formErrors[id]) {
+      setFormErrors(prev => ({ ...prev, [id]: null }));
+    }
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    const errors = {};
+
+    if (formData.password !== formData.passwordConfirm) {
+      errors.confirm_password = 'Mat khau khong khop.';
+    }
+
+    if (!formData.terms) {
+      toast.warning('Ban can dong y voi dieu khoan dich vu.');
+      return;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_URL}/api/auth/register`, {
+        fullName: formData.fullName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        password: formData.password,
+        passwordConfirm: formData.passwordConfirm
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success('Dang ky tai khoan thanh cong!');
+        navigate('/login');
+      }
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        if (typeof errorData === 'object') {
+          const fieldErrors = errorData.fieldErrors || {};
+          
+          if (Object.keys(fieldErrors).length > 0) {
+            setFormErrors(prev => ({ ...prev, ...fieldErrors }));
+          }
+
+          const firstFieldError = Object.values(fieldErrors)[0];
+          const errorMsg = firstFieldError
+            || (errorData.message !== 'Du lieu gui len khong hop le.' ? errorData.message : null)
+            || errorData.message
+            || errorData.error
+            || 'Da xay ra loi!';
+            
+          toast.error(errorMsg);
+        } else {
+          toast.error(errorData);
+        }
+      } else {
+        toast.error('Loi cau hinh CSDL hoac ket noi mang!');
+        console.error(error);
+      }
+    }
+  };
+
+  return (
+    <div className="bg-background text-on-background min-h-screen flex items-center justify-center relative overflow-x-hidden">
+      <div className="fixed inset-0 z-0 opacity-15 grayscale bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCu1PkRAwaMPO7mw6Jcd_TBMWsdC7Q1YTmarn9Ie4GKC3EpVFHfHQLGKqPuHDLnYyxtHKi30rU6PnS8lE_ld3PSkl4Ap45VrczeK0aZ3xn9Nx8q7PHLw9o4DmbNXDyeWyChaP9K68iZdWRRxvT0tg73x6OMuXTkHHbPDajrypq8czlAPg0rrRRPsDathEm-Eo5Y0-xzompeOX5Hr5k9nKF-tJuJ3kSUFNDJkFSSNIWOVbV96c19QbWbxmy9eJe2bY85O5rfejCn2lti')" }}></div>
+
+      <main className="relative z-10 w-full max-w-xl md:p-4">
+        <div className="bg-white/90 backdrop-blur-md min-h-screen md:min-h-0 p-6 md:p-12 md:rounded-xl shadow-none md:shadow-sm flex flex-col justify-center border border-gray-100">
+          <div className="text-center mb-8 md:mb-10">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-primary text-4xl">psychology</span>
+              <span className="text-2xl font-black text-primary tracking-tighter">AgriAI</span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface mb-2">Dang ky moi</h1>
+            <p className="text-on-surface-variant text-sm font-medium px-4">Khoi dau hanh trinh canh tac thong minh cung chuyen gia AI</p>
+          </div>
+
+          <form className="space-y-4 md:space-y-5" onSubmit={handleRegister}>
+            <div className="space-y-1.5">
+              <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="fullName">
+                Ho va ten
+              </label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
+                <input
+                  className="w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary transition-all text-on-surface placeholder:text-outline-variant text-base"
+                  id="fullName"
+                  placeholder="Nguyen Van A"
+                  type="text"
+                  required
+                  value={formData.fullName}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="email">
+                Email
+              </label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+                <input
+                  className={`w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 transition-all text-on-surface text-base ${formErrors.email ? 'focus:ring-error ring-2 ring-error/50' : 'focus:ring-primary'}`}
+                  id="email"
+                  type="email"
+                  required
+                  placeholder="user@agri.ai"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
+              {formErrors.email && (
+                <p className="text-error text-xs flex items-center gap-1 mt-1 ml-1 font-medium">
+                  <span className="material-symbols-outlined !text-sm">error</span>
+                  {formErrors.email}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="phoneNumber">
+                So dien thoai
+              </label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">call</span>
+                <input
+                  className="w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary transition-all text-on-surface placeholder:text-outline-variant text-base"
+                  id="phoneNumber"
+                  placeholder="09xx xxx xxx"
+                  type="tel"
+                  required
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="password">
+                  Mat khau
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+                  <input
+                    className="w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary transition-all text-on-surface text-base"
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="passwordConfirm">
+                  Nhap lai mat khau
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">lock_reset</span>
+                  <input
+                    className={`w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 transition-all text-on-surface text-base ${formErrors.confirm_password ? 'focus:ring-error ring-2 ring-error/50' : 'focus:ring-primary'}`}
+                    id="passwordConfirm"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={formData.passwordConfirm}
+                    onChange={handleChange}
+                  />
+                </div>
+                {formErrors.confirm_password && (
+                  <p className="text-error text-xs flex items-center gap-1 mt-1 ml-1 font-medium">
+                    <span className="material-symbols-outlined !text-sm">warning</span>
+                    {formErrors.confirm_password}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 py-2">
+              <input
+                className="mt-1 w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary bg-surface-container-low flex-shrink-0"
+                id="terms"
+                type="checkbox"
+                checked={formData.terms}
+                onChange={handleChange}
+              />
+              <label className="text-sm text-on-surface-variant leading-relaxed select-none" htmlFor="terms">
+                Toi dong y voi <Link to="#" className="text-primary font-semibold hover:underline">Dieu khoan dich vu</Link> va <Link to="#" className="text-primary font-semibold hover:underline">Chinh sach bao mat</Link> cua AgriAI.
+              </label>
+            </div>
+
+            <button
+              className="w-full bg-primary text-white font-bold py-4 rounded-lg shadow-lg hover:bg-primary-container transition-all active:scale-[0.98] mt-4 text-base"
+              type="submit"
+            >
+              Dang ky
+            </button>
+          </form>
+
+          <div className="mt-8 text-center border-t border-gray-100 pt-6">
+            <p className="text-on-surface-variant text-sm font-medium">
+              Da co tai khoan?
+              <Link to="/login" className="text-primary font-bold ml-1 hover:underline decoration-2 underline-offset-4 inline-flex items-center min-h-[44px]">Dang nhap</Link>
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 mb-8 flex justify-between px-6 md:px-2 opacity-60">
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] font-bold text-on-surface-variant tracking-widest uppercase">© 2024 AgriAI Diagnostic</span>
+          </div>
+          <div className="flex items-center gap-1 text-on-surface-variant">
+            <span className="material-symbols-outlined !text-base">language</span>
+            <span className="text-[10px] font-bold tracking-widest uppercase">Tieng Viet</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default RegisterPage;
