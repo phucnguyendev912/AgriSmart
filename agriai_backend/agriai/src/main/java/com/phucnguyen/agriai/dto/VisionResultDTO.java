@@ -8,11 +8,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class VisionResultDTO {
-    private String label;
+    private String label; // Hoặc "diseaseName" nếu API trả về key khác, nhưng hiện tại code đang dùng
+                          // getLabel()
     private Double confidence;
     private String severity;
-    private Integer x;
-    private Integer y;
-    private Integer width;
-    private Integer height;
 }

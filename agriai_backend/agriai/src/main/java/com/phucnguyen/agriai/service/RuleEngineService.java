@@ -438,25 +438,37 @@ public class RuleEngineService {
         };
     }
 
+    // Kiểm tra điều kiện thời tiết chặn
     private boolean isConditionViolated(TreatmentWeatherCondition condition, Double actualValue) {
         BigDecimal actual = BigDecimal.valueOf(actualValue);
         Operator operator = condition.getOperator();
         if (operator == null) {
             return false;
         }
+
+        // DB User thường lưu giá trị ngưỡng ở cột min_value cho cả LESS_THAN,
+        // GREATER_THAN và EQUALS.
+        BigDecimal threshold = condition.getMinValue() != null ? condition.getMinValue() : condition.getMaxValue();
+
         return switch (operator) {
-            case GREATER_THAN -> condition.getMinValue() != null && actual.compareTo(condition.getMinValue()) > 0;
-            case LESS_THAN -> condition.getMaxValue() != null && actual.compareTo(condition.getMaxValue()) < 0;
+            // Yêu cầu LỚN HƠN threshold -> Vi phạm nếu THẤP HƠN HOẶC BẰNG
+            case GREATER_THAN -> threshold != null && actual.compareTo(threshold) <= 0;
+            // Yêu cầu NHỎ HƠN threshold -> Vi phạm nếu LỚN HƠN HOẶC BẰNG
+            case LESS_THAN -> threshold != null && actual.compareTo(threshold) >= 0;
+            // Yêu cầu NẰM GIỮA min và max -> Vi phạm nếu NẰM NGOÀI
             case BETWEEN -> (condition.getMinValue() != null && actual.compareTo(condition.getMinValue()) < 0)
                     || (condition.getMaxValue() != null && actual.compareTo(condition.getMaxValue()) > 0);
-            case EQUALS -> condition.getMinValue() != null && actual.compareTo(condition.getMinValue()) != 0;
+            // Yêu cầu BẰNG threshold -> Vi phạm nếu KHÁC
+            case EQUALS -> threshold != null && actual.compareTo(threshold) != 0;
         };
     }
 
+    // Chuyển đổi BigDecimal sang Double
     private Double toDouble(BigDecimal value) {
         return value != null ? value.doubleValue() : null;
     }
 
+    // Kết quả của RuleEngineService
     public record RuleEngineResult(
             List<TreatmentDTO> treatments,
             List<String> warnings,

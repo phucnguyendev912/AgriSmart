@@ -25,6 +25,14 @@ const DiagnosisPage = () => {
     const [error, setError] = useState('');
     const [gpsStatus, setGpsStatus] = useState('pending');
     const [coords, setCoords] = useState({ latitude: null, longitude: null });
+    
+    // Rating state
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const [accuracy, setAccuracy] = useState(null); // 'accurate' | 'inaccurate'
+    const [rating, setRating] = useState(0);
+    const [hoveredRating, setHoveredRating] = useState(0);
+    const [feedback, setFeedback] = useState('');
+    const [showToast, setShowToast] = useState(false);
 
     // === FETCH CROP TYPES ===
     useEffect(() => {
@@ -101,6 +109,19 @@ const DiagnosisPage = () => {
         }
     };
 
+    // === HANDLE RATING SUBMIT ===
+    const handleRatingSubmit = () => {
+        if (!accuracy && rating === 0) return;
+        // Thực tế sẽ gọi API lưu đánh giá ở đây
+        setIsRatingModalOpen(false);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000); // Ẩn thông báo sau 3s
+        // Reset state after submit
+        setAccuracy(null);
+        setRating(0);
+        setFeedback('');
+    };
+
     // === HELPER FUNCTIONS ===
     const getCultivationMeasures = (result) => {
         if (!result) return [];
@@ -123,6 +144,7 @@ const DiagnosisPage = () => {
     const sprayPrograms = result?.sprayPrograms || [];
     const interactionWarnings = result?.interactionWarnings || [];
     const weatherAlerts = result?.weatherAlerts || [];
+    const warnings = result?.warnings || [];
 
     const getSeverityClasses = (severity) => {
         if (severity === 'NANG') return "bg-error-container text-on-error-container";
@@ -287,51 +309,83 @@ const DiagnosisPage = () => {
                                         </div>
                                     )
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {diseases.map((disease, idx) => {
-                                            const diseaseTreatmentIds = (result.treatments || [])
-                                                .filter(t => t.diseaseId === disease.diseaseId)
-                                                .map(t => t.treatmentPlanId);
-                                            const relevantWeatherAlerts = (result.weatherAlerts || [])
-                                                .filter(a => diseaseTreatmentIds.includes(a.treatmentPlanId) && a.violated);
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {diseases.map((disease, idx) => {
+                                                const diseaseTreatmentIds = (result.treatments || [])
+                                                    .filter(t => t.diseaseId === disease.diseaseId)
+                                                    .map(t => t.treatmentPlanId);
+                                                const relevantWeatherAlerts = (result.weatherAlerts || [])
+                                                    .filter(a => diseaseTreatmentIds.includes(a.treatmentPlanId) && a.violated);
 
-                                            return (
-                                                <div key={idx} className="p-3.5 rounded-xl border-2 border-primary bg-primary/5 shadow-sm">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <h4 className="font-black text-on-surface text-sm">{disease.diseaseName}</h4>
-                                                            <span className={`${getSeverityClasses(disease.severity)} text-[8px] px-1.5 py-0.5 rounded font-black uppercase`}>
-                                                                Mức độ: {getSeverityLabel(disease.severity)}
-                                                            </span>
+                                                return (
+                                                    <div key={idx} className="p-3.5 rounded-xl border-2 border-primary bg-primary/5 shadow-sm">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <div>
+                                                                <h4 className="font-black text-on-surface text-sm">{disease.diseaseName}</h4>
+                                                                <span className={`${getSeverityClasses(disease.severity)} text-[8px] px-1.5 py-0.5 rounded font-black uppercase`}>
+                                                                    Mức độ: {getSeverityLabel(disease.severity)}
+                                                                </span>
+                                                            </div>
+                                                            <span className="text-xl font-black text-primary">{disease.confidence != null ? `${Math.round(disease.confidence * 100)}%` : 'N/A'}</span>
                                                         </div>
-                                                        <span className="text-xl font-black text-primary">{disease.confidence != null ? `${Math.round(disease.confidence * 100)}%` : 'N/A'}</span>
+                                                        {disease.confidence != null && (
+                                                            <div className="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden mb-1">
+                                                                <div className="bg-primary h-full transition-all duration-1000" style={{ width: `${disease.confidence * 100}%` }}></div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Weather Alerts removed from here to be displayed at the bottom */}
                                                     </div>
-                                                    {disease.confidence != null && (
-                                                        <div className="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden mb-1">
-                                                            <div className="bg-primary h-full transition-all duration-1000" style={{ width: `${disease.confidence * 100}%` }}></div>
+                                                );
+                                            })}
+                                        </div>
+                                        
+                                        {/* Unified Weather Alerts Section under Diseases */}
+                                        {weatherAlerts && weatherAlerts.filter(a => a.violated).length > 0 && (
+                                            <div className="mt-4 space-y-3">
+                                                {weatherAlerts.filter(a => a.violated).map((alert, aIdx) => {
+                                                    const text = alert.recommendationNote || `${alert.weatherFactor} hiện tại (${alert.actualValue}${alert.unit || ''}) không thích hợp.`;
+                                                    const colonIdx = text.indexOf(':');
+                                                    const hasColon = colonIdx > 0 && colonIdx < 80;
+                                                    const title = hasColon ? text.substring(0, colonIdx) : "Cảnh báo thời tiết";
+                                                    const desc = hasColon ? text.substring(colonIdx + 1).trim() : text;
+                                                    
+                                                    return (
+                                                        <div key={aIdx} className="p-4 bg-error/5 border border-error/20 rounded-xl flex items-start gap-3">
+                                                            <span className="material-symbols-outlined text-error mt-0.5">warning</span>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-bold text-error break-words leading-tight">{title}</span>
+                                                                <span className="text-xs text-on-surface-variant mt-1 leading-relaxed">{desc}</span>
+                                                            </div>
                                                         </div>
-                                                    )}
-
-                                                    {/* Weather Alerts for this specific disease */}
-                                                    {relevantWeatherAlerts.length > 0 && (
-                                                        <div className="mt-3 space-y-2">
-                                                            {relevantWeatherAlerts.map((alert, aIdx) => (
-                                                                <div key={aIdx} className="flex items-start gap-2 p-2 bg-error/10 border border-error/20 rounded-lg animate-pulse">
-                                                                    <span className="material-symbols-outlined text-error text-base shrink-0">warning</span>
-                                                                    <div className="flex flex-col">
-                                                                        <span className="text-[9px] font-black text-error uppercase leading-tight">Thời tiết không thuận lợi</span>
-                                                                        <p className="text-[10px] text-on-surface leading-tight mt-0.5">
-                                                                            {alert.recommendationNote || `${alert.weatherFactor} hiện tại (${alert.actualValue}${alert.unit || ''}) không thích hợp.`}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        
+                                        {/* General Warnings Section */}
+                                        {warnings && warnings.length > 0 && (
+                                            <div className="mt-4 space-y-3">
+                                                {warnings.map((warning, wIdx) => {
+                                                    const colonIdx = warning.indexOf(':');
+                                                    const hasColon = colonIdx > 0 && colonIdx < 80;
+                                                    const title = hasColon ? warning.substring(0, colonIdx) : "Cảnh báo";
+                                                    const desc = hasColon ? warning.substring(colonIdx + 1).trim() : warning;
+                                                    
+                                                    return (
+                                                        <div key={wIdx} className="p-4 bg-error/5 border border-error/20 rounded-xl flex items-start gap-3">
+                                                            <span className="material-symbols-outlined text-error mt-0.5">warning</span>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-bold text-error break-words leading-tight">{title}</span>
+                                                                <span className="text-xs text-on-surface-variant mt-1 leading-relaxed">{desc}</span>
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}
@@ -548,6 +602,17 @@ const DiagnosisPage = () => {
                                     </ul>
                                 </div>
                             )}
+
+                            {/* OPEN RATING MODAL BUTTON */}
+                            <div className="flex justify-center mt-8">
+                                <button 
+                                    onClick={() => setIsRatingModalOpen(true)}
+                                    className="px-6 py-3 bg-secondary-container text-on-secondary-container rounded-full font-bold shadow-sm flex items-center gap-2 hover:brightness-105 active:scale-95 transition-all"
+                                >
+                                    <span className="material-symbols-outlined text-xl">rate_review</span>
+                                    Đánh giá kết quả chẩn đoán
+                                </button>
+                            </div>
                         </div>
 
                         {/* RIGHT COLUMN: AI Chat Sidebar (lg:col-span-4) */}
@@ -605,13 +670,117 @@ const DiagnosisPage = () => {
                 </Link>
             </div>
 
-            {/* Floating Action Button */}
-            <div className="fixed bottom-20 right-6 md:bottom-8 md:right-8 z-50">
-                <button className="w-14 h-14 md:w-16 md:h-16 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group">
-                    <span className="material-symbols-outlined text-2xl md:text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>chat</span>
-                    <span className="absolute right-full mr-4 bg-slate-900 text-white px-3 py-1.5 rounded-lg text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden md:block">Chat với AgriBot</span>
-                </button>
-            </div>
+
+
+            {/* ========== MODAL RATING ========== */}
+            {isRatingModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-zinc-950/40 backdrop-blur-[2px]">
+                    <div className="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+                        {/* Modal Header */}
+                        <div className="px-8 pt-8 pb-6 text-center">
+                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="material-symbols-outlined text-primary text-3xl">rate_review</span>
+                            </div>
+                            <h2 className="text-2xl font-bold tracking-tight text-on-surface">Đánh giá kết quả chẩn đoán</h2>
+                            <p className="text-on-surface-variant text-sm mt-2 leading-relaxed px-4">
+                                Ý kiến của bạn giúp AI của chúng tôi học hỏi và hỗ trợ nông dân tốt hơn mỗi ngày.
+                            </p>
+                        </div>
+                        {/* Modal Body */}
+                        <div className="px-8 pb-8 space-y-8">
+                            {/* Accuracy Toggle */}
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center block">Kết quả chẩn đoán có chính xác không?</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button 
+                                        onClick={() => setAccuracy('accurate')}
+                                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${accuracy === 'accurate' ? 'border-primary bg-primary/10 text-primary' : 'border-zinc-100 hover:border-zinc-200 text-zinc-400 hover:text-zinc-600'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-2xl mb-1" style={{ fontVariationSettings: accuracy === 'accurate' ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
+                                        <span className="text-sm font-bold">Chính xác</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => setAccuracy('inaccurate')}
+                                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${accuracy === 'inaccurate' ? 'border-error bg-error-container text-on-error-container' : 'border-zinc-100 hover:border-zinc-200 text-zinc-400 hover:text-zinc-600'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-2xl mb-1">cancel</span>
+                                        <span className="text-sm font-medium">Không chính xác</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {/* Star Rating */}
+                            <div className="space-y-3 text-center">
+                                <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block">Đánh giá trải nghiệm</label>
+                                <div className="flex justify-center gap-2">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <button 
+                                            key={star}
+                                            onClick={() => setRating(star)}
+                                            onMouseEnter={() => setHoveredRating(star)}
+                                            onMouseLeave={() => setHoveredRating(0)}
+                                            className={`transition-transform hover:scale-125 ${star <= (hoveredRating || rating) ? 'text-secondary' : 'text-zinc-200'}`}
+                                        >
+                                            <span 
+                                                className="material-symbols-outlined text-3xl" 
+                                                style={{ fontVariationSettings: star <= (hoveredRating || rating) ? "'FILL' 1" : "'FILL' 0" }}
+                                            >
+                                                star
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Feedback Area */}
+                            <div className="space-y-2">
+                                <textarea 
+                                    className="w-full bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-400" 
+                                    placeholder="Ý kiến đóng góp khác (tùy chọn)..." 
+                                    rows="3"
+                                    value={feedback}
+                                    onChange={(e) => setFeedback(e.target.value)}
+                                ></textarea>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={handleRatingSubmit}
+                                    className="w-full py-4 bg-primary text-on-primary rounded-lg font-bold shadow-lg shadow-emerald-900/10 hover:brightness-110 active:scale-[0.98] transition-all"
+                                >
+                                    Gửi đánh giá
+                                </button>
+                                <button 
+                                    onClick={() => setIsRatingModalOpen(false)}
+                                    className="w-full py-3 text-zinc-500 hover:text-zinc-800 text-sm font-medium transition-colors"
+                                >
+                                    Bỏ qua
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast Notification */}
+            {showToast && (
+                <div className="fixed top-20 right-6 z-[60] flex items-center gap-3 bg-zinc-900 text-white px-4 py-3 rounded-xl shadow-2xl animate-bounce-subtle">
+                    <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-white text-xs">done</span>
+                    </div>
+                    <span className="text-sm font-medium pr-2 whitespace-nowrap">Cảm ơn bạn đã đánh giá!</span>
+                </div>
+            )}
+            <style>{`
+                @keyframes bounce-subtle {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-5px); }
+                }
+                .animate-bounce-subtle {
+                    animation: bounce-subtle 2s ease-in-out infinite;
+                }
+            `}</style>
         </div>
     );
 };

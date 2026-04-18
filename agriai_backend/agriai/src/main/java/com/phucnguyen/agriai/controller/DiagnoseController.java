@@ -5,7 +5,7 @@ import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
 import com.phucnguyen.agriai.service.DiagnoseService;
 import jakarta.validation.Valid;
 import java.security.Principal;
-import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,20 +29,4 @@ public class DiagnoseController {
         return ResponseEntity.ok(diagnoseService.diagnose(email, request));
     }
 
-    /**
-     * GET /api/diagnosis/history — Lịch sử chẩn đoán của user
-     */
-    @GetMapping("/history")
-    public ResponseEntity<List<DiagnoseResponse>> getHistory(Principal principal) {
-        String email = principal != null ? principal.getName() : null;
-        return ResponseEntity.ok(diagnoseService.getHistory(email));
-    }
-
-    /**
-     * GET /api/diagnosis/{id} — Chi tiết 1 lần chẩn đoán
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<DiagnoseResponse> getDetail(@PathVariable Integer id) {
-        return ResponseEntity.ok(diagnoseService.getDetail(id));
-    }
 }

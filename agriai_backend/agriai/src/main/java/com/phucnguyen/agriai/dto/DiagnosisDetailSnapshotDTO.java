@@ -16,5 +16,7 @@ public class DiagnosisDetailSnapshotDTO {
     private String diagnosisType;
     private List<TreatmentDTO> treatments;
     private List<TreatmentProgramDTO> sprayPrograms;
+    private List<InteractionWarningDTO> interactionWarnings;
+    private List<WeatherAlertDTO> weatherAlerts;
     private List<String> warnings;
 }

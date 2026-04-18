@@ -1,15 +1,19 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import LandingPage from './pages/LandingPage';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import FarmingAreaPage from './pages/FarmingAreaPage';
-import DiagnosisPage from './pages/DiagnosisPage';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import LandingPage from "./pages/LandingPage";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import FarmingAreaPage from "./pages/FarmingAreaPage";
+import DiagnosisPage from "./pages/DiagnosisPage";
+import DiagnosisHistoryPage from "./pages/DiagnosisHistoryPage";
+import DiagnosisHistoryDetailPage from "./pages/DiagnosisHistoryDetailPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import ChatBotWidget from "./components/ChatBotWidget";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -26,10 +30,21 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/farming-areas" element={<FarmingAreaPage />} />
             <Route path="/diagnosis" element={<DiagnosisPage />} />
+            <Route path="/history" element={<DiagnosisHistoryPage />} />
+            <Route
+              path="/history/:id"
+              element={<DiagnosisHistoryDetailPage />}
+            />
+            <Route path="/notifications" element={<NotificationsPage />} />
           </Routes>
         </div>
+        <ChatBotWidget />
         <Footer />
-        <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} />
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+        />
       </div>
     </Router>
   );
