@@ -20,4 +20,8 @@ public class DiagnoseRequest {
     private Double latitude;
 
     private Double longitude;
+
+    public boolean hasGps() {
+        return latitude != null && longitude != null;
+    }
 }

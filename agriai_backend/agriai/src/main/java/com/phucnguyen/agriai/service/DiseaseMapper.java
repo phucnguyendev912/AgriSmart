@@ -29,21 +29,26 @@ public class DiseaseMapper {
     public Optional<Disease> findDisease(String label) {
         String cleanLabel = label.trim();
         String underscoreLabel = cleanLabel.replace(" ", "_");
+        String spaceLabel = cleanLabel.replace("_", " ");
 
-        Optional<Disease> result = diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(cleanLabel);
-        if (result.isEmpty()) {
-            result = diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(underscoreLabel);
+        java.util.List<String> candidates = java.util.List.of(
+                cleanLabel, underscoreLabel, spaceLabel);
+
+        for (String candidate : candidates) {
+            Optional<Disease> result = diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(candidate);
+            if (result.isPresent())
+                return result;
+
+            result = diseaseRepository.findByDiseaseNameEnIgnoreCaseAndIsDeleteFalse(candidate);
+            if (result.isPresent())
+                return result;
+
+            result = diseaseRepository.findByDiseaseNameIgnoreCaseAndIsDeleteFalse(candidate);
+            if (result.isPresent())
+                return result;
         }
-        if (result.isEmpty()) {
-            result = diseaseRepository.findByDiseaseNameEnIgnoreCaseAndIsDeleteFalse(cleanLabel);
-        }
-        if (result.isEmpty()) {
-            result = diseaseRepository.findByDiseaseNameEnIgnoreCaseAndIsDeleteFalse(underscoreLabel);
-        }
-        if (result.isEmpty()) {
-            result = diseaseRepository.findByDiseaseNameIgnoreCaseAndIsDeleteFalse(cleanLabel);
-        }
-        return result;
+
+        return Optional.empty();
     }
 
     /**

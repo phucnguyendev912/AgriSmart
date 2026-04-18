@@ -23,7 +23,7 @@ import java.util.List;
 @Service
 public class VisionAIService implements VisionDetectionPort {
 
-    @Value("${vision.ai.url:http://localhost:8000/predict}")
+    @Value("${vision.ai.url:http://localhost:8010/predict}")
     private String predictUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();

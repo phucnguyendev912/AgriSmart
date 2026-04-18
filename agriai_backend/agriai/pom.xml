@@ -61,8 +61,8 @@
 		</dependency>
 		<dependency>
 			<groupId>dev.langchain4j</groupId>
-			<artifactId>langchain4j-open-ai</artifactId>
-			<version>0.31.0</version>
+			<artifactId>langchain4j-google-ai-gemini</artifactId>
+			<version>1.0.0-beta1</version>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

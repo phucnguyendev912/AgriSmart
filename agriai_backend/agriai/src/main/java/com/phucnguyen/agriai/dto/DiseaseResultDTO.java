@@ -12,6 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class DiseaseResultDTO {
+    private Integer diseaseId;
+    private String diseaseCode;
     private String diseaseName;
     private Double confidence;
     private String severity;

@@ -5,6 +5,14 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
+// Reason code → Vietnamese label mapping
+const REASON_LABELS = {
+    MIX_COMPATIBLE: "Các hoạt chất tương thích, có thể phun chung",
+    CONFLICT_SEPARATED: "Tách lịch phun do xung đột hoạt chất",
+    WEATHER_BLOCKED: "Điều kiện thời tiết chưa phù hợp, cần hoãn phun",
+    DEFAULT_PRIORITY: "Áp dụng phác đồ ưu tiên cho từng bệnh"
+};
+
 const DiagnosisPage = () => {
     // === STATE ===
     const { accessToken } = useAuth();
@@ -15,7 +23,7 @@ const DiagnosisPage = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
-    const [gpsStatus, setGpsStatus] = useState('pending'); // pending | granted | denied
+    const [gpsStatus, setGpsStatus] = useState('pending');
     const [coords, setCoords] = useState({ latitude: null, longitude: null });
 
     // === FETCH CROP TYPES ===
@@ -93,11 +101,28 @@ const DiagnosisPage = () => {
         }
     };
 
-    // === HELPER ===
+    // === HELPER FUNCTIONS ===
+    const getCultivationMeasures = (result) => {
+        if (!result) return [];
+        const { diagnosisType, sprayPrograms } = result;
+        const strategy = sprayPrograms && sprayPrograms.length > 0 ? sprayPrograms[0].strategy : "";
+        if (diagnosisType === "HEALTHY") {
+            return ["Tiếp tục theo dõi lá và thân 2-3 ngày/lần, giữ ruộng thông thoáng."];
+        }
+        if (diagnosisType === "UNKNOWN") {
+            return ["Ảnh chưa đủ rõ để xác định bệnh. Nên chụp gần vùng tổn thương và chụp rõ nét hơn."];
+        }
+        if (strategy === "SEPARATE_SPRAY") {
+            return ["Đã tách lịch phun theo từng nhóm hoạt chất để tránh xung đột."];
+        }
+        return ["Có thể xử lý trong một đợt phun, nhưng cần đọc kỹ cảnh báo trước khi pha."];
+    };
     const diseases = result?.diseases || [];
     const weather = result?.weather;
     const treatments = result?.treatments || [];
-    const warnings = result?.warnings || [];
+    const sprayPrograms = result?.sprayPrograms || [];
+    const interactionWarnings = result?.interactionWarnings || [];
+    const weatherAlerts = result?.weatherAlerts || [];
 
     const getSeverityClasses = (severity) => {
         if (severity === 'NANG') return "bg-error-container text-on-error-container";
@@ -109,6 +134,11 @@ const DiagnosisPage = () => {
         if (severity === 'TRUNG_BINH') return 'Trung bình';
         if (severity === 'NHE') return 'Nhẹ';
         return severity || 'N/A';
+    };
+    const getSeverityColor = (sev) => {
+        if (sev === 'HIGH') return 'text-red-600 bg-red-50 border-red-200';
+        if (sev === 'MEDIUM') return 'text-orange-600 bg-orange-50 border-orange-200';
+        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
     };
 
     return (
@@ -175,7 +205,6 @@ const DiagnosisPage = () => {
                                     <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                 </label>
                             </div>
-                            {/* Diagnose Button */}
                             <button
                                 onClick={handleDiagnose}
                                 disabled={loading || !selectedFile}
@@ -259,37 +288,49 @@ const DiagnosisPage = () => {
                                     )
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {diseases.map((disease, idx) => (
-                                            <div key={idx} className="p-3.5 rounded-xl border-2 border-primary bg-primary/5 shadow-sm">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <h4 className="font-black text-on-surface text-sm">{disease.diseaseName}</h4>
-                                                        <span className={`${getSeverityClasses(disease.severity)} text-[8px] px-1.5 py-0.5 rounded font-black uppercase`}>
-                                                            Mức độ: {getSeverityLabel(disease.severity)}
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-xl font-black text-primary">{disease.confidence != null ? `${Math.round(disease.confidence * 100)}%` : 'N/A'}</span>
-                                                </div>
-                                                {disease.confidence != null && (
-                                                    <div className="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
-                                                        <div className="bg-primary h-full" style={{ width: `${disease.confidence * 100}%` }}></div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                        {diseases.map((disease, idx) => {
+                                            const diseaseTreatmentIds = (result.treatments || [])
+                                                .filter(t => t.diseaseId === disease.diseaseId)
+                                                .map(t => t.treatmentPlanId);
+                                            const relevantWeatherAlerts = (result.weatherAlerts || [])
+                                                .filter(a => diseaseTreatmentIds.includes(a.treatmentPlanId) && a.violated);
 
-                                        {/* Warnings */}
-                                        {warnings.length > 0 && (
-                                            <div className="col-span-1 md:col-span-2 p-4 bg-error/5 border border-error/20 rounded-xl flex gap-3 items-start">
-                                                <span className="material-symbols-outlined text-error shrink-0">warning</span>
-                                                <div className="flex-grow">
-                                                    <p className="text-sm font-bold text-error">Cảnh báo</p>
-                                                    {warnings.map((w, i) => (
-                                                        <p key={i} className="text-xs text-on-surface-variant mt-1">{w}</p>
-                                                    ))}
+                                            return (
+                                                <div key={idx} className="p-3.5 rounded-xl border-2 border-primary bg-primary/5 shadow-sm">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            <h4 className="font-black text-on-surface text-sm">{disease.diseaseName}</h4>
+                                                            <span className={`${getSeverityClasses(disease.severity)} text-[8px] px-1.5 py-0.5 rounded font-black uppercase`}>
+                                                                Mức độ: {getSeverityLabel(disease.severity)}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-xl font-black text-primary">{disease.confidence != null ? `${Math.round(disease.confidence * 100)}%` : 'N/A'}</span>
+                                                    </div>
+                                                    {disease.confidence != null && (
+                                                        <div className="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden mb-1">
+                                                            <div className="bg-primary h-full transition-all duration-1000" style={{ width: `${disease.confidence * 100}%` }}></div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Weather Alerts for this specific disease */}
+                                                    {relevantWeatherAlerts.length > 0 && (
+                                                        <div className="mt-3 space-y-2">
+                                                            {relevantWeatherAlerts.map((alert, aIdx) => (
+                                                                <div key={aIdx} className="flex items-start gap-2 p-2 bg-error/10 border border-error/20 rounded-lg animate-pulse">
+                                                                    <span className="material-symbols-outlined text-error text-base shrink-0">warning</span>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[9px] font-black text-error uppercase leading-tight">Thời tiết không thuận lợi</span>
+                                                                        <p className="text-[10px] text-on-surface leading-tight mt-0.5">
+                                                                            {alert.recommendationNote || `${alert.weatherFactor} hiện tại (${alert.actualValue}${alert.unit || ''}) không thích hợp.`}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        )}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -305,138 +346,243 @@ const DiagnosisPage = () => {
                     </div>
                 </div>
 
-                {/* Treatment Section - Only show when we have actual results with diseases */}
-                {result && treatments.length > 0 && (
-                    <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-surface-container-highest">
-                        <div className="px-6 py-4 border-b border-surface-container-highest bg-white dark:bg-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
-                                <span className="text-xl">🔬</span> {diseases.length === 1 ? "Phác đồ xử lý chi tiết" : "Phác đồ kết hợp"}
-                            </h3>
-                            <div className="flex items-center gap-3">
-                                {diseases.length >= 2 && (
-                                    <span className="bg-orange-100 text-orange-700 text-[10px] px-2.5 py-1 rounded-full font-black uppercase flex items-center gap-1">⚠️ {diseases.length} BỆNH</span>
-                                )}
-                                <span className="bg-error-container text-on-error-container text-[10px] px-2.5 py-1 rounded-full font-black uppercase">ƯU TIÊN XỬ LÝ</span>
-                            </div>
-                        </div>
-
-                        <div className="p-6 space-y-8">
-                            {/* Weather badges */}
-                            {weather && (
-                                <div className="flex flex-wrap gap-2">
-                                    {weather.temperature != null && (
-                                        <div className="px-3 py-1.5 bg-tertiary/5 border border-tertiary/10 rounded-lg flex items-center gap-2">
-                                            <span className="text-xs font-bold text-on-surface">{Math.round(weather.temperature)}°C</span>
-                                            <span className="text-[10px] font-medium text-on-surface-variant uppercase border-l border-outline-variant/50 pl-2">Nhiệt độ</span>
-                                        </div>
-                                    )}
-                                    {weather.humidity != null && (
-                                        <div className="px-3 py-1.5 bg-tertiary/5 border border-tertiary/10 rounded-lg flex items-center gap-2">
-                                            <span className="text-xs font-bold text-on-surface">{Math.round(weather.humidity)}%</span>
-                                            <span className="text-[10px] font-medium text-on-surface-variant uppercase border-l border-outline-variant/50 pl-2">Độ ẩm</span>
-                                        </div>
-                                    )}
-                                    {weather.rainfall != null && (
-                                        <div className="px-3 py-1.5 bg-tertiary/5 border border-tertiary/10 rounded-lg flex items-center gap-2">
-                                            <span className="text-xs font-bold text-on-surface">{weather.rainfall}mm</span>
-                                            <span className="text-[10px] font-medium text-on-surface-variant uppercase border-l border-outline-variant/50 pl-2">Lượng mưa</span>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Medicine Cards */}
-                            <div className="bg-white dark:bg-slate-800 rounded-xl border border-surface-container-highest overflow-hidden shadow-sm">
-                                <div className="px-5 py-3 bg-surface-container-low border-b border-surface-container-highest">
-                                    <h4 className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
-                                        {diseases.length === 1 ? "THUỐC ĐẶC TRỊ ĐỀ XUẤT" : "THUỐC PHA CHUNG (BÌNH 16 LÍT)"}
-                                    </h4>
-                                </div>
-                                <div className="divide-y divide-surface-container-highest">
-                                    {treatments.map((t, idx) => (
-                                        <div key={idx} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="font-bold text-on-surface text-lg">{t.drugName || t.treatmentName}</span>
-                                                {t.diseaseName && <span className="text-xs text-slate-400 font-medium">({t.diseaseName})</span>}
-                                            </div>
-                                            <div className="flex items-center gap-4">
-                                                {t.dosage && <span className="text-[#2E7D32] font-black text-lg">{t.dosage}</span>}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Info Cards */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {treatments[0]?.frequency && (
-                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-surface-container-highest flex flex-col">
-                                        <p className="text-[11px] font-bold text-on-surface-variant uppercase mb-1">⏱ TẦN SUẤT</p>
-                                        <p className="text-sm font-bold text-on-surface">{treatments[0].frequency}</p>
-                                    </div>
-                                )}
-                                {treatments[0]?.applicationTime && (
-                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-surface-container-highest flex flex-col">
-                                        <p className="text-[11px] font-bold text-on-surface-variant uppercase mb-1">🌅 THỜI ĐIỂM</p>
-                                        <p className="text-sm font-bold text-on-surface">{treatments[0].applicationTime}</p>
-                                    </div>
-                                )}
-                                {treatments[0]?.safetyNotes && (
-                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-surface-container-highest flex flex-col">
-                                        <p className="text-[11px] font-bold text-on-surface-variant uppercase mb-1">⚠️ LƯU Ý</p>
-                                        <p className="text-sm font-bold text-on-surface">{treatments[0].safetyNotes}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Cultivation & Guidance - only with results */}
-                {result && (result.userGuidance || (result.cultivationMeasures && result.cultivationMeasures.length > 0) || (result.warnings && result.warnings.length > 0)) && (
-                    <div className="bg-surface-container-lowest p-6 rounded-xl border border-surface-container-highest shadow-sm mb-20 md:mb-0">
-                        <div className="space-y-4">
-                            <h4 className="font-black text-on-surface flex items-center gap-2 text-xs uppercase tracking-widest border-l-4 border-[#2E7D32] pl-3">
-                                BIỆN PHÁP CANH TÁC & CẢNH BÁO
-                            </h4>
+                {/* ========== PARALLEL LAYOUT SECTION ========== */}
+                {result && (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        
+                        {/* LEFT COLUMN: Technical phác đồ (lg:col-span-8) */}
+                        <div className="lg:col-span-8 space-y-6">
                             
-                            {result.warnings && result.warnings.length > 0 && (
-                                <ul className="space-y-3 mb-4">
-                                    {result.warnings.map((w, i) => (
-                                        <li key={`warning-${i}`} className="flex gap-3 items-start text-sm leading-relaxed text-error font-medium">
-                                            <span className="material-symbols-outlined text-[18px] mt-0.5">warning</span>
-                                            <span>{w}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                            {/* SPRAY PROGRAMS */}
+                            {sprayPrograms.length > 0 && (
+                                <div className="space-y-6">
+                                    <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+                                        <span className="text-xl">🔬</span>
+                                        {sprayPrograms.length === 1 ? "Phác đồ xử lý chi tiết" : `Phác đồ điều trị`}
+                                    </h3>
 
-                            {result.cultivationMeasures && result.cultivationMeasures.length > 0 && (
-                                <ul className="space-y-4">
-                                    {result.cultivationMeasures.map((m, i) => (
-                                        <li key={`measure-${i}`} className="flex gap-3 items-start text-sm leading-relaxed text-on-surface">
-                                            <span className="material-symbols-outlined text-[#2E7D32] text-[18px] mt-0.5">check_circle</span>
-                                            <span>{m}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                                    {sprayPrograms.map((program, pIdx) => (
+                                        <div key={pIdx} className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-surface-container-highest">
+                                            {/* Program Header */}
+                                                <div className="px-6 py-4 border-b border-surface-container-highest bg-white dark:bg-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <h4 className="font-bold text-on-surface">
+                                                            {(() => {
+                                                                if (sprayPrograms.length <= 1) {
+                                                                    return (program.diseaseNames && program.diseaseNames.length > 1) 
+                                                                        ? "Phác đồ kết hợp" 
+                                                                        : "Phác đồ điều trị";
+                                                                }
+                                                                return `Đợt phun ${program.programOrder}${program.intervalDays ? ` (cách đợt trước ${program.intervalDays} ngày)` : ""}`;
+                                                            })()}
+                                                        </h4>
+                                                    </div>
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    {program.status === 'BLOCKED_BY_WEATHER' && (
+                                                        <span className="text-[10px] px-2.5 py-1 rounded-full font-black uppercase bg-error-container text-on-error-container">
+                                                            ⛈ Chờ thời tiết
+                                                        </span>
+                                                    )}
+                                                    {program.mixAllowed === false && (
+                                                        <span className="bg-orange-100 text-orange-700 text-[10px] px-2.5 py-1 rounded-full font-black uppercase">⚠️ Không pha chung</span>
+                                                    )}
+                                                </div>
+                                            </div>
 
-                            {result.userGuidance && (
-                                <div className="p-4 mt-2 bg-surface-container rounded-xl border border-surface-container-highest relative">
-                                    <span className="material-symbols-outlined absolute -top-3 -left-3 bg-white dark:bg-slate-800 text-primary p-1 rounded-full border border-surface-container-highest shadow-sm">lightbulb</span>
-                                    <p className="text-sm leading-relaxed text-on-surface-variant italic">
-                                        "{result.userGuidance}"
-                                    </p>
+                                            <div className="p-6 space-y-5">
+                                                {/* Reasons */}
+                                                {program.reasons && program.reasons.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {program.reasons.map((code, rIdx) => (
+                                                            <span key={rIdx} className="text-xs px-3 py-1.5 bg-surface-container rounded-lg text-on-surface-variant font-medium border border-surface-container-highest">
+                                                                {REASON_LABELS[code] || code}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Treatment Cards */}
+                                                <div className="space-y-4">
+                                                    {program.treatments && program.treatments.map((t, tIdx) => (
+                                                        <div key={tIdx} className="bg-white dark:bg-slate-800 rounded-xl border border-surface-container-highest overflow-hidden shadow-sm">
+                                                            <div className="px-5 py-3 bg-surface-container-low border-b border-surface-container-highest flex items-center justify-between">
+                                                                <div className="flex items-baseline gap-2">
+                                                                    <span className="font-bold text-on-surface text-lg">{t.drugName || t.treatmentName}</span>
+                                                                    {t.diseaseName && <span className="text-xs text-slate-400 font-medium">({t.diseaseName})</span>}
+                                                                </div>
+                                                                {t.dosage && <span className="text-[#2E7D32] font-black text-lg">{t.dosage}</span>}
+                                                            </div>
+
+                                                            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                {t.ingredientName && (
+                                                                    <div>
+                                                                        <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">🧪 Hoạt chất</p>
+                                                                        <p className="text-sm font-bold text-on-surface">{t.ingredientName}</p>
+                                                                    </div>
+                                                                )}
+                                                                {(t.dosagePerHaValue || t.dosagePerHaUnit) && (
+                                                                    <div>
+                                                                        <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">📏 Liều lượng/ha</p>
+                                                                        <p className="text-sm font-bold text-on-surface">{t.dosagePerHaValue} {t.dosagePerHaUnit}</p>
+                                                                    </div>
+                                                                )}
+                                                                {t.waterVolumePerHa && (
+                                                                    <div>
+                                                                        <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">💧 Lượng nước/ha</p>
+                                                                        <p className="text-sm font-bold text-on-surface">{t.waterVolumePerHa}</p>
+                                                                    </div>
+                                                                )}
+                                                                {t.applicationMethod && (
+                                                                    <div>
+                                                                        <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">🎯 Cách dùng</p>
+                                                                        <p className="text-sm font-bold text-on-surface">{t.applicationMethod}</p>
+                                                                    </div>
+                                                                )}
+                                                                {t.applicationTime && (
+                                                                    <div>
+                                                                        <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">🌅 Thời điểm</p>
+                                                                        <p className="text-sm font-bold text-on-surface">{t.applicationTime}</p>
+                                                                    </div>
+                                                                )}
+                                                                {t.frequency && (
+                                                                    <div>
+                                                                        <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">⏱ Tần suất</p>
+                                                                        <p className="text-sm font-bold text-on-surface">{t.frequency}</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {t.safetyNotes && (
+                                                                <div className="px-5 pb-4">
+                                                                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                                                        <p className="text-xs font-bold text-amber-800">⚠️ Lưu ý an toàn</p>
+                                                                        <p className="text-sm text-amber-700 mt-1">{t.safetyNotes}</p>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
 
-                            {(!result.cultivationMeasures || result.cultivationMeasures.length === 0) && (!result.userGuidance) && (!result.warnings || result.warnings.length === 0) && (
-                                <p className="text-sm text-on-surface-variant italic">Chưa có biện pháp canh tác cụ thể.</p>
+                            {/* INTERACTION WARNINGS */}
+                            {interactionWarnings.length > 0 && (
+                                <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-surface-container-highest">
+                                    <div className="px-6 py-4 border-b border-surface-container-highest bg-red-50 dark:bg-red-900/20">
+                                        <h3 className="text-sm font-black text-red-700 uppercase tracking-wider flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-xl">warning</span>
+                                            Xung đột hoạt chất ({interactionWarnings.length})
+                                        </h3>
+                                    </div>
+                                    <div className="divide-y divide-surface-container-highest">
+                                        {interactionWarnings.map((iw, idx) => (
+                                            <div key={idx} className="p-5">
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="bg-primary-container text-on-primary-container text-xs px-2.5 py-1 rounded-full font-bold">{iw.ingredientAName}</span>
+                                                        <span className="text-on-surface-variant font-black">✕</span>
+                                                        <span className="bg-primary-container text-on-primary-container text-xs px-2.5 py-1 rounded-full font-bold">{iw.ingredientBName}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {iw.severity && (
+                                                            <span className={`text-[10px] px-2 py-1 rounded-full font-black uppercase border ${getSeverityColor(iw.severity)}`}>
+                                                                {iw.severity}
+                                                            </span>
+                                                        )}
+                                                        {iw.blocksMixing && (
+                                                            <span className="bg-red-100 text-red-700 text-[10px] px-2 py-1 rounded-full font-black uppercase">🚫 Cấm pha chung</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {iw.warningMessage && <p className="text-sm text-on-surface">{iw.warningMessage}</p>}
+                                                {iw.actionRule && <p className="text-xs text-on-surface-variant mt-1">Hướng xử lý: <strong>{iw.actionRule}</strong></p>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* WEATHER ALERTS */}
+                            {weatherAlerts.filter(a => a.violated).length > 0 && (
+                                <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-surface-container-highest">
+                                    <div className="px-6 py-4 border-b border-surface-container-highest bg-amber-50 dark:bg-amber-900/20">
+                                        <h3 className="text-sm font-black text-amber-700 uppercase tracking-wider flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-xl">cloud_alert</span>
+                                            Cảnh báo thời tiết ({weatherAlerts.filter(a => a.violated).length})
+                                        </h3>
+                                    </div>
+                                    <div className="divide-y divide-surface-container-highest">
+                                        {weatherAlerts.filter(a => a.violated).map((wa, idx) => (
+                                            <div key={idx} className="p-5">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-bold text-on-surface">{wa.treatmentName}</span>
+                                                    {wa.required && <span className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded font-black uppercase">Bắt buộc</span>}
+                                                </div>
+                                                <p className="text-sm text-on-surface-variant">
+                                                    {wa.weatherFactor}: hiện tại <strong>{wa.actualValue}{wa.unit || ''}</strong>
+                                                </p>
+                                                {wa.recommendationNote && <p className="text-xs text-amber-700 mt-1 font-medium">💡 {wa.recommendationNote}</p>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* CULTIVATION MEASURES */}
+                            {getCultivationMeasures(result).length > 0 && (
+                                <div className="bg-surface-container-lowest p-6 rounded-xl border border-surface-container-highest shadow-sm mt-6">
+                                    <h4 className="font-black text-on-surface flex items-center gap-2 text-xs uppercase tracking-widest border-l-4 border-[#2E7D32] pl-3 mb-4">
+                                        BIỆN PHÁP CANH TÁC BỔ SUNG
+                                    </h4>
+                                    <ul className="space-y-3">
+                                        {getCultivationMeasures(result).map((m, i) => (
+                                            <li key={`measure-${i}`} className="flex gap-3 items-start text-sm leading-relaxed text-on-surface">
+                                                <span className="material-symbols-outlined text-[#2E7D32] text-[18px] mt-0.5">check_circle</span>
+                                                <span>{m}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             )}
                         </div>
+
+                        {/* RIGHT COLUMN: AI Chat Sidebar (lg:col-span-4) */}
+                        <div className="lg:col-span-4 lg:sticky lg:top-20 space-y-4">
+                            {result.userGuidance && (
+                                <div className="bg-surface-container-lowest p-5 rounded-2xl border border-surface-container-highest shadow-md overflow-hidden relative">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                                    
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="font-black text-on-surface text-[11px] uppercase tracking-widest flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-primary text-lg">smart_toy</span>
+                                            TƯ VẤN CHUYÊN GIA AI
+                                        </h4>
+                                        <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-md">Gemini Flash</span>
+                                    </div>
+
+                                    <div className="prose prose-slate dark:prose-invert max-w-none">
+                                        <div className="text-[13px] leading-relaxed text-on-surface-variant whitespace-pre-line bg-primary/5 p-4 rounded-xl border border-primary/10">
+                                            {result.userGuidance}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t border-surface-container-highest flex items-center justify-between">
+                                        <p className="text-[10px] text-on-surface-variant italic">* Phân tích dựa trên dữ liệu bệnh và thời tiết thực tế.</p>
+                                        <button className="text-primary hover:bg-primary/10 p-1.5 rounded-full transition-colors">
+                                            <span className="material-symbols-outlined text-lg">share</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                     </div>
                 )}
+
             </main>
 
             {/* Bottom Navigation (Mobile Only) */}

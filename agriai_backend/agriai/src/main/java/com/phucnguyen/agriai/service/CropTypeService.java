@@ -15,9 +15,8 @@ public class CropTypeService {
     private CropTypeRepository cropTypeRepository;
 
     public List<CropTypeResponse> getAvailableCropTypes() {
-        return cropTypeRepository.findAll()
+        return cropTypeRepository.findByIsActiveTrueAndIsDeleteFalse()
                 .stream()
-                .filter(cropType -> !Boolean.TRUE.equals(cropType.getIsDelete()))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }

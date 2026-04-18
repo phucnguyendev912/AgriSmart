@@ -1,268 +1,333 @@
 package com.phucnguyen.agriai.service;
 
+import com.phucnguyen.agriai.dto.DiseaseResultDTO;
+import com.phucnguyen.agriai.dto.InteractionWarningDTO;
+import com.phucnguyen.agriai.dto.TreatmentDTO;
+import com.phucnguyen.agriai.dto.TreatmentProgramDTO;
 import com.phucnguyen.agriai.dto.VisionResultDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
 import com.phucnguyen.agriai.dto.request.DiagnoseRequest;
 import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
-import com.phucnguyen.agriai.entity.*;
+import com.phucnguyen.agriai.entity.AIModel;
+import com.phucnguyen.agriai.entity.CropType;
+import com.phucnguyen.agriai.entity.DiagnoseHistory;
+import com.phucnguyen.agriai.entity.Disease;
 import com.phucnguyen.agriai.enums.SeverityLevel;
-import com.phucnguyen.agriai.exception.AppException;
-import com.phucnguyen.agriai.repository.*;
+import com.phucnguyen.agriai.port.GuidancePort;
+import com.phucnguyen.agriai.port.VisionDetectionPort;
+import com.phucnguyen.agriai.port.WeatherPort;
+import com.phucnguyen.agriai.repository.DiagnoseHistoryDetailRepository;
+import com.phucnguyen.agriai.repository.DiagnoseHistoryRepository;
+import com.phucnguyen.agriai.repository.UserRepository;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DiagnoseServiceTest {
 
-        @InjectMocks
-        private DiagnoseService diagnoseService;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private DiagnoseHistoryRepository diagnoseHistoryRepository;
+    @Mock
+    private DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
+    @Mock
+    private DiagnosisValidationService diagnosisValidationService;
+    @Mock
+    private DiagnosisAttachmentService diagnosisAttachmentService;
+    @Mock
+    private VisionDetectionPort visionDetectionPort;
+    @Mock
+    private WeatherPort weatherPort;
+    @Mock
+    private RuleEngineService ruleEngineService;
+    @Mock
+    private GuidancePort guidancePort;
+    @Mock
+    private DiseaseMapper diseaseMapper;
 
-        @Mock
-        private UserRepository userRepository;
-        @Mock
-        private CropTypeRepository cropTypeRepository;
-        @Mock
-        private AIModelRepository aiModelRepository;
-        @Mock
-        private DiseaseRepository diseaseRepository;
-        @Mock
-        private DiagnoseHistoryRepository diagnoseHistoryRepository;
-        @Mock
-        private DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
-        @Mock
-        private AttachmentRepository attachmentRepository;
+    private DiagnoseService diagnoseService;
+    private CropType cropType;
+    private AIModel aiModel;
+    private Disease disease1;
+    private Disease disease2;
 
-        @Mock
-        private CloudinaryService cloudinaryService;
-        @Mock
-        private VisionAIService visionAIService;
-        @Mock
-        private WeatherApiService weatherApiService;
-        @Mock
-        private RuleEngineService ruleEngineService;
-        @Mock
-        private LLMService llmService;
+    @BeforeEach
+    void setUp() {
+        diagnoseService = new DiagnoseService(
+                userRepository,
+                diagnoseHistoryRepository,
+                diagnoseHistoryDetailRepository,
+                diagnosisValidationService,
+                diagnosisAttachmentService,
+                visionDetectionPort,
+                weatherPort,
+                ruleEngineService,
+                guidancePort,
+                diseaseMapper);
 
-        private CropType cropType;
-        private AIModel aiModel;
-        private Disease disease1;
-        private Disease disease2;
+        cropType = CropType.builder().id(1).cropName("Lua").isActive(true).build();
+        aiModel = AIModel.builder().id(10).modelFilePath("/models/rice.pt").isActive(true).build();
+        disease1 = Disease.builder()
+                .id(100)
+                .diseaseCode("blast")
+                .diseaseName("Dao on")
+                .diseaseNameEn("Rice blast")
+                .severityLevel(SeverityLevel.NANG)
+                .build();
+        disease2 = Disease.builder()
+                .id(101)
+                .diseaseCode("sheath_blight")
+                .diseaseName("Kho van")
+                .diseaseNameEn("Sheath blight")
+                .severityLevel(SeverityLevel.TRUNG_BINH)
+                .build();
 
-        @BeforeEach
-        void setUp() {
-                cropType = new CropType();
-                cropType.setId(1);
-                cropType.setCropName("Lúa");
-                cropType.setIsActive(true);
-                cropType.setIsDelete(false);
+        when(diagnoseHistoryRepository.save(any())).thenAnswer(invocation -> {
+            DiagnoseHistory history = invocation.getArgument(0);
+            if (history.getId() == null) {
+                history.setId(999);
+            }
+            return history;
+        });
+        when(diagnoseHistoryDetailRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(guidancePort.generateGuidance(any())).thenReturn("Huong dan de hieu cho nong dan.");
+    }
 
-                aiModel = new AIModel();
-                aiModel.setId(1);
-                aiModel.setModelName("YOLO-Rice");
-                aiModel.setModelFilePath("/models/rice.pt");
-                aiModel.setIsActive(true);
-                aiModel.setIsDelete(false);
+    @Test
+    @DisplayName("TC1: Chan doan thanh cong voi 1 benh")
+    void diagnose_singleDisease_success() {
+        DiagnoseRequest request = createRequest(10.1, 106.2);
+        mockContext(request);
+        when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/1.jpg");
 
-                disease1 = new Disease();
-                disease1.setId(1);
-                disease1.setDiseaseName("Bệnh Đạo Ôn");
-                disease1.setDiseaseCode("blast");
-                disease1.setSeverityLevel(SeverityLevel.NANG);
-                disease1.setIsDelete(false);
+        VisionResultDTO blastResult = VisionResultDTO.builder().label("blast").confidence(0.92).severity("NANG")
+                .build();
+        when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of(blastResult));
+        when(weatherPort.getCurrentWeather(10.1, 106.2)).thenReturn(null);
+        mockGrouping(List.of(blastResult));
+        when(diseaseMapper.findDisease("blast")).thenReturn(Optional.of(disease1));
+        when(ruleEngineService.process(anyList(), any())).thenReturn(singleDiseaseRuleEngineResult());
 
-                disease2 = new Disease();
-                disease2.setId(2);
-                disease2.setDiseaseName("Khô Vằn");
-                disease2.setDiseaseCode("sheath_blight");
-                disease2.setSeverityLevel(SeverityLevel.TRUNG_BINH);
-                disease2.setIsDelete(false);
-        }
+        DiagnoseResponse response = diagnoseService.diagnose("farmer@agriai.vn", request);
 
-        private DiagnoseRequest createRequest(MockMultipartFile file, Integer cropTypeId,
-                        Double lat, Double lon) {
-                DiagnoseRequest req = new DiagnoseRequest();
-                req.setImage(file);
-                req.setCropTypeId(cropTypeId);
-                req.setLatitude(lat);
-                req.setLongitude(lon);
-                return req;
-        }
+        assertEquals("DISEASE_DETECTED", response.getDiagnosisType());
+        assertEquals(1, response.getDiseases().size());
+        assertEquals(1, response.getSprayPrograms().size());
+        assertEquals("SINGLE_DISEASE_OR_SAFE_MIX", response.getSprayPrograms().get(0).getStrategy());
+        verify(ruleEngineService).process(List.of(disease1.getId()), null);
+    }
 
-        private MockMultipartFile validImage() {
-                return new MockMultipartFile("image", "test.jpg", "image/jpeg", new byte[] { 1, 2, 3 });
-        }
+    @Test
+    @DisplayName("TC2: Chan doan thanh cong voi nhieu benh")
+    void diagnose_multipleDiseases_success() {
+        DiagnoseRequest request = createRequest(10.1, 106.2);
+        mockContext(request);
+        when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/2.jpg");
 
-        private void setupCommonMocks() throws Exception {
-                lenient().when(cropTypeRepository.findById(1)).thenReturn(Optional.of(cropType));
-                lenient().when(aiModelRepository.findFirstByCropTypeIdAndIsActiveTrueAndIsDeleteFalse(1))
-                                .thenReturn(Optional.of(aiModel));
-                lenient().when(aiModelRepository.findFirstByIsActiveTrueAndIsDeleteFalseOrderByIdAsc())
-                                .thenReturn(Optional.of(aiModel));
-                lenient().when(cloudinaryService.upload(any())).thenReturn("https://cloudinary.com/test.jpg");
-                lenient().when(llmService.generateGuidance(any())).thenReturn("Hướng dẫn chăm sóc.");
-                when(diagnoseHistoryRepository.save(any())).thenAnswer(i -> {
-                        DiagnoseHistory h = i.getArgument(0);
-                        h.setId(100);
-                        return h;
-                });
-                when(diagnoseHistoryDetailRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-                when(attachmentRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-        }
+        VisionResultDTO blast = VisionResultDTO.builder().label("blast").confidence(0.91).severity("NANG").build();
+        VisionResultDTO sheathBlight = VisionResultDTO.builder().label("sheath_blight").confidence(0.85).build();
+        when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of(blast, sheathBlight));
+        when(weatherPort.getCurrentWeather(10.1, 106.2)).thenReturn(null);
+        mockGrouping(List.of(blast, sheathBlight));
+        when(diseaseMapper.findDisease("blast")).thenReturn(Optional.of(disease1));
+        when(diseaseMapper.findDisease("sheath_blight")).thenReturn(Optional.of(disease2));
+        when(ruleEngineService.process(anyList(), any())).thenReturn(multiDiseaseRuleEngineResult());
 
-        // ======================== TEST 1: 1 bệnh thành công ========================
-        @Test
-        @DisplayName("TC1: Chẩn đoán 1 bệnh thành công")
-        void diagnose_singleDisease_success() throws Exception {
-                setupCommonMocks();
+        DiagnoseResponse response = diagnoseService.diagnose("farmer@agriai.vn", request);
 
-                VisionResultDTO vr = VisionResultDTO.builder()
-                                .label("blast").confidence(0.92).severity("NANG").build();
-                when(visionAIService.detect(anyString(), anyString())).thenReturn(List.of(vr));
-                when(weatherApiService.getCurrentWeather(any(), any())).thenReturn(null);
-                when(diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse("blast"))
-                                .thenReturn(Optional.of(disease1));
-                when(ruleEngineService.process(anyList(), any()))
-                                .thenReturn(new RuleEngineService.RuleEngineResult(List.of(), List.of()));
+        assertEquals(2, response.getDiseases().size());
+        assertEquals(2, response.getSprayPrograms().size());
+        assertEquals("SEPARATE_SPRAY", response.getSprayPrograms().get(0).getStrategy());
+        assertEquals(1, response.getInteractionWarnings().size());
+    }
 
-                DiagnoseRequest req = createRequest(validImage(), 1, null, null);
-                DiagnoseResponse res = diagnoseService.diagnose(null, req);
+    @Test
+    @DisplayName("TC3: Vision AI tra ve cay khoe")
+    void diagnose_healthyPlant() {
+        DiagnoseRequest request = createRequest(null, null);
+        mockContext(request);
+        when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/3.jpg");
+        when(visionDetectionPort.detect(anyString(), anyString()))
+                .thenReturn(List.of(VisionResultDTO.builder().label("healthy").confidence(0.99).build()));
 
-                assertNotNull(res);
-                assertEquals(1, res.getDiseases().size());
-                assertEquals("Bệnh Đạo Ôn", res.getDiseases().get(0).getDiseaseName());
-                verify(diagnoseHistoryRepository).save(any());
-        }
+        DiagnoseResponse response = diagnoseService.diagnose("farmer@agriai.vn", request);
 
-        // ======================== TEST 2: Nhiều bệnh thành công
-        // ========================
-        @Test
-        @DisplayName("TC2: Chẩn đoán nhiều bệnh thành công")
-        void diagnose_multipleDiseases_success() throws Exception {
-                setupCommonMocks();
+        assertTrue(response.getIsHealthy());
+        assertEquals("HEALTHY", response.getDiagnosisType());
+        assertTrue(response.getDiseases().isEmpty());
+        verify(ruleEngineService, never()).process(anyList(), any());
+    }
 
-                VisionResultDTO vr1 = VisionResultDTO.builder()
-                                .label("blast").confidence(0.90).severity("NANG").build();
-                VisionResultDTO vr2 = VisionResultDTO.builder()
-                                .label("sheath_blight").confidence(0.85).severity("TRUNG_BINH").build();
-                when(visionAIService.detect(anyString(), anyString())).thenReturn(List.of(vr1, vr2));
-                when(weatherApiService.getCurrentWeather(any(), any())).thenReturn(null);
-                when(diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse("blast"))
-                                .thenReturn(Optional.of(disease1));
-                when(diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse("sheath_blight"))
-                                .thenReturn(Optional.of(disease2));
-                when(ruleEngineService.process(anyList(), any()))
-                                .thenReturn(new RuleEngineService.RuleEngineResult(List.of(), List.of()));
+    @Test
+    @DisplayName("TC4: Khong xac dinh duoc benh")
+    void diagnose_unknownDisease() {
+        DiagnoseRequest request = createRequest(null, null);
+        mockContext(request);
+        when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/4.jpg");
 
-                DiagnoseRequest req = createRequest(validImage(), 1, null, null);
-                DiagnoseResponse res = diagnoseService.diagnose(null, req);
+        VisionResultDTO lowConfidence = VisionResultDTO.builder().label("blast").confidence(0.10).build();
+        when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of(lowConfidence));
+        mockGrouping(List.of());
 
-                assertEquals(2, res.getDiseases().size());
-        }
+        DiagnoseResponse response = diagnoseService.diagnose("farmer@agriai.vn", request);
 
-        // ======================== TEST 3: Cây khỏe (healthy) ========================
-        @Test
-        @DisplayName("TC3: Vision AI trả về cây khỏe")
-        void diagnose_healthyPlant() throws Exception {
-                setupCommonMocks();
+        assertEquals("UNKNOWN", response.getDiagnosisType());
+        assertTrue(response.getDiseases().isEmpty());
+        verify(ruleEngineService, never()).process(anyList(), any());
+    }
 
-                VisionResultDTO vr = VisionResultDTO.builder()
-                                .label("healthy").confidence(0.98).build();
-                when(visionAIService.detect(anyString(), anyString())).thenReturn(List.of(vr));
-                when(weatherApiService.getCurrentWeather(any(), any())).thenReturn(null);
+    @Test
+    @DisplayName("TC5: Co GPS va lay duoc weather")
+    void diagnose_withGps_weatherSuccess() {
+        DiagnoseRequest request = createRequest(10.5, 106.7);
+        mockContext(request);
+        when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/5.jpg");
+        when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of());
+        mockGrouping(List.of());
 
-                DiagnoseRequest req = createRequest(validImage(), 1, null, null);
-                DiagnoseResponse res = diagnoseService.diagnose(null, req);
+        WeatherDTO weather = WeatherDTO.builder().temperature(28.0).humidity(85.0).rainfall(12.0).build();
+        when(weatherPort.getCurrentWeather(10.5, 106.7)).thenReturn(weather);
 
-                assertNotNull(res);
-                assertTrue(res.getDiseases().isEmpty());
-                verify(diagnoseHistoryDetailRepository).save(any());
-        }
+        DiagnoseResponse response = diagnoseService.diagnose("farmer@agriai.vn", request);
 
-        // ======================== TEST 4: Confidence thấp ========================
-        @Test
-        @DisplayName("TC4: Không xác định được bệnh (confidence dưới ngưỡng)")
-        void diagnose_lowConfidence_noDisease() throws Exception {
-                setupCommonMocks();
+        assertNotNull(response.getWeather());
+        assertTrue(response.getGpsUsed());
+        assertEquals(28.0, response.getWeather().getTemperature());
+    }
 
-                VisionResultDTO vr = VisionResultDTO.builder()
-                                .label("blast").confidence(0.10).build();
-                when(visionAIService.detect(anyString(), anyString())).thenReturn(List.of(vr));
-                when(weatherApiService.getCurrentWeather(any(), any())).thenReturn(null);
+    @Test
+    @DisplayName("TC6: Khong co GPS")
+    void diagnose_withoutGps() {
+        DiagnoseRequest request = createRequest(null, null);
+        mockContext(request);
+        when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/6.jpg");
+        when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of());
+        mockGrouping(List.of());
 
-                DiagnoseRequest req = createRequest(validImage(), 1, null, null);
-                DiagnoseResponse res = diagnoseService.diagnose(null, req);
+        DiagnoseResponse response = diagnoseService.diagnose("farmer@agriai.vn", request);
 
-                assertTrue(res.getDiseases().isEmpty());
-        }
+        assertNull(response.getWeather());
+        assertTrue(Boolean.FALSE.equals(response.getGpsUsed()));
+        verify(weatherPort, never()).getCurrentWeather(any(), any());
+    }
 
-        // ======================== TEST 5: GPS → weather ========================
-        @Test
-        @DisplayName("TC5: Có GPS - lấy weather thành công")
-        void diagnose_withGPS_weatherSuccess() throws Exception {
-                setupCommonMocks();
+    private DiagnoseRequest createRequest(Double latitude, Double longitude) {
+        DiagnoseRequest request = new DiagnoseRequest();
+        request.setCropTypeId(1);
+        request.setLatitude(latitude);
+        request.setLongitude(longitude);
+        request.setImage(new MockMultipartFile("image", "leaf.jpg", "image/jpeg", new byte[] { 1, 2, 3 }));
+        return request;
+    }
 
-                WeatherDTO weather = WeatherDTO.builder()
-                                .temperature(28.0).humidity(85.0).rainfall(12.0).build();
-                when(visionAIService.detect(anyString(), anyString())).thenReturn(List.of());
-                when(weatherApiService.getCurrentWeather(10.5, 106.7)).thenReturn(weather);
+    private void mockContext(DiagnoseRequest request) {
+        when(diagnosisValidationService.validate(anyString(), any())).thenReturn(
+                new DiagnosisValidationService.DiagnosisContext(null, cropType, aiModel));
+    }
 
-                DiagnoseRequest req = createRequest(validImage(), 1, 10.5, 106.7);
-                DiagnoseResponse res = diagnoseService.diagnose(null, req);
+    private void mockGrouping(List<VisionResultDTO> results) {
+        when(diseaseMapper.groupByMaxConfidence(anyList())).thenAnswer(invocation -> {
+            List<VisionResultDTO> input = invocation.getArgument(0);
+            Map<String, VisionResultDTO> grouped = new LinkedHashMap<>();
+            for (VisionResultDTO result : input) {
+                VisionResultDTO existing = grouped.get(result.getLabel());
+                if (existing == null || existing.getConfidence() < result.getConfidence()) {
+                    grouped.put(result.getLabel(), result);
+                }
+            }
+            return grouped;
+        });
+    }
 
-                assertNotNull(res.getWeather());
-                assertEquals(28.0, res.getWeather().getTemperature());
-                assertEquals(85.0, res.getWeather().getHumidity());
-        }
+    private RuleEngineService.RuleEngineResult singleDiseaseRuleEngineResult() {
+        TreatmentDTO treatment = TreatmentDTO.builder()
+                .treatmentPlanId(11)
+                .diseaseId(disease1.getId())
+                .diseaseName(disease1.getDiseaseName())
+                .drugName("Filia 525SE")
+                .dosage("0.6L/ha")
+                .build();
+        TreatmentProgramDTO program = TreatmentProgramDTO.builder()
+                .programOrder(1)
+                .programCode("SPRAY-1")
+                .strategy("SINGLE_DISEASE_OR_SAFE_MIX")
+                .mixAllowed(true)
+                .treatments(List.of(treatment))
+                .build();
+        return new RuleEngineService.RuleEngineResult(
+                List.of(treatment),
+                List.of(),
+                List.of(program),
+                List.of(),
+                List.of(),
+                "SINGLE_DISEASE_OR_SAFE_MIX");
+    }
 
-        // ======================== TEST 6: Không GPS ========================
-        @Test
-        @DisplayName("TC6: Không có GPS - bỏ qua weather")
-        void diagnose_noGPS_skipWeather() throws Exception {
-                setupCommonMocks();
-
-                when(visionAIService.detect(anyString(), anyString())).thenReturn(List.of());
-                when(weatherApiService.getCurrentWeather(isNull(), isNull())).thenReturn(null);
-
-                DiagnoseRequest req = createRequest(validImage(), 1, null, null);
-                DiagnoseResponse res = diagnoseService.diagnose(null, req);
-
-                assertNull(res.getWeather());
-        }
-
-        // ======================== TEST 9: Validate lỗi thiếu ảnh
-        // ========================
-        @Test
-        @DisplayName("TC9: Validate lỗi khi thiếu ảnh")
-        void diagnose_missingImage_throwsException() {
-                DiagnoseRequest req = createRequest(null, 1, null, null);
-
-                AppException ex = assertThrows(AppException.class,
-                                () -> diagnoseService.diagnose(null, req));
-                assertTrue(ex.getMessage().contains("Anh chan doan"));
-        }
-
-        // ======================== TEST 10: Validate lỗi thiếu cropTypeId
-        // ========================
-        @Test
-        @DisplayName("TC10: Validate lỗi khi thiếu cropTypeId")
-        void diagnose_missingCropTypeId_throwsException() {
-                DiagnoseRequest req = createRequest(validImage(), null, null, null);
-
-                AppException ex = assertThrows(AppException.class,
-                                () -> diagnoseService.diagnose(null, req));
-                assertTrue(ex.getMessage().contains("cropTypeId"));
-        }
+    private RuleEngineService.RuleEngineResult multiDiseaseRuleEngineResult() {
+        TreatmentDTO treatment1 = TreatmentDTO.builder()
+                .treatmentPlanId(11)
+                .diseaseId(disease1.getId())
+                .diseaseName(disease1.getDiseaseName())
+                .drugName("Filia 525SE")
+                .dosage("0.6L/ha")
+                .build();
+        TreatmentDTO treatment2 = TreatmentDTO.builder()
+                .treatmentPlanId(12)
+                .diseaseId(disease2.getId())
+                .diseaseName(disease2.getDiseaseName())
+                .drugName("Validacin 3SL")
+                .dosage("1.0L/ha")
+                .build();
+        InteractionWarningDTO interactionWarning = InteractionWarningDTO.builder()
+                .ingredientAId(1)
+                .ingredientAName("Tricyclazole")
+                .ingredientBId(2)
+                .ingredientBName("Validamycin")
+                .warningMessage("Khong duoc pha chung")
+                .actionRule("SEPARATE_SPRAY")
+                .blocksMixing(true)
+                .build();
+        TreatmentProgramDTO program1 = TreatmentProgramDTO.builder()
+                .programOrder(1)
+                .programCode("SPRAY-1")
+                .strategy("SEPARATE_SPRAY")
+                .mixAllowed(false)
+                .treatments(List.of(treatment1))
+                .build();
+        TreatmentProgramDTO program2 = TreatmentProgramDTO.builder()
+                .programOrder(2)
+                .programCode("SPRAY-2")
+                .strategy("SEPARATE_SPRAY")
+                .mixAllowed(false)
+                .treatments(List.of(treatment2))
+                .build();
+        return new RuleEngineService.RuleEngineResult(
+                List.of(treatment1, treatment2),
+                List.of("Khong duoc pha chung"),
+                List.of(program1, program2),
+                List.of(interactionWarning),
+                List.of(),
+                "SEPARATE_SPRAY");
+    }
 }
