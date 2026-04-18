@@ -7,5 +7,5 @@ import com.phucnguyen.agriai.entity.CropType;
 
 @Repository
 public interface CropTypeRepository extends JpaRepository<CropType, Integer> {
-
+    java.util.List<CropType> findByIsActiveTrueAndIsDeleteFalse();
 }

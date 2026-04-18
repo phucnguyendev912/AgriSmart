@@ -1,8 +1,11 @@
 package com.phucnguyen.agriai.dto.response;
 
 import com.phucnguyen.agriai.dto.DiseaseResultDTO;
+import com.phucnguyen.agriai.dto.InteractionWarningDTO;
 import com.phucnguyen.agriai.dto.TreatmentDTO;
+import com.phucnguyen.agriai.dto.TreatmentProgramDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
+import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +25,11 @@ public class DiagnoseResponse {
     private List<DiseaseResultDTO> diseases;
     private List<String> warnings;
     private List<TreatmentDTO> treatments;
-    private List<String> cultivationMeasures;
+    private List<TreatmentProgramDTO> sprayPrograms;
+    private List<InteractionWarningDTO> interactionWarnings;
+    private List<WeatherAlertDTO> weatherAlerts;
     private String userGuidance;
     private Boolean isHealthy;
+    private Boolean gpsUsed;
+    private String diagnosisType;
 }

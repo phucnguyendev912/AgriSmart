@@ -32,4 +32,7 @@ public class DrugInteraction extends BaseEntity {
 
     @Column(name = "action_rule", length = 50)
     private String actionRule;
+
+    @Column(name = "interval_days")
+    private Integer intervalDays; // Số ngày cần cách nhau khi phun riêng (VD: 3)
 }

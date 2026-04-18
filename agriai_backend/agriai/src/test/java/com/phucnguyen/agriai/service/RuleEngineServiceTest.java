@@ -1,18 +1,28 @@
 package com.phucnguyen.agriai.service;
 
+import com.phucnguyen.agriai.dto.InteractionWarningDTO;
+import com.phucnguyen.agriai.dto.TreatmentDTO;
+import com.phucnguyen.agriai.dto.TreatmentProgramDTO;
+import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
-import com.phucnguyen.agriai.entity.*;
+import com.phucnguyen.agriai.entity.Disease;
+import com.phucnguyen.agriai.entity.DrugInteraction;
+import com.phucnguyen.agriai.entity.Ingredient;
+import com.phucnguyen.agriai.entity.TreatmentPlan;
+import com.phucnguyen.agriai.entity.TreatmentWeatherCondition;
+import com.phucnguyen.agriai.enums.Operator;
+import com.phucnguyen.agriai.enums.WeatherFactor;
 import com.phucnguyen.agriai.repository.DrugInteractionRepository;
 import com.phucnguyen.agriai.repository.TreatmentPlanRepository;
 import com.phucnguyen.agriai.repository.TreatmentWeatherConditionRepository;
+import java.math.BigDecimal;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -21,9 +31,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class RuleEngineServiceTest {
 
-        @InjectMocks
-        private RuleEngineService ruleEngineService;
-
         @Mock
         private TreatmentPlanRepository treatmentPlanRepository;
         @Mock
@@ -31,91 +38,300 @@ class RuleEngineServiceTest {
         @Mock
         private TreatmentWeatherConditionRepository weatherConditionRepository;
 
-        // ======================== TEST 7: Có xung đột hoạt chất
-        // ========================
+        private RuleEngineService ruleEngineService;
+
+        // Test fixtures
+        private Ingredient ingredientA;
+        private Ingredient ingredientB;
+        private Disease diseaseA;
+        private Disease diseaseB;
+        private TreatmentPlan planA;
+        private TreatmentPlan planB;
+
+        @BeforeEach
+        void setUp() {
+                ruleEngineService = new RuleEngineService(
+                                treatmentPlanRepository,
+                                drugInteractionRepository,
+                                weatherConditionRepository);
+
+                ingredientA = Ingredient.builder().id(1).ingredientName("Tricyclazole")
+                                .description("Hoat chat tri dao on")
+                                .build();
+                ingredientB = Ingredient.builder().id(2).ingredientName("Validamycin")
+                                .description("Hoat chat tri kho van")
+                                .build();
+                diseaseA = Disease.builder().id(10).diseaseName("Dao on").build();
+                diseaseB = Disease.builder().id(20).diseaseName("Kho van").build();
+
+                planA = TreatmentPlan.builder()
+                                .id(100).disease(diseaseA).ingredient(ingredientA)
+                                .treatmentName("Phun Filia").drugName("Filia 525SE")
+                                .dosage("25ml/binh 16L")
+                                .dosagePerHaValue(new BigDecimal("1.5")).dosagePerHaUnit("L")
+                                .waterVolumePerHa("400-500 L/ha")
+                                .applicationMethod("Phun deu mat la")
+                                .applicationTime("Sang som")
+                                .frequency("7 ngay/lan")
+                                .safetyNotes("Doi 14 ngay truoc thu hoach")
+                                .build();
+
+                planB = TreatmentPlan.builder()
+                                .id(101).disease(diseaseB).ingredient(ingredientB)
+                                .treatmentName("Phun Validacin").drugName("Validacin 5L")
+                                .dosage("30ml/binh 16L")
+                                .build();
+        }
+
+        // ============================================================
+        // 1. Empty / null input
+        // ============================================================
+
         @Test
-        @DisplayName("TC7: Có xung đột hoạt chất → sinh cảnh báo")
-        void process_withDrugInteraction_generatesWarning() {
-                Ingredient ingA = new Ingredient();
-                ingA.setId(1);
-                ingA.setIngredientName("Tricyclazole");
-                Ingredient ingB = new Ingredient();
-                ingB.setId(2);
-                ingB.setIngredientName("Validamycin");
+        @DisplayName("TC1: Null disease IDs returns empty result")
+        void process_nullDiseaseIds_returnsEmpty() {
+                RuleEngineService.RuleEngineResult result = ruleEngineService.process(null, null);
+                assertTrue(result.treatments().isEmpty());
+                assertTrue(result.sprayPrograms().isEmpty());
+                assertEquals("NO_TREATMENT", result.strategy());
+        }
 
-                Disease d1 = new Disease();
-                d1.setId(10);
-                d1.setDiseaseName("Đạo Ôn");
-                Disease d2 = new Disease();
-                d2.setId(20);
-                d2.setDiseaseName("Khô Vằn");
+        @Test
+        @DisplayName("TC2: Empty disease IDs returns empty result")
+        void process_emptyDiseaseIds_returnsEmpty() {
+                RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(), null);
+                assertTrue(result.treatments().isEmpty());
+                assertEquals("NO_TREATMENT", result.strategy());
+        }
 
-                TreatmentPlan tp1 = new TreatmentPlan();
-                tp1.setId(101);
-                tp1.setDisease(d1);
-                tp1.setIngredient(ingA);
-                tp1.setDrugName("Filia 525SE");
-                tp1.setDosage("10ml");
-                tp1.setTreatmentName("Phun Filia");
+        // ============================================================
+        // 2. Single disease — Case 0
+        // ============================================================
 
-                TreatmentPlan tp2 = new TreatmentPlan();
-                tp2.setId(102);
-                tp2.setDisease(d2);
-                tp2.setIngredient(ingB);
-                tp2.setDrugName("Validacin 3SL");
-                tp2.setDosage("15ml");
-                tp2.setTreatmentName("Phun Validacin");
+        @Test
+        @DisplayName("TC3: Single disease produces DEFAULT_PRIORITY reason and specific title")
+        void process_singleDisease_defaultPriority() {
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
 
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10))
-                                .thenReturn(List.of(tp1));
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20))
-                                .thenReturn(List.of(tp2));
+                RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), null);
 
-                DrugInteraction interaction = new DrugInteraction();
-                interaction.setIngredientA(ingA);
-                interaction.setIngredientB(ingB);
-                interaction.setInteractionType("CONFLICT");
-                interaction.setSeverity("HIGH");
-                interaction.setWarningMessage("Không được pha chung");
-                interaction.setActionRule("SEPARATE_SPRAY");
+                assertEquals(1, result.sprayPrograms().size());
+                assertEquals("SINGLE_DISEASE_OR_SAFE_MIX", result.strategy());
 
+                TreatmentProgramDTO program = result.sprayPrograms().get(0);
+                assertTrue(program.getReasons().contains("DEFAULT_PRIORITY"));
+                assertEquals("READY", program.getStatus());
+                assertNull(program.getIntervalDays());
+        }
+
+        // ============================================================
+        // 3. Drug interaction → SEPARATE programs + CONFLICT_SEPARATED reason
+        // ============================================================
+
+        @Test
+        @DisplayName("TC4: Case 1 - Drug interaction splits into separate programs with explicit intervalDays")
+        void process_withDrugInteraction_separatePrograms() {
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
+
+                DrugInteraction interaction = DrugInteraction.builder()
+                                .ingredientA(ingredientA).ingredientB(ingredientB)
+                                .warningMessage("Khong duoc pha chung")
+                                .actionRule("SEPARATE_SPRAY")
+                                .interactionType("CONFLICT").severity("HIGH")
+                                .intervalDays(5)
+                                .build();
                 when(drugInteractionRepository.findInteractionsBetweenIngredients(anyList()))
                                 .thenReturn(List.of(interaction));
 
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10, 20), null);
 
-                assertEquals(2, result.treatments().size());
-                assertFalse(result.warnings().isEmpty());
-                assertTrue(result.warnings().get(0).contains("Không được pha chung"));
+                assertEquals("SEPARATE_SPRAY", result.strategy());
+                assertEquals(2, result.sprayPrograms().size());
+                assertFalse(result.interactionWarnings().isEmpty());
+
+                // Verify reason codes (not hardcoded Vietnamese)
+                TreatmentProgramDTO prog1 = result.sprayPrograms().get(0);
+                assertTrue(prog1.getReasons().contains("CONFLICT_SEPARATED"));
+                assertNull(prog1.getIntervalDays());
+
+                TreatmentProgramDTO prog2 = result.sprayPrograms().get(1);
+                assertEquals(5, prog2.getIntervalDays());
+
+                // Verify interaction details
+                InteractionWarningDTO warning = result.interactionWarnings().get(0);
+                assertEquals("Tricyclazole", warning.getIngredientAName());
+                assertEquals("Validamycin", warning.getIngredientBName());
+                assertTrue(warning.getBlocksMixing());
+                assertEquals(5, warning.getIntervalDays());
         }
 
-        // ======================== TEST 8: Không có xung đột ========================
+        // ============================================================
+        // 4. No conflict → MIX_COMPATIBLE reason
+        // ============================================================
+
         @Test
-        @DisplayName("TC8: Không có xung đột hoạt chất → gộp phun")
-        void process_noDrugInteraction_noWarnings() {
-                Ingredient ing = new Ingredient();
-                ing.setId(1);
-                ing.setIngredientName("Tricyclazole");
+        @DisplayName("TC5: Case 2 - No drug interaction builds single program with Mix title")
+        void process_withoutDrugInteraction_singleMixProgram() {
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
+                when(drugInteractionRepository.findInteractionsBetweenIngredients(anyList())).thenReturn(List.of());
 
-                Disease d1 = new Disease();
-                d1.setId(10);
-                d1.setDiseaseName("Đạo Ôn");
+                RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10, 20),
+                                WeatherDTO.builder().build());
 
-                TreatmentPlan tp1 = new TreatmentPlan();
-                tp1.setId(101);
-                tp1.setDisease(d1);
-                tp1.setIngredient(ing);
-                tp1.setDrugName("Filia 525SE");
-                tp1.setDosage("10ml");
-                tp1.setTreatmentName("Phun Filia");
+                assertEquals(1, result.sprayPrograms().size());
+                assertTrue(result.interactionWarnings().isEmpty());
+                assertTrue(result.sprayPrograms().get(0).getMixAllowed());
 
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10))
-                                .thenReturn(List.of(tp1));
+                // Verify reason code
+                assertTrue(result.sprayPrograms().get(0).getReasons().contains("MIX_COMPATIBLE"));
+        }
 
-                // Chỉ 1 bệnh → không check drugInteraction
+        // ============================================================
+        // 5. New DTO fields mapping
+        // ============================================================
+
+        @Test
+        @DisplayName("TC6: TreatmentDTO maps all new fields correctly")
+        void process_mapsNewFieldsCorrectly() {
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), null);
 
-                assertEquals(1, result.treatments().size());
+                TreatmentDTO t = result.treatments().get(0);
+                assertEquals("Tricyclazole", t.getIngredientName());
+                assertEquals("Hoat chat tri dao on", t.getIngredientDescription());
+                assertEquals(new BigDecimal("1.5"), t.getDosagePerHaValue());
+                assertEquals("L", t.getDosagePerHaUnit());
+                assertEquals("400-500 L/ha", t.getWaterVolumePerHa());
+                assertEquals("Phun deu mat la", t.getApplicationMethod());
+                assertEquals("Sang som", t.getApplicationTime());
+                assertEquals("7 ngay/lan", t.getFrequency());
+                assertEquals("Doi 14 ngay truoc thu hoach", t.getSafetyNotes());
+                assertEquals("Filia 525SE", t.getDrugName());
+        }
+
+        // ============================================================
+        // 6. Weather alerts with unit
+        // ============================================================
+
+        @Test
+        @DisplayName("TC7: Weather alert maps unit and detects violation")
+        void process_weatherAlert_mapsUnitAndViolation() {
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+
+                TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
+                                .id(500)
+                                .treatmentplan(planA)
+                                .weatherFactor(WeatherFactor.TEMPERATURE)
+                                .operator(Operator.BETWEEN)
+                                .minValue(new BigDecimal("20"))
+                                .maxValue(new BigDecimal("30"))
+                                .unit("°C")
+                                .isRequired(true)
+                                .recommendationNote("Nhiet do ly tuong de phun thuoc")
+                                .build();
+
+                when(weatherConditionRepository.findByTreatmentplanIdInAndIsDeleteFalse(anyList()))
+                                .thenReturn(List.of(condition));
+
+                // Temperature 35°C is OUTSIDE 20-30 range → violated
+                WeatherDTO weather = WeatherDTO.builder().temperature(35.0).build();
+                RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), weather);
+
+                assertFalse(result.weatherAlerts().isEmpty());
+                WeatherAlertDTO alert = result.weatherAlerts().get(0);
+                assertEquals("°C", alert.getUnit());
+                assertEquals("TEMPERATURE", alert.getWeatherFactor());
+                assertEquals(35.0, alert.getActualValue());
+                assertTrue(alert.getViolated());
+                assertTrue(alert.getRequired());
+                assertEquals("Nhiet do ly tuong de phun thuoc", alert.getRecommendationNote());
+        }
+
+        @Test
+        @DisplayName("TC8: Weather within range → not violated")
+        void process_weatherWithinRange_notViolated() {
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+
+                TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
+                                .id(500)
+                                .treatmentplan(planA)
+                                .weatherFactor(WeatherFactor.HUMIDITY)
+                                .operator(Operator.BETWEEN)
+                                .minValue(new BigDecimal("60"))
+                                .maxValue(new BigDecimal("90"))
+                                .unit("%")
+                                .isRequired(false)
+                                .build();
+
+                when(weatherConditionRepository.findByTreatmentplanIdInAndIsDeleteFalse(anyList()))
+                                .thenReturn(List.of(condition));
+
+                WeatherDTO weather = WeatherDTO.builder().humidity(75.0).build();
+                RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), weather);
+
+                assertFalse(result.weatherAlerts().isEmpty());
+                WeatherAlertDTO alert = result.weatherAlerts().get(0);
+                assertFalse(alert.getViolated());
+                assertEquals("%", alert.getUnit());
+        }
+
+        // ============================================================
+        // 7. Weather blocked → WEATHER_BLOCKED reason code
+        // ============================================================
+
+        @Test
+        @DisplayName("TC9: Required weather violation produces WEATHER_BLOCKED reason and BLOCKED status")
+        void process_requiredWeatherViolation_weatherBlockedReason() {
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+
+                TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
+                                .id(500)
+                                .treatmentplan(planA)
+                                .weatherFactor(WeatherFactor.RAINFALL)
+                                .operator(Operator.LESS_THAN)
+                                .maxValue(new BigDecimal("5"))
+                                .unit("mm")
+                                .isRequired(true)
+                                .build();
+
+                when(weatherConditionRepository.findByTreatmentplanIdInAndIsDeleteFalse(anyList()))
+                                .thenReturn(List.of(condition));
+
+                // Rainfall 2mm < maxValue 5mm → LESS_THAN is violated
+                WeatherDTO weather = WeatherDTO.builder().rainfall(2.0).build();
+                RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), weather);
+
+                TreatmentProgramDTO program = result.sprayPrograms().get(0);
+                assertTrue(program.getReasons().contains("WEATHER_BLOCKED"));
+                assertEquals("BLOCKED_BY_WEATHER", program.getStatus());
+        }
+
+        // ============================================================
+        // 8. Warnings list is now empty (no hardcoded strings)
+        // ============================================================
+
+        @Test
+        @DisplayName("TC10: Warnings list is empty — no more hardcoded strings")
+        void process_warningsListIsEmpty() {
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
+
+                DrugInteraction interaction = DrugInteraction.builder()
+                                .ingredientA(ingredientA).ingredientB(ingredientB)
+                                .warningMessage("Conflict").actionRule("SEPARATE_SPRAY")
+                                .interactionType("CONFLICT").severity("HIGH")
+                                .build();
+                when(drugInteractionRepository.findInteractionsBetweenIngredients(anyList()))
+                                .thenReturn(List.of(interaction));
+
+                RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10, 20), null);
+
+                // warnings list should be empty since we removed hardcoded string generation
                 assertTrue(result.warnings().isEmpty());
+                // but interactionWarnings DTO list should still have data
+                assertFalse(result.interactionWarnings().isEmpty());
         }
 }
