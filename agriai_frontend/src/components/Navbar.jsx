@@ -16,7 +16,7 @@ const Navbar = () => {
     <>
       <nav className="fixed top-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-lg border-b border-slate-200 h-20 shadow-sm transition-all">
         <div className="h-full max-w-[1440px] mx-auto px-4 md:px-8 flex justify-between items-center gap-4">
-          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+          <Link to="/home" className="flex items-center space-x-2 flex-shrink-0">
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
               <span className="material-symbols-outlined text-primary text-2xl font-bold">potted_plant</span>
             </div>
@@ -27,7 +27,7 @@ const Navbar = () => {
             <div className="flex items-center space-x-6">
               <Link className="text-sm font-bold text-primary border-b-2 border-primary py-1" to="/home">Trang chủ</Link>
               <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/diagnosis">Chẩn đoán bệnh</Link>
-              <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/history">Lịch sử</Link>
+              <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/history">Lịch sử chẩn đoán</Link>
               <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/farming-areas">Khu vực canh tác</Link>
               <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/about">Về chúng tôi</Link>
             </div>
@@ -36,10 +36,10 @@ const Navbar = () => {
           <div className="flex items-center gap-2 md:gap-4">
             {user ? (
               <>
-                <button className="relative p-2.5 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-primary">
+                <Link to="/notifications" className="relative p-2.5 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-primary">
                   <span className="material-symbols-outlined text-[24px]">notifications</span>
                   <span className="absolute top-2 right-2 w-4 h-4 bg-error text-[10px] text-white flex items-center justify-center rounded-full font-bold border-2 border-white">3</span>
-                </button>
+                </Link>
 
                 <button onClick={handleLogout} className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200 hover:bg-slate-50 transition-colors py-2 px-3 rounded-lg group" title="Đăng xuất">
                   <div className="flex flex-col items-end">

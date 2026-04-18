@@ -1,0 +1,41 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.phucnguyen:agriai >------------------------
+[INFO] Building agriai 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ war ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ agriai ---
+[INFO] Deleting D:\AgriAI\agriai_backend\agriai\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agriai ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agriai ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 85 source files with javac [debug parameters release 17] to target\classes
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/AgriAI/agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/service/DiagnoseHistoryService.java:[83,60] incompatible types: java.time.LocalDateTime cannot be converted to java.util.Date
+[ERROR] /D:/AgriAI/agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/service/DiagnoseHistoryService.java:[93,24] incompatible types: java.util.List<java.lang.Object> cannot be converted to java.util.List<com.phucnguyen.agriai.dto.response.DiagnoseHistoryResponse>
+[INFO] 2 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  5.759 s
+[INFO] Finished at: 2026-04-18T23:27:15+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project agriai: Compilation failure: Compilation failure: 
+[ERROR] /D:/AgriAI/agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/service/DiagnoseHistoryService.java:[83,60] incompatible types: java.time.LocalDateTime cannot be converted to java.util.Date
+[ERROR] /D:/AgriAI/agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/service/DiagnoseHistoryService.java:[93,24] incompatible types: java.util.List<java.lang.Object> cannot be converted to java.util.List<com.phucnguyen.agriai.dto.response.DiagnoseHistoryResponse>
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

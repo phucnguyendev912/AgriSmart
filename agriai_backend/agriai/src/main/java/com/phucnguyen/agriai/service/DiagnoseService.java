@@ -3,10 +3,12 @@ package com.phucnguyen.agriai.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phucnguyen.agriai.dto.DiagnosisDetailSnapshotDTO;
 import com.phucnguyen.agriai.dto.DiseaseResultDTO;
+import com.phucnguyen.agriai.dto.InteractionWarningDTO;
 import com.phucnguyen.agriai.dto.TreatmentDTO;
 import com.phucnguyen.agriai.dto.TreatmentProgramDTO;
 import com.phucnguyen.agriai.dto.VisionResultDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
+import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.dto.request.DiagnoseRequest;
 import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
 import com.phucnguyen.agriai.entity.DiagnoseHistory;
@@ -43,7 +45,6 @@ public class DiagnoseService {
     private static final double MIN_CONFIDENCE = 0.4d;
     private static final Set<String> HEALTHY_LABELS = Set.of("healthy", "khoe", "cay_khoe", "khoe_manh");
 
-    private final UserRepository userRepository;
     private final DiagnoseHistoryRepository diagnoseHistoryRepository;
     private final DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
     private final DiagnosisValidationService diagnosisValidationService;
@@ -56,7 +57,6 @@ public class DiagnoseService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public DiagnoseService(
-            UserRepository userRepository,
             DiagnoseHistoryRepository diagnoseHistoryRepository,
             DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository,
             DiagnosisValidationService diagnosisValidationService,
@@ -66,7 +66,6 @@ public class DiagnoseService {
             RuleEngineService ruleEngineService,
             GuidancePort guidancePort,
             DiseaseMapper diseaseMapper) {
-        this.userRepository = userRepository;
         this.diagnoseHistoryRepository = diagnoseHistoryRepository;
         this.diagnoseHistoryDetailRepository = diagnoseHistoryDetailRepository;
         this.diagnosisValidationService = diagnosisValidationService;
@@ -133,88 +132,6 @@ public class DiagnoseService {
         }
     }
 
-    @Transactional(readOnly = true)
-    
-    public List<DiagnoseResponse> getHistory(String email) {
-        Integer userId = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay nguoi dung."))
-                .getId();
-
-        return diagnoseHistoryRepository.findByUserIdAndIsDeleteFalseOrderByCreatedAtDesc(userId).stream()
-                .map(history -> DiagnoseResponse.builder()
-                        .originalImageUrl(history.getOriginalImageUrl())
-                        .weather(parseWeatherJson(history.getWeatherData()))
-                        .build())
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public DiagnoseResponse getDetail(Integer id) {
-        DiagnoseHistory history = diagnoseHistoryRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay lich su chan doan."));
-        List<DiagnoseHistoryDetail> details = diagnoseHistoryDetailRepository
-                .findByDiagnoseHistoryIdAndIsDeleteFalse(id);
-
-        List<DiseaseResultDTO> diseases = new ArrayList<>();
-        List<TreatmentDTO> treatments = new ArrayList<>();
-        List<TreatmentProgramDTO> sprayPrograms = new ArrayList<>();
-        List<String> warnings = new ArrayList<>();
-        String guidance = null;
-        String diagnosisType = null;
-
-        for (DiagnoseHistoryDetail detail : details) {
-            if (detail.getDisease() != null) {
-                diseases.add(DiseaseResultDTO.builder()
-                        .diseaseId(detail.getDisease().getId())
-                        .diseaseCode(detail.getDisease().getDiseaseCode())
-                        .diseaseName(detail.getDisease().getDiseaseName())
-                        .confidence(
-                                detail.getConfidenceScore() != null ? detail.getConfidenceScore().doubleValue() : null)
-                        .severity(detail.getSeverity() != null ? detail.getSeverity().name() : null)
-                        .build());
-            }
-
-            DiagnosisDetailSnapshotDTO snapshot = parseSnapshot(detail.getTreatmentData());
-            if (snapshot != null) {
-                diagnosisType = diagnosisType != null ? diagnosisType : snapshot.getDiagnosisType();
-                if (snapshot.getTreatments() != null) {
-                    treatments.addAll(snapshot.getTreatments());
-                }
-                if (snapshot.getSprayPrograms() != null) {
-                    sprayPrograms.addAll(snapshot.getSprayPrograms());
-                }
-                if (snapshot.getWarnings() != null) {
-                    warnings.addAll(snapshot.getWarnings());
-                }
-            }
-
-            if (guidance == null && detail.getCultivationData() != null) {
-                guidance = detail.getCultivationData();
-            }
-            if (detail.getRiskWarning() != null && !detail.getRiskWarning().isBlank()) {
-                warnings.add(detail.getRiskWarning());
-            }
-        }
-
-        List<String> distinctWarnings = warnings.stream().filter(Objects::nonNull).distinct().toList();
-        List<TreatmentProgramDTO> distinctPrograms = sprayPrograms.stream()
-                .collect(Collectors.toMap(TreatmentProgramDTO::getProgramCode, program -> program,
-                        (left, right) -> left, LinkedHashMap::new))
-                .values().stream().toList();
-
-        return DiagnoseResponse.builder()
-                .originalImageUrl(history.getOriginalImageUrl())
-                .weather(parseWeatherJson(history.getWeatherData()))
-                .diseases(diseases)
-                .treatments(treatments)
-                .sprayPrograms(distinctPrograms)
-                .warnings(distinctWarnings)
-                .userGuidance(guidance)
-                .diagnosisType(diagnosisType)
-                .isHealthy("HEALTHY".equals(diagnosisType))
-                .build();
-    }
-
     private DiagnoseResponse buildResponse(
             String imageUrl,
             WeatherDTO weather,
@@ -244,6 +161,7 @@ public class DiagnoseService {
                 .build();
     }
 
+    // Phân tích kết quả từ Vision API
     private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults) {
         List<VisionResultDTO> safeResults = visionResults != null ? visionResults : List.of();
         boolean containsHealthyLabel = safeResults.stream()
@@ -251,22 +169,23 @@ public class DiagnoseService {
                 .filter(Objects::nonNull)
                 .map(this::normalizeLabel)
                 .anyMatch(HEALTHY_LABELS::contains);
-
+        // Gộp các kết quả có cùng nhãn và lấy kết quả có confidence cao nhất
         Map<String, VisionResultDTO> groupedResults = diseaseMapper.groupByMaxConfidence(safeResults.stream()
                 .filter(result -> result.getLabel() != null)
                 .filter(result -> !HEALTHY_LABELS.contains(normalizeLabel(result.getLabel())))
                 .filter(result -> result.getConfidence() != null && result.getConfidence() >= MIN_CONFIDENCE)
                 .toList());
-
+        // Tạo danh sách các bệnh được phát hiện
         List<DetectedDiseaseMatch> detectedDiseases = groupedResults.values().stream()
                 .map(this::toDetectedDiseaseMatch)
                 .filter(Objects::nonNull)
                 .toList();
-
+        // Kiểm tra xem có bệnh nào được phát hiện không
         boolean healthy = containsHealthyLabel && detectedDiseases.isEmpty();
         return new DiagnosisAnalysis(healthy, detectedDiseases.isEmpty(), detectedDiseases);
     }
 
+    // Chuyển đổi VisionResultDTO sang DetectedDiseaseMatch
     private DetectedDiseaseMatch toDetectedDiseaseMatch(VisionResultDTO result) {
         Optional<Disease> diseaseOptional = diseaseMapper.findDisease(result.getLabel());
         if (diseaseOptional.isEmpty()) {
@@ -275,6 +194,7 @@ public class DiagnoseService {
         return new DetectedDiseaseMatch(diseaseOptional.get(), result);
     }
 
+    // Chuyển đổi DetectedDiseaseMatch sang DiseaseResultDTO
     private DiseaseResultDTO toDiseaseResult(DetectedDiseaseMatch match) {
         String diseaseName = match.disease().getDiseaseNameEn() != null && !match.disease().getDiseaseNameEn().isBlank()
                 ? match.disease().getDiseaseNameEn() + " (" + match.disease().getDiseaseName() + ")"
@@ -286,10 +206,6 @@ public class DiagnoseService {
                 .diseaseName(diseaseName)
                 .confidence(match.visionResult().getConfidence())
                 .severity(resolveSeverity(match))
-                .boxX(match.visionResult().getX())
-                .boxY(match.visionResult().getY())
-                .boxWidth(match.visionResult().getWidth())
-                .boxHeight(match.visionResult().getHeight())
                 .build();
     }
 
@@ -317,6 +233,8 @@ public class DiagnoseService {
                             .diagnosisType(response.getDiagnosisType())
                             .treatments(response.getTreatments())
                             .sprayPrograms(response.getSprayPrograms())
+                            .interactionWarnings(response.getInteractionWarnings())
+                            .weatherAlerts(response.getWeatherAlerts())
                             .warnings(response.getWarnings())
                             .build()))
                     .cultivationData(response.getUserGuidance())
@@ -346,33 +264,13 @@ public class DiagnoseService {
                             .diagnosisType(response.getDiagnosisType())
                             .treatments(relatedTreatments)
                             .sprayPrograms(relatedPrograms)
+                            .interactionWarnings(response.getInteractionWarnings())
+                            .weatherAlerts(response.getWeatherAlerts())
                             .warnings(response.getWarnings())
                             .build()))
                     .cultivationData(response.getUserGuidance())
                     .build();
             diagnoseHistoryDetailRepository.save(detail);
-        }
-    }
-
-    private DiagnosisDetailSnapshotDTO parseSnapshot(String json) {
-        if (json == null || json.isBlank()) {
-            return null;
-        }
-        try {
-            return objectMapper.readValue(json, DiagnosisDetailSnapshotDTO.class);
-        } catch (Exception exception) {
-            return null;
-        }
-    }
-
-    private WeatherDTO parseWeatherJson(String json) {
-        if (json == null || json.isBlank()) {
-            return null;
-        }
-        try {
-            return objectMapper.readValue(json, WeatherDTO.class);
-        } catch (Exception exception) {
-            return null;
         }
     }
 

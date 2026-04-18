@@ -234,15 +234,7 @@ const HomePage = () => {
         </section>
       </main>
 
-      {/* Floating AI Chatbot Bubble */}
-      <button className="fixed bottom-8 right-8 w-16 h-16 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 hover:rotate-3 active:scale-90 transition-all z-50 group">
-        <span className="material-symbols-outlined text-3xl group-hover:hidden" style={{ fontVariationSettings: "'FILL' 1" }}>forum</span>
-        <span className="material-symbols-outlined text-3xl hidden group-hover:block" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-        <span className="absolute -top-1 -right-1 w-5 h-5 bg-error text-[10px] text-white flex items-center justify-center rounded-full font-bold border-2 border-white animate-pulse">1</span>
-        <div className="absolute right-20 bg-white text-slate-900 px-4 py-2 rounded-xl shadow-lg border border-slate-100 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none mr-2">
-          <p className="text-xs font-bold">Cần hỗ trợ? Chat với AI ngay!</p>
-        </div>
-      </button>
+
     </>
   );
 };
