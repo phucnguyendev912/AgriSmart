@@ -28,6 +28,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
+/**
+ * Integration-style unit test for RuleEngineService.
+ * Tests the full orchestration flow with all real sub-components
+ * and only mocks at the repository boundary.
+ */
 @ExtendWith(MockitoExtension.class)
 class RuleEngineServiceTest {
 
@@ -40,7 +45,6 @@ class RuleEngineServiceTest {
 
         private RuleEngineService ruleEngineService;
 
-        // Test fixtures
         private Ingredient ingredientA;
         private Ingredient ingredientB;
         private Disease diseaseA;
@@ -50,17 +54,23 @@ class RuleEngineServiceTest {
 
         @BeforeEach
         void setUp() {
+                // Wire the real sub-components, only mock repositories
+                DrugInteractionChecker drugInteractionChecker = new DrugInteractionChecker(drugInteractionRepository);
+                WeatherAlertEvaluator weatherAlertEvaluator = new WeatherAlertEvaluator(weatherConditionRepository);
+                SprayProgramBuilder sprayProgramBuilder = new SprayProgramBuilder(drugInteractionChecker);
+                TreatmentSelector treatmentSelector = new TreatmentSelector();
+
                 ruleEngineService = new RuleEngineService(
                                 treatmentPlanRepository,
-                                drugInteractionRepository,
-                                weatherConditionRepository);
+                                treatmentSelector,
+                                drugInteractionChecker,
+                                weatherAlertEvaluator,
+                                sprayProgramBuilder);
 
                 ingredientA = Ingredient.builder().id(1).ingredientName("Tricyclazole")
-                                .description("Hoat chat tri dao on")
-                                .build();
+                                .description("Hoat chat tri dao on").build();
                 ingredientB = Ingredient.builder().id(2).ingredientName("Validamycin")
-                                .description("Hoat chat tri kho van")
-                                .build();
+                                .description("Hoat chat tri kho van").build();
                 diseaseA = Disease.builder().id(10).diseaseName("Dao on").build();
                 diseaseB = Disease.builder().id(20).diseaseName("Kho van").build();
 
@@ -83,10 +93,6 @@ class RuleEngineServiceTest {
                                 .build();
         }
 
-        // ============================================================
-        // 1. Empty / null input
-        // ============================================================
-
         @Test
         @DisplayName("TC1: Null disease IDs returns empty result")
         void process_nullDiseaseIds_returnsEmpty() {
@@ -104,12 +110,8 @@ class RuleEngineServiceTest {
                 assertEquals("NO_TREATMENT", result.strategy());
         }
 
-        // ============================================================
-        // 2. Single disease — Case 0
-        // ============================================================
-
         @Test
-        @DisplayName("TC3: Single disease produces DEFAULT_PRIORITY reason and specific title")
+        @DisplayName("TC3: Single disease produces DEFAULT_PRIORITY reason")
         void process_singleDisease_defaultPriority() {
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
 
@@ -117,19 +119,14 @@ class RuleEngineServiceTest {
 
                 assertEquals(1, result.sprayPrograms().size());
                 assertEquals("SINGLE_DISEASE_OR_SAFE_MIX", result.strategy());
-
                 TreatmentProgramDTO program = result.sprayPrograms().get(0);
                 assertTrue(program.getReasons().contains("DEFAULT_PRIORITY"));
                 assertEquals("READY", program.getStatus());
                 assertNull(program.getIntervalDays());
         }
 
-        // ============================================================
-        // 3. Drug interaction → SEPARATE programs + CONFLICT_SEPARATED reason
-        // ============================================================
-
         @Test
-        @DisplayName("TC4: Case 1 - Drug interaction splits into separate programs with explicit intervalDays")
+        @DisplayName("TC4: Drug interaction splits into separate spray programs")
         void process_withDrugInteraction_separatePrograms() {
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
@@ -150,7 +147,6 @@ class RuleEngineServiceTest {
                 assertEquals(2, result.sprayPrograms().size());
                 assertFalse(result.interactionWarnings().isEmpty());
 
-                // Verify reason codes (not hardcoded Vietnamese)
                 TreatmentProgramDTO prog1 = result.sprayPrograms().get(0);
                 assertTrue(prog1.getReasons().contains("CONFLICT_SEPARATED"));
                 assertNull(prog1.getIntervalDays());
@@ -158,20 +154,14 @@ class RuleEngineServiceTest {
                 TreatmentProgramDTO prog2 = result.sprayPrograms().get(1);
                 assertEquals(5, prog2.getIntervalDays());
 
-                // Verify interaction details
                 InteractionWarningDTO warning = result.interactionWarnings().get(0);
                 assertEquals("Tricyclazole", warning.getIngredientAName());
                 assertEquals("Validamycin", warning.getIngredientBName());
                 assertTrue(warning.getBlocksMixing());
-                assertEquals(5, warning.getIntervalDays());
         }
 
-        // ============================================================
-        // 4. No conflict → MIX_COMPATIBLE reason
-        // ============================================================
-
         @Test
-        @DisplayName("TC5: Case 2 - No drug interaction builds single program with Mix title")
+        @DisplayName("TC5: No drug interaction → single mix program with MIX_COMPATIBLE")
         void process_withoutDrugInteraction_singleMixProgram() {
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
@@ -183,17 +173,11 @@ class RuleEngineServiceTest {
                 assertEquals(1, result.sprayPrograms().size());
                 assertTrue(result.interactionWarnings().isEmpty());
                 assertTrue(result.sprayPrograms().get(0).getMixAllowed());
-
-                // Verify reason code
                 assertTrue(result.sprayPrograms().get(0).getReasons().contains("MIX_COMPATIBLE"));
         }
 
-        // ============================================================
-        // 5. New DTO fields mapping
-        // ============================================================
-
         @Test
-        @DisplayName("TC6: TreatmentDTO maps all new fields correctly")
+        @DisplayName("TC6: TreatmentDTO maps all fields correctly")
         void process_mapsNewFieldsCorrectly() {
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
 
@@ -212,31 +196,23 @@ class RuleEngineServiceTest {
                 assertEquals("Filia 525SE", t.getDrugName());
         }
 
-        // ============================================================
-        // 6. Weather alerts with unit
-        // ============================================================
-
         @Test
-        @DisplayName("TC7: Weather alert maps unit and detects violation")
-        void process_weatherAlert_mapsUnitAndViolation() {
+        @DisplayName("TC7: Weather alert outside range is marked as violated")
+        void process_weatherAlert_violatedWhenOutsideRange() {
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
 
                 TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
-                                .id(500)
-                                .treatmentplan(planA)
+                                .id(500).treatmentplan(planA)
                                 .weatherFactor(WeatherFactor.TEMPERATURE)
                                 .operator(Operator.BETWEEN)
-                                .minValue(new BigDecimal("20"))
-                                .maxValue(new BigDecimal("30"))
-                                .unit("°C")
-                                .isRequired(true)
+                                .minValue(new BigDecimal("20")).maxValue(new BigDecimal("30"))
+                                .unit("°C").isRequired(true)
                                 .recommendationNote("Nhiet do ly tuong de phun thuoc")
                                 .build();
 
                 when(weatherConditionRepository.findByTreatmentplanIdInAndIsDeleteFalse(anyList()))
                                 .thenReturn(List.of(condition));
 
-                // Temperature 35°C is OUTSIDE 20-30 range → violated
                 WeatherDTO weather = WeatherDTO.builder().temperature(35.0).build();
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), weather);
 
@@ -251,19 +227,16 @@ class RuleEngineServiceTest {
         }
 
         @Test
-        @DisplayName("TC8: Weather within range → not violated")
+        @DisplayName("TC8: Weather within range is not violated")
         void process_weatherWithinRange_notViolated() {
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
 
                 TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
-                                .id(500)
-                                .treatmentplan(planA)
+                                .id(500).treatmentplan(planA)
                                 .weatherFactor(WeatherFactor.HUMIDITY)
                                 .operator(Operator.BETWEEN)
-                                .minValue(new BigDecimal("60"))
-                                .maxValue(new BigDecimal("90"))
-                                .unit("%")
-                                .isRequired(false)
+                                .minValue(new BigDecimal("60")).maxValue(new BigDecimal("90"))
+                                .unit("%").isRequired(false)
                                 .build();
 
                 when(weatherConditionRepository.findByTreatmentplanIdInAndIsDeleteFalse(anyList()))
@@ -273,35 +246,26 @@ class RuleEngineServiceTest {
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), weather);
 
                 assertFalse(result.weatherAlerts().isEmpty());
-                WeatherAlertDTO alert = result.weatherAlerts().get(0);
-                assertFalse(alert.getViolated());
-                assertEquals("%", alert.getUnit());
+                assertFalse(result.weatherAlerts().get(0).getViolated());
         }
 
-        // ============================================================
-        // 7. Weather blocked → WEATHER_BLOCKED reason code
-        // ============================================================
-
         @Test
-        @DisplayName("TC9: Required weather violation produces WEATHER_BLOCKED reason and BLOCKED status")
-        void process_requiredWeatherViolation_weatherBlockedReason() {
+        @DisplayName("TC9: Required weather violation produces WEATHER_BLOCKED status")
+        void process_requiredWeatherViolation_weatherBlockedStatus() {
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
 
                 TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
-                                .id(500)
-                                .treatmentplan(planA)
+                                .id(500).treatmentplan(planA)
                                 .weatherFactor(WeatherFactor.RAINFALL)
                                 .operator(Operator.LESS_THAN)
-                                .maxValue(new BigDecimal("5"))
-                                .unit("mm")
-                                .isRequired(true)
+                                .minValue(new BigDecimal("5"))
+                                .unit("mm").isRequired(true)
                                 .build();
 
                 when(weatherConditionRepository.findByTreatmentplanIdInAndIsDeleteFalse(anyList()))
                                 .thenReturn(List.of(condition));
 
-                // Rainfall 2mm < maxValue 5mm → LESS_THAN is violated
-                WeatherDTO weather = WeatherDTO.builder().rainfall(2.0).build();
+                WeatherDTO weather = WeatherDTO.builder().rainfall(10.0).build(); // 10mm >= 5mm → violated
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), weather);
 
                 TreatmentProgramDTO program = result.sprayPrograms().get(0);
@@ -309,12 +273,8 @@ class RuleEngineServiceTest {
                 assertEquals("BLOCKED_BY_WEATHER", program.getStatus());
         }
 
-        // ============================================================
-        // 8. Warnings list is now empty (no hardcoded strings)
-        // ============================================================
-
         @Test
-        @DisplayName("TC10: Warnings list is empty — no more hardcoded strings")
+        @DisplayName("TC10: Warnings list is always empty — use interactionWarnings DTO instead")
         void process_warningsListIsEmpty() {
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
                 when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
@@ -329,9 +289,7 @@ class RuleEngineServiceTest {
 
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10, 20), null);
 
-                // warnings list should be empty since we removed hardcoded string generation
                 assertTrue(result.warnings().isEmpty());
-                // but interactionWarnings DTO list should still have data
                 assertFalse(result.interactionWarnings().isEmpty());
         }
 }

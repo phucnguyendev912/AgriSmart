@@ -1,16 +1,31 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const Navbar = () => {
   const { user, logoutContext } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await logoutContext();
     navigate('/login');
   };
+
+  const isActive = (path) => {
+    if (path === '/home' && location.pathname === '/') return true;
+    return location.pathname === path;
+  };
+
+  const linkClass = (path) =>
+    `text-sm font-bold py-1 transition-colors ${
+      isActive(path)
+        ? 'text-primary border-b-2 border-primary'
+        : 'text-slate-600 hover:text-primary'
+    }`;
+
 
   return (
     <>
@@ -20,16 +35,31 @@ const Navbar = () => {
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
               <span className="material-symbols-outlined text-primary text-2xl font-bold">potted_plant</span>
             </div>
-            <span className="text-2xl font-black text-primary tracking-tighter hidden sm:block">AgriAI</span>
+            <span className="text-2xl font-black text-primary tracking-tighter hidden sm:block">AgriSmart</span>
           </Link>
 
           <div className="hidden xl:flex items-center gap-8 flex-1 justify-center max-w-none">
             <div className="flex items-center space-x-6">
-              <Link className="text-sm font-bold text-primary border-b-2 border-primary py-1" to="/home">Trang chủ</Link>
-              <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/diagnosis">Chẩn đoán bệnh</Link>
-              <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/history">Lịch sử chẩn đoán</Link>
-              <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/farming-areas">Khu vực canh tác</Link>
-              <Link className="text-sm font-bold text-slate-600 hover:text-primary transition-colors py-1" to="/about">Về chúng tôi</Link>
+              <Link className={linkClass('/home')} to="/home">Trang chủ</Link>
+              <Link className={linkClass('/diagnosis')} to="/diagnosis">Chẩn đoán bệnh</Link>
+              <button 
+                onClick={() => {
+                  if (!user) {
+                    toast.info("Vui lòng đăng nhập để xem lịch sử chẩn đoán");
+                  } else {
+                    navigate('/history');
+                  }
+                }}
+                className={linkClass('/history')}
+              >
+                Lịch sử chẩn đoán
+              </button>
+              <Link className={linkClass('/farming-areas')} to="/farming-areas">Khu vực canh tác</Link>
+              <Link className={`${linkClass('/warning-map')} flex items-center gap-1`} to="/warning-map">
+                <span className="material-symbols-outlined text-base">map</span>
+                Bản đồ dịch bệnh
+              </Link>
+              <Link className={linkClass('/about')} to="/about">Về chúng tôi</Link>
             </div>
           </div>
 
@@ -76,17 +106,33 @@ const Navbar = () => {
 
         <div className={`xl:hidden fixed inset-x-0 top-20 bg-white border-b border-slate-200 shadow-xl py-6 px-6 z-40 ${mobileMenuOpen ? 'block' : 'hidden'}`}>
           <div className="flex flex-col space-y-4">
-            <Link className="flex items-center justify-between text-base font-bold text-primary py-2 border-b border-slate-50" to="/" onClick={() => setMobileMenuOpen(false)}>
+            <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/home') ? 'text-primary' : 'text-slate-600'}`} to="/home" onClick={() => setMobileMenuOpen(false)}>
               Trang chủ <span className="material-symbols-outlined text-sm">chevron_right</span>
             </Link>
-            <Link className="flex items-center justify-between text-base font-bold text-slate-600 py-2 border-b border-slate-50" to="/diagnosis" onClick={() => setMobileMenuOpen(false)}>
+            <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/diagnosis') ? 'text-primary' : 'text-slate-600'}`} to="/diagnosis" onClick={() => setMobileMenuOpen(false)}>
               Chẩn đoán bệnh <span className="material-symbols-outlined text-sm">chevron_right</span>
             </Link>
-            <Link className="flex items-center justify-between text-base font-bold text-slate-600 py-2 border-b border-slate-50" to="/history" onClick={() => setMobileMenuOpen(false)}>
+            <div 
+              className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 cursor-pointer ${isActive('/history') ? 'text-primary' : 'text-slate-600'}`}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (!user) {
+                  toast.info("Vui lòng đăng nhập để xem lịch sử chẩn đoán");
+                } else {
+                  navigate('/history');
+                }
+              }}
+            >
               Lịch sử chẩn đoán <span className="material-symbols-outlined text-sm">chevron_right</span>
+            </div>
+            <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/farming-areas') ? 'text-primary' : 'text-slate-600'}`} to="/farming-areas" onClick={() => setMobileMenuOpen(false)}>
+              Khu vực canh tác <span className="material-symbols-outlined text-sm">chevron_right</span>
             </Link>
-            <Link className="flex items-center justify-between text-base font-bold text-slate-600 py-2 border-b border-slate-50" to="/about" onClick={() => setMobileMenuOpen(false)}>
-              Về AgriAI <span className="material-symbols-outlined text-sm">chevron_right</span>
+            <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/warning-map') ? 'text-primary' : 'text-slate-600'}`} to="/warning-map" onClick={() => setMobileMenuOpen(false)}>
+              Bản đồ dịch bệnh <span className="material-symbols-outlined text-sm">chevron_right</span>
+            </Link>
+            <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/about') ? 'text-primary' : 'text-slate-600'}`} to="/about" onClick={() => setMobileMenuOpen(false)}>
+              Về AgriSmart <span className="material-symbols-outlined text-sm">chevron_right</span>
             </Link>
 
             <div className="pt-4 flex items-center justify-between">

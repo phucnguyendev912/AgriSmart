@@ -19,6 +19,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class DiagnoseResponse {
+    private Integer id;
     private String originalImageUrl;
     private String annotatedImageUrl;
     private WeatherDTO weather;

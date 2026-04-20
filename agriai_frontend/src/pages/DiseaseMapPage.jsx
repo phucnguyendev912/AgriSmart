@@ -1,0 +1,254 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import "leaflet/dist/leaflet.css";
+import SEO from "../components/SEO";
+
+// -------------------------------------------------------------------
+// Màu sắc cố định cho từng loại bệnh (theo diseaseId)
+// -------------------------------------------------------------------
+const DISEASE_COLORS = {
+  1: "#EF4444", // Đạo ôn → đỏ
+  2: "#F97316", // Khô vằn → cam
+  3: "#22C55E", // Rầy nâu → xanh lá
+  default: "#6B7280", // Khác → xám
+};
+
+function getColor(diseaseId) {
+  return DISEASE_COLORS[diseaseId] ?? DISEASE_COLORS.default;
+}
+
+const API_BASE = process.env.REACT_APP_API_URL ?? "http://localhost:8080";
+
+// -------------------------------------------------------------------
+export default function DiseaseMapPage() {
+  const [markers, setMarkers] = useState([]);
+  const [days, setDays] = useState(30);
+  const [diseaseId, setDiseaseId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchMarkers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const params = { days };
+      if (diseaseId) params.diseaseId = diseaseId;
+
+      const headers = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const res = await axios.get(`${API_BASE}/api/map/markers`, {
+        params,
+        headers,
+      });
+      setMarkers(res.data);
+    } catch (err) {
+      setError("Không thể tải dữ liệu bản đồ. Vui lòng thử lại.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [days, diseaseId]);
+
+  useEffect(() => {
+    fetchMarkers();
+  }, [fetchMarkers]);
+
+  // Định dạng ngày giờ cho popup
+  const formatDate = (iso) => {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-surface text-on-surface">
+      <SEO
+        title="Bản đồ cảnh báo dịch bệnh cây trồng"
+        description="Theo dõi phân bố dịch bệnh cây trồng theo thời gian thực trên bản đồ tương tác. Lọc theo loại bệnh và thời gian để nắm bắt tình hình nhanh chóng."
+        keywords="bản đồ dịch bệnh, cảnh báo bệnh lúa, bản đồ nông nghiệp, AgriSmart"
+        url="/warning-map"
+      />
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-surface-variant/30 bg-surface-container-lowest">
+        <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
+          <span className="material-symbols-outlined text-3xl">map</span>
+          Bản đồ cảnh báo dịch bệnh
+        </h1>
+        <p className="text-sm text-on-surface-variant mt-1">
+          Phân bố các ca chẩn đoán bệnh thực tế của nông dân
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="px-6 py-4 bg-surface-container flex flex-wrap gap-4 items-center border-b border-surface-variant/20">
+        {/* Lọc theo thời gian */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-on-surface-variant">Thời gian:</span>
+          {[7, 30, 90].map((d) => (
+            <button
+              key={d}
+              onClick={() => setDays(d)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                days === d
+                  ? "bg-primary text-white"
+                  : "bg-surface-container-highest text-on-surface-variant hover:bg-primary/10"
+              }`}
+            >
+              {d} ngày
+            </button>
+          ))}
+        </div>
+
+        {/* Lọc theo bệnh */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-on-surface-variant">Bệnh:</span>
+          {[
+            { id: null, label: "Tất cả" },
+            { id: 1, label: "Đạo ôn" },
+            { id: 2, label: "Khô vằn" },
+            { id: 3, label: "Rầy nâu" },
+          ].map(({ id, label }) => (
+            <button
+              key={label}
+              onClick={() => setDiseaseId(id)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                diseaseId === id
+                  ? "bg-primary text-white"
+                  : "bg-surface-container-highest text-on-surface-variant hover:bg-primary/10"
+              }`}
+            >
+              {id && (
+                <span
+                  className="inline-block w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: getColor(id) }}
+                />
+              )}
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Trạng thái */}
+        {loading && (
+          <span className="text-sm text-primary animate-pulse ml-auto">
+            Đang tải dữ liệu...
+          </span>
+        )}
+        {!loading && (
+          <span className="text-sm text-on-surface-variant ml-auto">
+            {markers.length} điểm bệnh
+          </span>
+        )}
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mx-6 mt-4 px-4 py-3 rounded-xl bg-error-container text-error text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Map */}
+      <div className="flex-1 relative" style={{ minHeight: "500px" }}>
+        <MapContainer
+          center={[16.047079, 108.20623]} // Trung tâm Việt Nam (Đà Nẵng)
+          zoom={6}
+          style={{ width: "100%", height: "100%", minHeight: "500px" }}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+
+          {markers.map((m) => (
+            <CircleMarker
+              key={m.detailId}
+              center={[m.latitude, m.longitude]}
+              radius={10}
+              pathOptions={{
+                fillColor: getColor(m.diseaseId),
+                color: getColor(m.diseaseId),
+                fillOpacity: 0.75,
+                weight: 2,
+              }}
+            >
+              <Popup>
+                <div className="space-y-1 text-sm" style={{ minWidth: 180 }}>
+                  <div className="flex items-center gap-2 font-semibold text-base mb-2">
+                    <span
+                      className="inline-block w-3 h-3 rounded-full"
+                      style={{ backgroundColor: getColor(m.diseaseId) }}
+                    />
+                    {m.diseaseName ?? "Không rõ"}
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Ngày phát hiện:&nbsp;</span>
+                    <span className="font-medium">{formatDate(m.diagnosedAt)}</span>
+                  </div>
+                  {m.province && (
+                    <div>
+                      <span className="text-gray-500">Khu vực:&nbsp;</span>
+                      <span className="font-medium">{m.province}</span>
+                    </div>
+                  )}
+                </div>
+              </Popup>
+            </CircleMarker>
+          ))}
+        </MapContainer>
+      </div>
+
+      {/* Legend */}
+      <div className="px-6 py-3 bg-surface-container-lowest border-t border-surface-variant/20 flex flex-wrap gap-4 text-sm">
+        {[
+          { color: "#EF4444", label: "Đạo ôn" },
+          { color: "#F97316", label: "Khô vằn" },
+          { color: "#22C55E", label: "Rầy nâu" },
+          { color: "#6B7280", label: "Bệnh khác" },
+        ].map(({ color, label }) => (
+          <span key={label} className="flex items-center gap-1.5 text-on-surface-variant">
+            <span
+              className="inline-block w-3 h-3 rounded-full"
+              style={{ backgroundColor: color }}
+            />
+            {label}
+          </span>
+        ))}
+      </div>
+
+      {/* Mobile Bottom Nav */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-surface-variant/20 px-6 py-4 flex justify-between items-center z-50">
+        <Link to="/farming-areas" className="flex flex-col items-center gap-1 text-on-surface-variant">
+          <span className="material-symbols-outlined">grid_view</span>
+          <span className="text-[10px] font-medium">Khu vực</span>
+        </Link>
+        <Link to="/diagnosis" className="flex flex-col items-center gap-1 text-on-surface-variant">
+          <span className="material-symbols-outlined">search</span>
+          <span className="text-[10px] font-medium">Chẩn đoán</span>
+        </Link>
+        <Link to="/warning-map" className="flex flex-col items-center gap-1 text-primary">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
+          <span className="text-[10px] font-bold">Bản đồ</span>
+        </Link>
+        <Link to="/history" className="flex flex-col items-center gap-1 text-on-surface-variant">
+          <span className="material-symbols-outlined">history</span>
+          <span className="text-[10px] font-medium">Lịch sử</span>
+        </Link>
+        <Link to="/profile" className="flex flex-col items-center gap-1 text-on-surface-variant">
+          <span className="material-symbols-outlined">account_circle</span>
+          <span className="text-[10px] font-medium">Cá nhân</span>
+        </Link>
+      </div>
+    </div>
+  );
+}

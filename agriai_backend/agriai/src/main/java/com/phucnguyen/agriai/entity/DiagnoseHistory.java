@@ -35,4 +35,10 @@ public class DiagnoseHistory extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
 }
