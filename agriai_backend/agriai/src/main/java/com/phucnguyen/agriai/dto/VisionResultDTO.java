@@ -7,9 +7,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+// retrun result from model
 public class VisionResultDTO {
-    private String label; // Hoặc "diseaseName" nếu API trả về key khác, nhưng hiện tại code đang dùng
-                          // getLabel()
+    private String label;
     private Double confidence;
     private String severity;
 }

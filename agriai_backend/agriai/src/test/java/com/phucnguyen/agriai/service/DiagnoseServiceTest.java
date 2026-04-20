@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -71,6 +72,12 @@ class DiagnoseServiceTest {
         private GuidancePort guidancePort;
         @Mock
         private DiseaseMapper diseaseMapper;
+        @Mock
+        private DiagnoseResponseBuilder diagnoseResponseBuilder;
+        @Mock
+        private DiagnoseHistoryPersistenceService historyPersistenceService;
+        @Mock
+        private GeocodingService geocodingService;
 
         private DiagnoseService diagnoseService;
         private CropType cropType;
@@ -82,14 +89,16 @@ class DiagnoseServiceTest {
         void setUp() {
                 diagnoseService = new DiagnoseService(
                                 diagnoseHistoryRepository,
-                                diagnoseHistoryDetailRepository,
                                 diagnosisValidationService,
                                 diagnosisAttachmentService,
                                 visionDetectionPort,
                                 weatherPort,
                                 ruleEngineService,
                                 guidancePort,
-                                diseaseMapper);
+                                diseaseMapper,
+                                diagnoseResponseBuilder,
+                                historyPersistenceService,
+                                geocodingService);
 
                 cropType = CropType.builder().id(1).cropName("Lua").isActive(true).build();
                 aiModel = AIModel.builder().id(10).modelFilePath("/models/rice.pt").isActive(true).build();
@@ -118,6 +127,47 @@ class DiagnoseServiceTest {
                 lenient().when(diagnoseHistoryDetailRepository.save(any()))
                                 .thenAnswer(invocation -> invocation.getArgument(0));
                 lenient().when(guidancePort.generateGuidance(any())).thenReturn("Huong dan de hieu cho nong dan.");
+                lenient().when(diagnoseResponseBuilder.buildResponse(any(), any(), any(), anyBoolean(), any(), any()))
+                                .thenAnswer(invocation -> {
+                                        Integer historyId = invocation.getArgument(0);
+                                        String imageUrl = invocation.getArgument(1);
+                                        WeatherDTO weather = invocation.getArgument(2);
+                                        boolean gpsUsed = invocation.getArgument(3);
+                                        DiagnosisAnalysis analysis = invocation.getArgument(4);
+                                        RuleEngineService.RuleEngineResult ruleResult = invocation.getArgument(5);
+                                        boolean healthy = analysis != null && analysis.isHealthy();
+                                        List<DiseaseResultDTO> diseases = analysis == null ? List.of()
+                                                        : analysis.detectedDiseases().stream()
+                                                                        .map(m -> DiseaseResultDTO.builder()
+                                                                                        .diseaseId(m.disease().getId())
+                                                                                        .diseaseName(m.disease()
+                                                                                                        .getDiseaseName())
+                                                                                        .confidence(m.visionResult()
+                                                                                                        .getConfidence())
+                                                                                        .build())
+                                                                        .toList();
+                                        String diagnosisType = healthy ? "HEALTHY"
+                                                        : diseases.isEmpty() ? "UNKNOWN" : "DISEASE_DETECTED";
+                                        return DiagnoseResponse.builder()
+                                                        .originalImageUrl(imageUrl)
+                                                        .weather(weather)
+                                                        .gpsUsed(gpsUsed)
+                                                        .diseases(diseases)
+                                                        .warnings(ruleResult != null ? ruleResult.warnings()
+                                                                        : List.of())
+                                                        .treatments(ruleResult != null ? ruleResult.treatments()
+                                                                        : List.of())
+                                                        .sprayPrograms(ruleResult != null ? ruleResult.sprayPrograms()
+                                                                        : List.of())
+                                                        .interactionWarnings(ruleResult != null
+                                                                        ? ruleResult.interactionWarnings()
+                                                                        : List.of())
+                                                        .weatherAlerts(ruleResult != null ? ruleResult.weatherAlerts()
+                                                                        : List.of())
+                                                        .isHealthy(healthy)
+                                                        .diagnosisType(diagnosisType)
+                                                        .build();
+                                });
         }
 
         @Test

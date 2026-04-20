@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import DiagnosisRatingModal from '../components/DiagnosisRatingModal';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -26,6 +27,15 @@ const DiagnosisHistoryPage = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+
+  // Rating Modal state
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [selectedHistoryId, setSelectedHistoryId] = useState(null);
+
+  const openRatingModal = (id) => {
+    setSelectedHistoryId(id);
+    setIsRatingModalOpen(true);
+  };
 
   useEffect(() => {
       const fetchHistory = async () => {
@@ -120,9 +130,19 @@ const DiagnosisHistoryPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link to={`/history/${item.id}`} className="text-primary hover:bg-primary/5 p-2 rounded-lg transition-colors group inline-block">
-                        <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">visibility</span>
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => openRatingModal(item.id)}
+                          className="text-secondary hover:bg-secondary/5 p-2 rounded-lg transition-colors group flex items-center gap-1 text-[10px] font-bold"
+                          title="Đánh giá kết quả"
+                        >
+                          <span className="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform">rate_review</span>
+                          <span>Đánh giá</span>
+                        </button>
+                        <Link to={`/history/${item.id}`} className="text-primary hover:bg-primary/5 p-2 rounded-lg transition-colors group inline-block" title="Xem chi tiết">
+                          <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">visibility</span>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -150,8 +170,14 @@ const DiagnosisHistoryPage = () => {
                       {getSeverityLabel(item.severity)}
                     </span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-primary">{item.confidence ? Math.round(item.confidence * 100) : '-'}% tin cậy</span>
+                  <div className="mt-3 flex items-center justify-between border-t border-outline-variant/5 pt-2">
+                    <button 
+                      onClick={() => openRatingModal(item.id)}
+                      className="text-[11px] font-bold text-secondary flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">rate_review</span>
+                      <span>Đánh giá</span>
+                    </button>
                     <Link to={`/history/${item.id}`} className="text-[11px] font-bold text-[#006194] flex items-center space-x-1 hover:underline">
                       <span>Chi tiết</span>
                       <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -208,6 +234,15 @@ const DiagnosisHistoryPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Rating Modal Integration */}
+      {isRatingModalOpen && (
+        <DiagnosisRatingModal 
+          historyId={selectedHistoryId} 
+          accessToken={accessToken}
+          onClose={() => setIsRatingModalOpen(false)}
+        />
+      )}
     </main>
   );
 };

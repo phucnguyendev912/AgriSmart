@@ -91,6 +91,8 @@ public class DiagnoseHistoryService {
                             .severity(severity)
                             .status(history.getStatus() != null ? history.getStatus().name() : null)
                             .diagnosisType(diagnosisType)
+                            .latitude(history.getLatitude())
+                            .longitude(history.getLongitude())
                             .build();
                 });
     }

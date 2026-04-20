@@ -21,4 +21,6 @@ public class DiagnoseHistoryResponse {
     private String severity;
     private String status;
     private String diagnosisType;
+    private Double latitude;
+    private Double longitude;
 }
