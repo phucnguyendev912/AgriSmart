@@ -14,11 +14,6 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Entry point chính của Rule Engine.
- * Điều phối các bước: chọn phác đồ → kiểm tra tương tác thuốc →
- * đánh giá thời tiết → xây dựng lịch phun → tính chiến lược tổng thể.
- */
 @Service
 @Transactional(readOnly = true)
 public class RuleEngineService {
@@ -46,7 +41,7 @@ public class RuleEngineService {
         if (diseaseIds == null || diseaseIds.isEmpty()) {
             return RuleEngineResult.empty();
         }
-
+        // get treatment plans by disease ids
         Map<Integer, List<TreatmentPlan>> plansByDisease = new LinkedHashMap<>();
         for (Integer diseaseId : diseaseIds) {
             List<TreatmentPlan> plans = treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(diseaseId);
@@ -67,13 +62,13 @@ public class RuleEngineService {
         List<WeatherAlertDTO> weatherAlerts = weatherAlertsByPlan.values().stream()
                 .flatMap(List::stream)
                 .toList();
-
+        // building spray program
         List<TreatmentProgramDTO> programs = sprayProgramBuilder.buildPrograms(selectedPlans, interactionWarnings,
                 weatherAlertsByPlan);
         List<TreatmentDTO> flatTreatments = programs.stream()
                 .flatMap(program -> program.getTreatments().stream())
                 .toList();
-
+        // building strategy
         String strategy = sprayProgramBuilder.deriveStrategy(programs, interactionWarnings);
         return new RuleEngineResult(flatTreatments, List.of(), programs, interactionWarnings, weatherAlerts, strategy);
     }

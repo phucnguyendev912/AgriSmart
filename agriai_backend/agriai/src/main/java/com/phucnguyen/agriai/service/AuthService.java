@@ -91,7 +91,11 @@ public class AuthService {
 
         return LoginResponse.builder()
                 .token(jwtService.generateToken(springUser))
-                .refreshToken(refreshToken).build();
+                .refreshToken(refreshToken)
+                .user(UserResponse.builder().id(user.getId()).fullName(user.getFullName())
+                        .email(user.getEmail()).phoneNumber(user.getPhoneNumber())
+                        .role(user.getRole() != null ? user.getRole().getRoleName() : "USER").build())
+                .build();
     }
 
     private UserDetails toSpringUser(User user) {

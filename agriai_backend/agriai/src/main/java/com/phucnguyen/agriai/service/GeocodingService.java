@@ -51,7 +51,7 @@ public class GeocodingService {
                         .build());
 
         // 4. Push WebSocket thông báo cho user
-        String message = "Địa chỉ khu vực canh tác bạn chẩn đoán ở: " + result.shortAddress()
+        String message = "Địa chỉ khu vực canh tác của bạn ở: " + result.shortAddress()
                 + ". Hãy vào trang Khu vực canh tác để xác nhận!";
 
         simpMessagingTemplate.convertAndSendToUser(

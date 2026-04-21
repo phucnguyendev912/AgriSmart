@@ -1,5 +1,7 @@
 package com.phucnguyen.agriai.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phucnguyen.agriai.dto.VisionResultDTO;
 import com.phucnguyen.agriai.port.VisionDetectionPort;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,13 +64,13 @@ public class VisionAIService implements VisionDetectionPort {
                     predictUrl, HttpMethod.POST, requestEntity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(response.getBody());
-                com.fasterxml.jackson.databind.JsonNode detections = root.path("detections");
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(response.getBody());
+                JsonNode detections = root.path("detections");
 
                 List<VisionResultDTO> results = new java.util.ArrayList<>();
                 if (detections.isArray()) {
-                    for (com.fasterxml.jackson.databind.JsonNode det : detections) {
+                    for (JsonNode det : detections) {
                         String label = det.path("class_name").asText();
                         double confidence = det.path("confidence").asDouble(0.95);
 

@@ -26,6 +26,7 @@ public class SprayProgramBuilder {
             Map<Integer, List<WeatherAlertDTO>> weatherAlertsByPlan) {
 
         List<List<TreatmentPlan>> groupedPlans = new ArrayList<>();
+        // grouping plans
         for (TreatmentPlan candidate : selectedPlans) {
             boolean added = false;
             for (List<TreatmentPlan> group : groupedPlans) {

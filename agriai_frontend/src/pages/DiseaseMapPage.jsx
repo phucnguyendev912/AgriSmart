@@ -8,15 +8,14 @@ import SEO from "../components/SEO";
 // -------------------------------------------------------------------
 // Màu sắc cố định cho từng loại bệnh (theo diseaseId)
 // -------------------------------------------------------------------
-const DISEASE_COLORS = {
-  1: "#EF4444", // Đạo ôn → đỏ
-  2: "#F97316", // Khô vằn → cam
-  3: "#22C55E", // Rầy nâu → xanh lá
-  default: "#6B7280", // Khác → xám
-};
+const PALETTE = [
+  "#EF4444", "#F97316", "#22C55E", "#3B82F6", "#8B5CF6", "#EC4899", "#14B8A6", "#EAB308", 
+  "#06B6D4", "#F43F5E", "#84CC16", "#6366F1"
+];
 
 function getColor(diseaseId) {
-  return DISEASE_COLORS[diseaseId] ?? DISEASE_COLORS.default;
+  if (!diseaseId) return "#6B7280";
+  return PALETTE[diseaseId % PALETTE.length];
 }
 
 const API_BASE = process.env.REACT_APP_API_URL ?? "http://localhost:8080";
@@ -26,6 +25,7 @@ export default function DiseaseMapPage() {
   const [markers, setMarkers] = useState([]);
   const [days, setDays] = useState(30);
   const [diseaseId, setDiseaseId] = useState(null);
+  const [diseasesList, setDiseasesList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -56,6 +56,18 @@ export default function DiseaseMapPage() {
   useEffect(() => {
     fetchMarkers();
   }, [fetchMarkers]);
+
+  useEffect(() => {
+    const fetchDiseases = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/api/map/diseases`);
+        setDiseasesList(res.data);
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách bệnh", err);
+      }
+    };
+    fetchDiseases();
+  }, []);
 
   // Định dạng ngày giờ cho popup
   const formatDate = (iso) => {
@@ -110,31 +122,25 @@ export default function DiseaseMapPage() {
 
         {/* Lọc theo bệnh */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-on-surface-variant">Bệnh:</span>
-          {[
-            { id: null, label: "Tất cả" },
-            { id: 1, label: "Đạo ôn" },
-            { id: 2, label: "Khô vằn" },
-            { id: 3, label: "Rầy nâu" },
-          ].map(({ id, label }) => (
-            <button
-              key={label}
-              onClick={() => setDiseaseId(id)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
-                diseaseId === id
-                  ? "bg-primary text-white"
-                  : "bg-surface-container-highest text-on-surface-variant hover:bg-primary/10"
-              }`}
+          <span className="text-sm font-medium text-on-surface-variant flex-shrink-0">Bệnh:</span>
+          <div className="relative">
+            <select
+              value={diseaseId || ""}
+              onChange={(e) => setDiseaseId(e.target.value ? Number(e.target.value) : null)}
+              className="appearance-none px-4 py-2 pr-8 rounded-lg text-sm font-bold bg-surface-container-highest text-on-surface hover:bg-surface-variant/50 transition-colors cursor-pointer border-none outline-none focus:ring-2 focus:ring-primary/20 shadow-sm"
+              style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
             >
-              {id && (
-                <span
-                  className="inline-block w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: getColor(id) }}
-                />
-              )}
-              {label}
-            </button>
-          ))}
+              <option value="">Tất cả các loại bệnh</option>
+              {diseasesList.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.diseaseName}
+                </option>
+              ))}
+            </select>
+            <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-base pointer-events-none">
+              expand_more
+            </span>
+          </div>
         </div>
 
         {/* Trạng thái */}
@@ -210,18 +216,13 @@ export default function DiseaseMapPage() {
 
       {/* Legend */}
       <div className="px-6 py-3 bg-surface-container-lowest border-t border-surface-variant/20 flex flex-wrap gap-4 text-sm">
-        {[
-          { color: "#EF4444", label: "Đạo ôn" },
-          { color: "#F97316", label: "Khô vằn" },
-          { color: "#22C55E", label: "Rầy nâu" },
-          { color: "#6B7280", label: "Bệnh khác" },
-        ].map(({ color, label }) => (
-          <span key={label} className="flex items-center gap-1.5 text-on-surface-variant">
+        {diseasesList.map((d) => (
+          <span key={d.id} className="flex items-center gap-1.5 text-on-surface-variant">
             <span
               className="inline-block w-3 h-3 rounded-full"
-              style={{ backgroundColor: color }}
+              style={{ backgroundColor: getColor(d.id) }}
             />
-            {label}
+            {d.diseaseName}
           </span>
         ))}
       </div>
