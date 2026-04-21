@@ -5,10 +5,6 @@ import java.util.Comparator;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
-/**
- * Chịu trách nhiệm chọn phác đồ điều trị ưu tiên nhất cho một loại bệnh.
- * Thứ tự ưu tiên: Bắt buộc (isRequired=true) → Có chứa hoạt chất → ID nhỏ hơn.
- */
 @Component
 public class TreatmentSelector {
 

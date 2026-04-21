@@ -1,6 +1,7 @@
 package com.phucnguyen.agriai.controller;
 
 import com.phucnguyen.agriai.dto.MapMarkerResponse;
+import com.phucnguyen.agriai.repository.DiseaseRepository;
 import com.phucnguyen.agriai.service.DiseaseMapService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/map")
@@ -17,6 +20,7 @@ import java.util.List;
 public class DiseaseMapController {
 
     private final DiseaseMapService diseaseMapService;
+    private final DiseaseRepository diseaseRepository;
 
     /**
      * GET /api/map/markers
@@ -29,5 +33,14 @@ public class DiseaseMapController {
             @RequestParam(defaultValue = "30") int days,
             @RequestParam(required = false) Integer diseaseId) {
         return ResponseEntity.ok(diseaseMapService.getMarkers(days, diseaseId));
+    }
+
+    @GetMapping("/diseases")
+    public ResponseEntity<List<Map<String, Object>>> getDiseases() {
+        return ResponseEntity.ok(diseaseRepository.findAll().stream()
+                .map(d -> Map.of(
+                        "id", (Object) d.getId(),
+                        "diseaseName", (Object) d.getDiseaseName()))
+                .collect(Collectors.toList()));
     }
 }

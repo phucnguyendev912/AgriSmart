@@ -16,6 +16,7 @@ import com.phucnguyen.agriai.entity.DiagnoseHistoryDetail;
 import com.phucnguyen.agriai.exception.AppException;
 import com.phucnguyen.agriai.repository.DiagnoseHistoryDetailRepository;
 import com.phucnguyen.agriai.repository.DiagnoseHistoryRepository;
+import com.phucnguyen.agriai.repository.DiagnoseReviewRepository;
 import com.phucnguyen.agriai.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -40,6 +41,9 @@ public class DiagnoseHistoryService {
 
     @Autowired
     private DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
+
+    @Autowired
+    private DiagnoseReviewRepository diagnoseReviewRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -81,6 +85,8 @@ public class DiagnoseHistoryService {
                         }
                     }
 
+                    boolean isReviewed = diagnoseReviewRepository.existsByHistoryId(history.getId());
+
                     return com.phucnguyen.agriai.dto.response.DiagnoseHistoryResponse.builder()
                             .id(history.getId())
                             .createdAt(history.getCreatedAt())
@@ -93,6 +99,7 @@ public class DiagnoseHistoryService {
                             .diagnosisType(diagnosisType)
                             .latitude(history.getLatitude())
                             .longitude(history.getLongitude())
+                            .isReviewed(isReviewed)
                             .build();
                 });
     }

@@ -23,4 +23,5 @@ public class DiagnoseHistoryResponse {
     private String diagnosisType;
     private Double latitude;
     private Double longitude;
+    private Boolean isReviewed;
 }

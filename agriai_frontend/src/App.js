@@ -13,6 +13,7 @@ import DiagnosisHistoryPage from "./pages/DiagnosisHistoryPage";
 import DiagnosisHistoryDetailPage from "./pages/DiagnosisHistoryDetailPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import DiseaseMapPage from "./pages/DiseaseMapPage";
+import ProfilePage from "./pages/ProfilePage";
 import ChatBotWidget from "./components/ChatBotWidget";
 import GlobalNotificationListener from "./components/GlobalNotificationListener";
 import { ToastContainer } from "react-toastify";
@@ -42,6 +43,7 @@ function App() {
               />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/warning-map" element={<DiseaseMapPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </div>
           <ChatBotWidget />

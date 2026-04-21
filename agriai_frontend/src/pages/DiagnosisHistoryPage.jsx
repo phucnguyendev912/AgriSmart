@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import DiagnosisRatingModal from '../components/DiagnosisRatingModal';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
@@ -131,14 +132,21 @@ const DiagnosisHistoryPage = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => openRatingModal(item.id)}
-                          className="text-secondary hover:bg-secondary/5 p-2 rounded-lg transition-colors group flex items-center gap-1 text-[10px] font-bold"
-                          title="Đánh giá kết quả"
-                        >
-                          <span className="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform">rate_review</span>
-                          <span>Đánh giá</span>
-                        </button>
+                        {!item.isReviewed ? (
+                          <button 
+                            onClick={() => openRatingModal(item.id)}
+                            className="text-secondary hover:bg-secondary/5 p-2 rounded-lg transition-colors group flex items-center gap-1 text-[10px] font-bold"
+                            title="Đánh giá kết quả"
+                          >
+                            <span className="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform">rate_review</span>
+                            <span>Đánh giá</span>
+                          </button>
+                        ) : (
+                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                            Đã ĐG
+                          </span>
+                        )}
                         <Link to={`/history/${item.id}`} className="text-primary hover:bg-primary/5 p-2 rounded-lg transition-colors group inline-block" title="Xem chi tiết">
                           <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">visibility</span>
                         </Link>
@@ -171,13 +179,20 @@ const DiagnosisHistoryPage = () => {
                     </span>
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-outline-variant/5 pt-2">
-                    <button 
-                      onClick={() => openRatingModal(item.id)}
-                      className="text-[11px] font-bold text-secondary flex items-center gap-1"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">rate_review</span>
-                      <span>Đánh giá</span>
-                    </button>
+                    {!item.isReviewed ? (
+                      <button 
+                        onClick={() => openRatingModal(item.id)}
+                        className="text-[11px] font-bold text-secondary flex items-center gap-1"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">rate_review</span>
+                        <span>Đánh giá</span>
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                        Đã đánh giá
+                      </span>
+                    )}
                     <Link to={`/history/${item.id}`} className="text-[11px] font-bold text-[#006194] flex items-center space-x-1 hover:underline">
                       <span>Chi tiết</span>
                       <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -241,6 +256,10 @@ const DiagnosisHistoryPage = () => {
           historyId={selectedHistoryId} 
           accessToken={accessToken}
           onClose={() => setIsRatingModalOpen(false)}
+          onSuccess={() => {
+            toast.success("Cảm ơn bạn đã đánh giá kết quả chẩn đoán!");
+            setHistoryList(prev => prev.map(h => h.id === selectedHistoryId ? { ...h, isReviewed: true } : h));
+          }}
         />
       )}
     </main>

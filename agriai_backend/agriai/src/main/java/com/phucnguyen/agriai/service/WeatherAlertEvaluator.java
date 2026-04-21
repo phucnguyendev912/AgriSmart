@@ -14,11 +14,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
-/**
- * Đánh giá rủi ro thời tiết: Đối chiếu thông số thời tiết thực tế với các
- * khuyến cáo
- * của từng phác đồ điều trị và trả về danh sách cảnh báo nếu có vi phạm.
- */
+// checking weather condition
 @Component
 public class WeatherAlertEvaluator {
 
