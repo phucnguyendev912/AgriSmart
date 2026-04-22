@@ -19,4 +19,10 @@ public class ChatSession extends BaseEntity {
 
     @Column(name = "sessionTitle", length = 255)
     private String sessionTitle;
+
+    @Column(name = "lastMessage", columnDefinition = "TEXT")
+    private String lastMessage;
+
+    @Column(name = "lastMessageAt")
+    private java.time.LocalDateTime lastMessageAt;
 }
