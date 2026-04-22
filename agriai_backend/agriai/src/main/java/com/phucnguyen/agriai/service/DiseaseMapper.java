@@ -11,21 +11,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Responsible for mapping YOLO detection labels to Disease database records
- * and grouping detection results.
- * Following S - Single Responsibility Principle.
- */
 @Service
 public class DiseaseMapper {
 
     @Autowired
     private DiseaseRepository diseaseRepository;
 
-    /**
-     * Map YOLO label string to Disease entity using 3-tier fallback lookup:
-     * diseaseCode → diseaseNameEn → diseaseName (all case-insensitive).
-     */
     public Optional<Disease> findDisease(String label) {
         String cleanLabel = label.trim();
         String underscoreLabel = cleanLabel.replace(" ", "_");
@@ -51,9 +42,6 @@ public class DiseaseMapper {
         return Optional.empty();
     }
 
-    /**
-     * Group detection results by label, keeping only the one with max confidence.
-     */
     public Map<String, VisionResultDTO> groupByMaxConfidence(List<VisionResultDTO> results) {
         return results.stream()
                 .collect(Collectors.toMap(
