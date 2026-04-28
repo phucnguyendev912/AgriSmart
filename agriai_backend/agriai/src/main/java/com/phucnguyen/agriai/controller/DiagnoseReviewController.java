@@ -7,12 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
+import java.util.List;
 import java.util.Optional;
+import org.springframework.web.bind.annotation.GetMapping;
 
-/**
- * REST Controller xử lý API đánh giá kết quả chẩn đoán.
- * Base path: /api/reviews
- */
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
@@ -51,4 +49,10 @@ public class DiagnoseReviewController {
         return review.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<DiagnoseReviewResponse>> getAllReview() {
+        return ResponseEntity.ok(reviewService.getAllReview());
+    }
+
 }

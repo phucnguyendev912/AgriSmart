@@ -65,6 +65,7 @@ public class RuleEngineService {
         // building spray program
         List<TreatmentProgramDTO> programs = sprayProgramBuilder.buildPrograms(selectedPlans, interactionWarnings,
                 weatherAlertsByPlan);
+        // flat list of treatments
         List<TreatmentDTO> flatTreatments = programs.stream()
                 .flatMap(program -> program.getTreatments().stream())
                 .toList();

@@ -97,3 +97,12 @@ Sort:
 Lưu ý:
 
 - `DiagnoseHistory.areaInfor` hiện chưa được gán đầy đủ ở flow chẩn đoán, nên `province` có thể thường là `null`.
+
+## 5. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **Thêm bộ lọc "Mức độ ưu tiên" trên bản đồ:**
+   - **Query:** Update `DiseaseMapController.java` và DB.
+   - **DTO:** Thêm field vào `MapMarkerResponse`.
+   - **Frontend:** Đổi màu logic Marker trong `DiseaseMapPage.jsx`.

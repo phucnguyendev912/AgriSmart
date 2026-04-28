@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import FarmerStories from '../components/FarmerReviews';
 
 const HomePage = () => {
   return (
@@ -37,51 +38,6 @@ const HomePage = () => {
 
         {/* Quick Stats Bar */}
         <section className="px-6 md:px-12 -translate-y-12 z-20 relative max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined">query_stats</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Hôm nay</p>
-                <p className="text-xl font-black text-slate-900">12.450+</p>
-                <p className="text-[10px] text-emerald-600 font-medium">Lượt chẩn đoán</p>
-              </div>
-            </div>
-
-            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined">verified</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Độ chính xác</p>
-                <p className="text-xl font-black text-slate-900">96.8%</p>
-                <p className="text-[10px] text-amber-600 font-medium">Theo GlobalGAP</p>
-              </div>
-            </div>
-
-            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-tertiary">
-                <span className="material-symbols-outlined">savings</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Tiết kiệm</p>
-                <p className="text-xl font-black text-slate-900">35%</p>
-                <p className="text-[10px] text-blue-600 font-medium">Chi phí thuốc BVTV</p>
-              </div>
-            </div>
-
-            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center text-slate-600">
-                <span className="material-symbols-outlined">potted_plant</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Phạm vi</p>
-                <p className="text-xl font-black text-slate-900">08 loại</p>
-                <p className="text-[10px] text-slate-500 font-medium">Cây trồng chủ lực</p>
-              </div>
-            </div>
-          </div>
         </section>
 
         {/* Features Bento Grid */}
@@ -162,51 +118,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Farmer Stories */}
-        <section className="px-6 md:px-12 py-16 bg-surface-container-low">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-slate-900 mb-2">Câu chuyện nông dân</h2>
-              <p className="text-slate-500">AgriAI đồng hành cùng hàng ngàn hộ nông dân khắp Việt Nam</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  quote: '"Nhờ AgriAI mà tôi phát hiện sớm bệnh cháy bìa lá trên 2 mẫu ruộng. Tiết kiệm được cả chục triệu tiền thuốc vì không phải phun đại trà."',
-                  name: 'Bác Minh',
-                  location: 'Long An',
-                  img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBTvvBqdbIS3NynSOt7KQF-Wfqk3Dynm1RxIW2Z3teianRNLRNixJhyXawCFacRdteQO_ElG2jc6U0HQsKlmKto9dz7pV4Rf6Rg-eE3i7tcLLOlI8FdkWgD4ivjcTuaqYvxVqtqg05KdRwiQdxFQJSgfgkkLnwyETZvWuIJmK0sBuS3u1F1N3hs8na4M6o5FzexPT3yViAWdudOKEnA0y2jE6Fo34mJQnWPe_t2LBCyv1NA1LB29sl_mv1Ikndf-tnpXebdxb-ywd40'
-                },
-                {
-                  quote: '"Cái chatbot trả lời rất nhanh và chính xác. Tối muộn ra thăm ruộng thấy lá lạ là hỏi được luôn, không cần chờ đến sáng."',
-                  name: 'Cô Lan',
-                  location: 'An Giang',
-                  img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA1L2Zd-QFunjDcqWav9_TT8kh4OsSRvta-lwYE8pdDYPsyr5YdxGb7mizfTSt51SuXci4I9qu4UKVXpvZLThmxZkPnMZ38YfKHf8cjsHikdPoXh97_0QJNFx4mm1r7JJYbo315bo29jrf4hWIQJQj__keCWb6Q5S3T1JUXWFoDDfvhNoLNH8eLWPn-CACyo7vWQAhHcvX3x-jwZ9z27rhqamBmWKflVls2V3lOK6n8V_I9-0GbpTNhvuenZI-QsWpqvFG3OJDiOnRv'
-                },
-                {
-                  quote: '"Độ chính xác rất cao. Tôi đã thử so sánh với ý kiến chuyên gia và thấy AgriAI chẩn đoán đúng gần như tuyệt đối."',
-                  name: 'Anh Trung',
-                  location: 'Đồng Tháp',
-                  img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9Tdv6q7aMZM2I0l-MuzNSLeh-iQGLg3u1sJ1B1S2Ipz9kqvSuVKoBgRRI21pRgEutnOHUkU6z5EaifRRIyTZq8fSFQN_byPOKdYOdBfc417jobrRpeY8poFON1zuFwx35gp0E5HSd0Zs00l3frwpJGpTt_DT4-YR_hOkiG2kVWpHPRSnNKhJLE8Nf37Jl7qjl1jyHV6zM-WyW0hpMKwFsFt_bDmndIap_mkCRFc7ZmmDF5HmWBH6U9HzAH8QFRXH2RZuN4YClUcFt'
-                }
-              ].map((item, i) => (
-                <div key={i} className="bg-white p-8 rounded-xl shadow-sm border border-outline-variant/10 relative">
-                  <span className="material-symbols-outlined text-emerald-100 text-6xl absolute top-4 right-4">format_quote</span>
-                  <p className="text-slate-600 italic mb-8 relative z-10 leading-relaxed">{item.quote}</p>
-                  <div className="flex items-center gap-4">
-                    <img alt={item.name} className="w-12 h-12 rounded-full object-cover" src={item.img} />
-                    <div>
-                      <p className="font-bold text-slate-900">{item.name}</p>
-                      <p className="text-xs text-slate-500">{item.location}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
+        <FarmerStories />
         {/* Final CTA */}
         <section className="px-6 md:px-12 py-16 max-w-7xl mx-auto">
           <div className="bg-primary rounded-3xl p-8 md:p-16 text-center relative overflow-hidden">

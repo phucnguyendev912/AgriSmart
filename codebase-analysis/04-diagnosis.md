@@ -298,7 +298,6 @@ Khi lưu:
 4. Có thể phát sinh `AreaInfor` từ geocoding nền
 
 Khi lấy dữ liệu để chẩn đoán:
-
 - `CropTypeRepository.findById`
 - `AIModelRepository.findFirstByCropTypeIdAndIsActiveTrueAndIsDeleteFalse`
 - fallback `AIModelRepository.findFirstByIsActiveTrueAndIsDeleteFalseOrderByIdAsc`
@@ -312,3 +311,22 @@ Khi lấy dữ liệu để chẩn đoán:
 Lưu ý:
 
 - `annotatedImageUrl` có trong DTO nhưng hiện chưa được set.
+
+## 7. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **AI không nhận diện được bệnh mới / Cần đổi model YOLO mới:**
+   - **DB:** Cập nhật DB bảng `AIModel` hoặc `Disease`.
+   - **Backend:** Sửa `DiseaseMapper.java` để map kết quả AI với DB. Sửa `VisionAIService.java` nếu đổi API.
+
+2. **Thay đổi/Bổ sung Luật chẩn đoán (vd: Hạn chế thuốc khi trời mưa):**
+   - **Rule Engine:** `WeatherAlertEvaluator.java`, `TreatmentSelector.java`, `RuleEngineService.java`.
+   - **DB:** Cấu hình chuẩn trong bảng `TreatmentWeatherCondition`.
+
+3. **Thay đổi câu trả lời của Trợ lý AI (Guidance):**
+   - **Prompt:** `LLMService.java` (Sửa hàm `buildPrompt()`).
+   
+4. **Hiển thị thêm thông số thời tiết:**
+   - **Backend:** `WeatherApiService.java` (Đọc thêm data), `WeatherDTO.java`.
+   - **Frontend:** Thêm vào Card ở `DiagnoseWeatherCards.jsx`.

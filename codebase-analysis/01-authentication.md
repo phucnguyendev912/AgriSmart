@@ -213,3 +213,20 @@ Index:
 Map response:
 
 - `User` -> `UserResponse`
+
+## 7. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **Thêm trường dữ liệu mới cho User (vd: địa chỉ, avatar):**
+   - **Entity:** `User.java` (Thêm cột vào DB).
+   - **DTOs:** `RegisterRequest.java`, `ProfileUpdateRequest.java`, `UserResponse.java`.
+   - **Service:** `AuthService.java` (Lưu data khi đăng ký), `UserService.java` (Lưu data khi update profile).
+   - **Frontend:** `RegisterPage.jsx`, `ProfilePage.jsx`.
+
+2. **Thay đổi cấu hình bảo mật / JWT (vd: thời gian hết hạn token):**
+   - **Security:** `JwtService.java` (Mã logic gen token), `application.properties` hoặc `application.yml` (Nơi chứa secret/expiration).
+   - **Filter:** `JwtAuthenticationFilter.java` (Nếu muốn thay đổi cách parse token).
+
+3. **Sửa lỗi xác thực:**
+   - **Code check:** `CustomUserDetailsService.java` và `AuthService.java`.

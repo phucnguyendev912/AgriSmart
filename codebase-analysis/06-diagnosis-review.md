@@ -116,3 +116,13 @@ Khi lấy ra:
 Ràng buộc:
 
 - `historyId` là `unique=true`, mỗi history tối đa 1 review.
+
+## 5. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **Cho phép Upload Ảnh đính kèm khi review (Minh chứng do chẩn đoán sai):**
+   - **Entity:** Thêm `imageUrl` vào `DiagnoseReview.java`.
+   - **Service:** Inject `CloudinaryService` vào `DiagnoseReviewService.java`.
+   - **Controller:** Đổi `@RequestBody` sang xử lý Multipart file ở `DiagnoseReviewController.java`.
+   - **Frontend:** Thêm ô upload ảnh ở modal `DiagnosisRatingModal`.

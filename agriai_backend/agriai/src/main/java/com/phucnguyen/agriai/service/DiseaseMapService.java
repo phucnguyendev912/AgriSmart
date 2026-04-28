@@ -14,12 +14,7 @@ public class DiseaseMapService {
 
     private final DiseaseMapRepository diseaseMapRepository;
 
-    /**
-     * Lấy danh sách marker cho bản đồ.
-     *
-     * @param days      Lọc các chẩn đoán trong N ngày gần nhất (mặc định 30)
-     * @param diseaseId ID loại bệnh để lọc, null = tất cả bệnh
-     */
+    // get markers in N days
     public List<MapMarkerResponse> getMarkers(int days, Integer diseaseId) {
         LocalDateTime since = LocalDateTime.now().minusDays(days);
         return diseaseMapRepository.findMarkers(since, diseaseId);

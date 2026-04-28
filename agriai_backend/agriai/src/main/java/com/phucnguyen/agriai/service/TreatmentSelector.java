@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TreatmentSelector {
 
+    // select primary plan
     public TreatmentPlan selectPrimaryPlan(List<TreatmentPlan> plans) {
         return plans.stream()
                 .sorted(Comparator

@@ -94,3 +94,11 @@ Kết luận:
 
 - Notification bền vững trong DB chưa hoàn chỉnh
 - Phần đang hoạt động thật chỉ là WebSocket realtime toast
+
+## 5. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **Gắn thêm một Trigger sinh thông báo (Nhắc nhở tự động):**
+   - **Backend:** Inject `NotificationService.java` và gọi `createNotification()`. Khai báo Cron job (@Scheduled).
+   - **Enum:** Thêm `NotificationType`.

@@ -22,7 +22,7 @@ public class DiseaseMapper {
         String underscoreLabel = cleanLabel.replace(" ", "_");
         String spaceLabel = cleanLabel.replace("_", " ");
 
-        java.util.List<String> candidates = java.util.List.of(
+        List<String> candidates = List.of(
                 cleanLabel, underscoreLabel, spaceLabel);
 
         for (String candidate : candidates) {

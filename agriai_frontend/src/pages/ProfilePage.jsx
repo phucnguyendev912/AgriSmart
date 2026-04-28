@@ -2,12 +2,53 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
-  const [fullName, setFullName] = useState(user?.fullName || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const { user, updateUserContext } = useAuth(); // useAuth: lấy thông tin người dùng và cập nhật hồ sơ.
+  const [fullName, setFullName] = useState(user?.fullName || ''); // useState: lưu giá trị họ tên trong form chỉnh sửa hồ sơ.
+  const [email] = useState(user?.email || ''); // useState: hiển thị email chỉ đọc (không cho phép chỉnh sửa).
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || ''); // useState: lưu số điện thoại trong form cập nhật.
+  const [errors, setErrors] = useState({}); // useState: lưu các lỗi validate của form trước khi gửi lên server.
+  const [isUpdating, setIsUpdating] = useState(false); // useState: trạng thái đang gửi yêu cầu cập nhật hồ sơ lên API.
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
+  const validate = () => {
+    const newErrors = {};
+    if (!fullName.trim()) {
+      newErrors.fullName = 'Họ tên không được để trống';
+    }
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      newErrors.phoneNumber = 'Số điện thoại phải gồm 10 chữ số';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleUpdateProfile = async () => {
+    if (!validate()) return;
+    setIsUpdating(true);
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/users/profile`,
+        { fullName, phoneNumber },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      updateUserContext(response.data);
+      toast.success('Cập nhật thông tin thành công!');
+    } catch (error) {
+      console.error('Lỗi khi cập nhật:', error);
+      toast.error('Cập nhật thất bại. Vui lòng thử lại sau.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-surface text-on-surface">
@@ -63,7 +104,7 @@ export default function ProfilePage() {
                   {/* Basic Info Form */}
                   <div className="flex-1 w-full space-y-8">
                     <div>
-                      <h3 className="text-2xl font-black text-on-surface mb-2">Thông tin cơ bản</h3>
+                      <h3 className="text-2xl font-black text-on-surface mb-2">Thông tin cá nhân</h3>
                       <p className="text-sm text-stone-500 font-medium">
                         Cập nhật thông tin của bạn để chúng tôi có thể cung cấp các chẩn đoán cây trồng
                         chính xác hơn dựa trên vị trí và lịch sử của bạn.
@@ -76,21 +117,21 @@ export default function ProfilePage() {
                           Họ và tên
                         </label>
                         <input
-                          className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface focus:ring-4 focus:ring-primary/10 transition-all font-semibold"
+                          className={`w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface focus:ring-4 focus:ring-primary/10 transition-all font-semibold ${errors.fullName ? 'ring-2 ring-error/50' : ''}`}
                           type="text"
                           value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
+                          onChange={(e) => { setFullName(e.target.value); setErrors({...errors, fullName: null}) }}
                         />
+                        {errors.fullName && <p className="text-error text-xs font-bold mt-2 ml-1">{errors.fullName}</p>}
                       </div>
                       <div className="group">
                         <label className="block text-[10px] font-black text-stone-500 uppercase tracking-widest mb-2 ml-1">
                           Email
                         </label>
                         <input
-                          className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface focus:ring-4 focus:ring-primary/10 transition-all font-semibold"
+                          className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface focus:ring-4 focus:ring-primary/10 transition-all font-semibold opacity-70 cursor-not-allowed"
                           type="email"
                           value={email}
-                          onChange={(e) => setEmail(e.target.value)}
                           disabled
                         />
                       </div>
@@ -99,18 +140,26 @@ export default function ProfilePage() {
                           Số điện thoại
                         </label>
                         <input
-                          className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface focus:ring-4 focus:ring-primary/10 transition-all font-semibold"
+                          className={`w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface focus:ring-4 focus:ring-primary/10 transition-all font-semibold ${errors.phoneNumber ? 'ring-2 ring-error/50' : ''}`}
                           type="tel"
                           value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          onChange={(e) => { setPhoneNumber(e.target.value); setErrors({...errors, phoneNumber: null}) }}
                         />
+                        {errors.phoneNumber && <p className="text-error text-xs font-bold mt-2 ml-1">{errors.phoneNumber}</p>}
                       </div>
                     </div>
                     
                     <div className="pt-4 flex flex-col sm:flex-row gap-4">
-                      <button className="bg-primary hover:bg-primary-container text-white font-bold px-10 py-4 rounded-xl transition-all hover:shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-xl">save</span>
-                        Lưu thay đổi
+                      <button 
+                        onClick={handleUpdateProfile}
+                        disabled={isUpdating}
+                        className="bg-primary hover:bg-primary-container text-white font-bold px-10 py-4 rounded-xl transition-all hover:shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isUpdating ? (
+                          <span className="material-symbols-outlined text-xl animate-spin">refresh</span>
+                        ) : (
+                          <span className="material-symbols-outlined text-xl">save</span>
+                        )}
+                        {isUpdating ? 'Đang lưu...' : 'Lưu thay đổi'}
                       </button>
                       <button className="text-stone-500 hover:text-on-surface font-bold px-8 py-4 rounded-xl transition-all border border-stone-200">
                         Hủy bỏ

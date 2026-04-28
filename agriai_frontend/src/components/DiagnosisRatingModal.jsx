@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-/**
- * Modal đánh giá kết quả chẩn đoán.
- * Props: historyId, accessToken, onClose, onSuccess
- */
-const DiagnosisRatingModal = ({ historyId, accessToken, onClose, onSuccess }) => {
+
+const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
     const [accuracy, setAccuracy] = useState(null);
     const [rating, setRating] = useState(0);
     const [hoveredRating, setHoveredRating] = useState(0);
     const [feedback, setFeedback] = useState('');
+
+    useEffect(() => {
+        const fetchReview = async () => {
+            try {
+                const res = await axios.get(`${API_URL}/api/reviews/${historyId}`, { withCredentials: true });
+                if (res.data) {
+                    setAccuracy(res.data.isAccurate ? 'accurate' : 'inaccurate');
+                    setRating(res.data.rating || 0);
+                    setFeedback(res.data.feedback || '');
+                }
+            } catch (err) {
+                // Ignore 404 since it implies there is no review yet
+            }
+        };
+        if (historyId) {
+            fetchReview();
+        }
+    }, [historyId]);
 
     const handleSubmit = async () => {
         if (!accuracy && rating === 0) return;
@@ -23,7 +38,6 @@ const DiagnosisRatingModal = ({ historyId, accessToken, onClose, onSuccess }) =>
                 rating: rating || null,
                 feedback: feedback || null
             }, {
-                headers: { Authorization: `Bearer ${accessToken}` },
                 withCredentials: true
             });
             onSuccess?.();
@@ -34,8 +48,8 @@ const DiagnosisRatingModal = ({ historyId, accessToken, onClose, onSuccess }) =>
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-zinc-950/40 backdrop-blur-[2px]">
-            <div className="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-8 bg-zinc-950/40 backdrop-blur-[2px]">
+            <div className="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl flex flex-col relative max-h-full overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {/* Header */}
                 <div className="px-8 pt-8 pb-6 text-center">
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">

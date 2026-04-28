@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: agriai-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: AgriAI_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ThienPhuc2404
+    ports:
+      - "5432:5432"
+    volumes:
+      - agriai_postgres_data:/var/lib/postgresql
+      - D:/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d AgriAI_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: eclipse-temurin:17-jdk
+    container_name: agriai-backend
+    restart: unless-stopped
+    working_dir: /app
+    command: ./mvnw spring-boot:run
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/AgriAI_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: ThienPhuc2404
+      AUTH_COOKIE_SECURE: "false"
+      AUTH_COOKIE_SAME_SITE: Lax
+      VISION_AI_URL: http://host.docker.internal:8010/predict
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./agriai_backend/agriai:/app
+      - agriai_maven_cache:/root/.m2
+
+  frontend:
+    image: node:20-alpine
+    container_name: agriai-frontend
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install && npm start"
+    depends_on:
+      - backend
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      CHOKIDAR_USEPOLLING: "true"
+      REACT_APP_API_URL: http://localhost:8080
+      WDS_SOCKET_PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./agriai_frontend:/app
+      - agriai_frontend_node_modules:/app/node_modules
+#
+volumes:
+  agriai_postgres_data:
+  agriai_maven_cache:
+  agriai_frontend_node_modules:

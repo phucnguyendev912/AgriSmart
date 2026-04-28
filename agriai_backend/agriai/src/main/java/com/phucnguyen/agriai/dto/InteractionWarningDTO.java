@@ -21,5 +21,5 @@ public class InteractionWarningDTO {
     private String actionRule;
     private String warningMessage;
     private Boolean blocksMixing;
-    private Integer intervalDays; // Số ngày cách nhau khuyến nghị (ví dụ 3 ngày)
+    private Integer intervalDays;
 }

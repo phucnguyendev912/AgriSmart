@@ -3,20 +3,20 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const GlobalNotificationListener = () => {
     const navigate = useNavigate();
 
+    const { user } = useAuth();
+
     useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        if (!token) return;
+        if (!user) return;
 
         // Ensure proper connection to the Spring Boot backend
+        // Note: SockJS automatically forwards HttpOnly cookies for validation in Spring Security.
         const stompClient = new Client({
             webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-            connectHeaders: {
-                Authorization: `Bearer ${token}`,
-            },
             reconnectDelay: 5000,
             onConnect: () => {
                 console.log('Connected to WebSocket for Notifications');
@@ -55,7 +55,7 @@ const GlobalNotificationListener = () => {
                 stompClient.deactivate();
             }
         };
-    }, [navigate]);
+    }, [navigate, user]);
 
     return null;
 };

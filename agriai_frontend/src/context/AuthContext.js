@@ -1,19 +1,13 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 const AuthContext = createContext();
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
+// Đặt cấu hình gửi Cookie mặc định cho tất cả các Axios requests
+axios.defaults.withCredentials = true;
+
 export const AuthProvider = ({ children }) => {
-  const [accessToken, setAccessToken] = useState(() =>
-    localStorage.getItem("accessToken"),
-  );
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem("user");
@@ -23,16 +17,12 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  // Chỉ loading khi chưa có dữ liệu local
   const [loading, setLoading] = useState(
-    () =>
-      !(localStorage.getItem("accessToken") && localStorage.getItem("user")),
+    () => !localStorage.getItem("user")
   );
 
   const clearAuth = (shouldRedirect = false) => {
-    setAccessToken(null);
     setUser(null);
-    localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
     if (shouldRedirect) {
       window.location.href = "/";
@@ -41,26 +31,14 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAuthToken = useCallback(async () => {
     try {
-      const response = await axios.post(
-        `${API_URL}/api/auth/refresh-token`,
-        {},
-        { withCredentials: true },
-      );
-      console.log("Refresh token response:", response.data);
-      const newToken = response.data.token || response.data.accessToken;
+      const response = await axios.post(`${API_URL}/api/auth/refresh-token`);
       const userData = response.data.user || response.data.data;
-      console.log("newToken:", newToken);
-      console.log("userData:", userData);
 
-      // ✅ Chỉ update nếu data thực sự có giá trị
-      if (newToken && userData) {
-        setAccessToken(newToken);
+      if (userData) {
         setUser(userData);
-        localStorage.setItem("accessToken", newToken);
         localStorage.setItem("user", JSON.stringify(userData));
       } else {
-        // Data không hợp lệ → giữ nguyên localStorage, không xóa
-        console.warn("⚠️ response.data thiếu token hoặc user:", response.data);
+        console.warn("⚠️ response.data thiếu user:", response.data);
       }
     } catch (error) {
       if (error.response?.status === 401) {
@@ -75,67 +53,50 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     refreshAuthToken();
 
-    // Axios Interceptor for Request
-    const requestInterceptor = axios.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem("accessToken");
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error),
-    );
-
-    // Axios Interceptor for Response
+    // Axios Interceptor for Response. (Bỏ Request Interceptor vì Cookie tự động gửi)
     const responseInterceptor = axios.interceptors.response.use(
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
+          !originalRequest.url?.includes("/api/auth/refresh-token")
+        ) {
           originalRequest._retry = true;
           try {
-            const response = await axios.post(
-              `${API_URL}/api/auth/refresh-token`,
-              {},
-              { withCredentials: true },
-            );
-            const newToken = response.data.token || response.data.accessToken;
-            if (newToken) {
-              setAccessToken(newToken);
-              localStorage.setItem("accessToken", newToken);
-              originalRequest.headers.Authorization = `Bearer ${newToken}`;
-              return axios(originalRequest);
-            }
+            await axios.post(`${API_URL}/api/auth/refresh-token`);
+            // Sau khi refresh, Cookie httponly mới đã được backend set lại tự động.
+            // Chỉ cần gọi lại đúng request đó là đủ.
+            return axios(originalRequest);
           } catch (refreshError) {
             clearAuth(true); // Token hết hạn hoàn toàn -> logout
             return Promise.reject(refreshError);
           }
         }
         return Promise.reject(error);
-      },
+      }
     );
 
     return () => {
-      axios.interceptors.request.eject(requestInterceptor);
       axios.interceptors.response.eject(responseInterceptor);
     };
   }, [refreshAuthToken]);
 
-  const loginContext = (token, userData) => {
-    setAccessToken(token);
+  const loginContext = (userData) => {
+    // Token nằm trong HttpOnly cookie, frontend chỉ lưu user để giữ trạng thái UI.
     setUser(userData);
-    localStorage.setItem("accessToken", token);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
+
+  const updateUserContext = (userData) => {
+    setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logoutContext = async () => {
     try {
-      await axios.post(
-        `${API_URL}/api/auth/logout`,
-        {},
-        { withCredentials: true },
-      );
+      await axios.post(`${API_URL}/api/auth/logout`);
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -154,9 +115,9 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        accessToken,
         user,
         loginContext,
+        updateUserContext,
         logoutContext,
         loading,
         refreshAuthToken,

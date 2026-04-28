@@ -20,10 +20,7 @@ public class GeocodingService {
     private final AreaInforRepository areaInforRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-    /**
-     * Gọi sau khi chẩn đoán hoàn thành, chạy trong CompletableFuture.runAsync().
-     * Luồng: Nominatim → kiểm tra trùng → lưu DB → push WebSocket.
-     */
+
     public void processGeocoding(User user, Double lat, Double lon) {
         // 1. Gọi Nominatim trước để lấy địa chỉ thực tế
         NominatimResult result = nominatimPort.reverseGeocode(lat, lon);

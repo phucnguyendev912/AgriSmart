@@ -5,5 +5,5 @@ import java.util.List;
 
 
 public interface VisionDetectionPort {
-    List<VisionResultDTO> detect(String imageUrl, String modelFilePath);
+    List<VisionResultDTO> detect(String imageUrl);
 }

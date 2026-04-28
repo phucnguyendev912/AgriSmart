@@ -24,11 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Điều phối luồng chính của chức năng chẩn đoán bệnh cây trồng.
- * Gọi lần lượt: Validate → Upload ảnh → Vision AI & Weather (song song)
- * → Phân tích → Rule Engine → Build Response → LLM → Lưu DB.
- */
 @Slf4j
 @Service
 @Transactional(noRollbackFor = AppException.class)
@@ -89,8 +84,7 @@ public class DiagnoseService {
             String imageUrl = diagnosisAttachmentService.uploadAndSave(request.getImage(), history.getId());
 
             CompletableFuture<List<VisionResultDTO>> visionFuture = CompletableFuture.supplyAsync(
-                    () -> visionDetectionPort.detect(imageUrl,
-                            context.aiModel() != null ? context.aiModel().getModelFilePath() : null));
+                    () -> visionDetectionPort.detect(imageUrl));
             CompletableFuture<WeatherDTO> weatherFuture = CompletableFuture.supplyAsync(
                     () -> request.hasGps()
                             ? weatherPort.getCurrentWeather(request.getLatitude(), request.getLongitude())
@@ -143,7 +137,9 @@ public class DiagnoseService {
 
     // analyze vision results
     private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults) {
+        // handle null vision results
         List<VisionResultDTO> safeResults = visionResults != null ? visionResults : List.of();
+        // check if contains healthy label
         boolean containsHealthyLabel = safeResults.stream()
                 .map(VisionResultDTO::getLabel)
                 .filter(Objects::nonNull)

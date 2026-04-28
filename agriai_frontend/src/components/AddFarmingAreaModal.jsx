@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
-    const { accessToken } = useAuth();
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         areaName: '',
         province: '',
@@ -39,7 +39,6 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${accessToken}`,
                         'Content-Type': 'application/json'
                     },
                     withCredentials: true

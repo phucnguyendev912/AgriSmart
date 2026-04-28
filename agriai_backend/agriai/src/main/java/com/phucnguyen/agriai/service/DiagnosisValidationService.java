@@ -1,11 +1,9 @@
 package com.phucnguyen.agriai.service;
 
 import com.phucnguyen.agriai.dto.request.DiagnoseRequest;
-import com.phucnguyen.agriai.entity.AIModel;
 import com.phucnguyen.agriai.entity.CropType;
 import com.phucnguyen.agriai.entity.User;
 import com.phucnguyen.agriai.exception.AppException;
-import com.phucnguyen.agriai.repository.AIModelRepository;
 import com.phucnguyen.agriai.repository.CropTypeRepository;
 import com.phucnguyen.agriai.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -17,15 +15,12 @@ public class DiagnosisValidationService {
 
     private final UserRepository userRepository;
     private final CropTypeRepository cropTypeRepository;
-    private final AIModelRepository aiModelRepository;
 
     public DiagnosisValidationService(
             UserRepository userRepository,
-            CropTypeRepository cropTypeRepository,
-            AIModelRepository aiModelRepository) {
+            CropTypeRepository cropTypeRepository) {
         this.userRepository = userRepository;
         this.cropTypeRepository = cropTypeRepository;
-        this.aiModelRepository = aiModelRepository;
     }
 
     public DiagnosisContext validate(String email, DiagnoseRequest request) {
@@ -40,16 +35,12 @@ public class DiagnosisValidationService {
             throw new AppException(HttpStatus.BAD_REQUEST, "Loai cay trong khong hoat dong.");
         }
 
-        AIModel aiModel = aiModelRepository.findFirstByCropTypeIdAndIsActiveTrueAndIsDeleteFalse(cropType.getId())
-                .orElseGet(() -> aiModelRepository.findFirstByIsActiveTrueAndIsDeleteFalseOrderByIdAsc()
-                        .orElse(null));
-
         User user = null;
         if (email != null && !email.isBlank()) {
             user = userRepository.findByEmail(email).orElse(null);
         }
 
-        return new DiagnosisContext(user, cropType, aiModel);
+        return new DiagnosisContext(user, cropType);
     }
 
     private void validateImage(MultipartFile image) {
@@ -62,6 +53,6 @@ public class DiagnosisValidationService {
         }
     }
 
-    public record DiagnosisContext(User user, CropType cropType, AIModel aiModel) {
+    public record DiagnosisContext(User user, CropType cropType) {
     }
 }

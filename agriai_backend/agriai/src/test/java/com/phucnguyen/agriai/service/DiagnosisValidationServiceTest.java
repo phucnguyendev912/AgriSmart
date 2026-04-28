@@ -1,10 +1,8 @@
 package com.phucnguyen.agriai.service;
 
 import com.phucnguyen.agriai.dto.request.DiagnoseRequest;
-import com.phucnguyen.agriai.entity.AIModel;
 import com.phucnguyen.agriai.entity.CropType;
 import com.phucnguyen.agriai.exception.AppException;
-import com.phucnguyen.agriai.repository.AIModelRepository;
 import com.phucnguyen.agriai.repository.CropTypeRepository;
 import com.phucnguyen.agriai.repository.UserRepository;
 import java.util.Optional;
@@ -27,14 +25,12 @@ class DiagnosisValidationServiceTest {
     private UserRepository userRepository;
     @Mock
     private CropTypeRepository cropTypeRepository;
-    @Mock
-    private AIModelRepository aiModelRepository;
 
     private DiagnosisValidationService validationService;
 
     @BeforeEach
     void setUp() {
-        validationService = new DiagnosisValidationService(userRepository, cropTypeRepository, aiModelRepository);
+        validationService = new DiagnosisValidationService(userRepository, cropTypeRepository);
     }
 
     @Test
@@ -58,21 +54,18 @@ class DiagnosisValidationServiceTest {
     }
 
     @Test
-    @DisplayName("Validation pass voi cropType active va AI model active")
+    @DisplayName("Validation pass voi cropType active")
     void validate_success() {
         DiagnoseRequest request = new DiagnoseRequest();
         request.setCropTypeId(1);
         request.setImage(new MockMultipartFile("image", "leaf.jpg", "image/jpeg", new byte[] {1, 2, 3}));
 
         CropType cropType = CropType.builder().id(1).cropName("Lua").isActive(true).build();
-        AIModel aiModel = AIModel.builder().id(5).isActive(true).modelFilePath("/models/rice.pt").build();
 
         when(cropTypeRepository.findById(1)).thenReturn(Optional.of(cropType));
-        when(aiModelRepository.findFirstByCropTypeIdAndIsActiveTrueAndIsDeleteFalse(1)).thenReturn(Optional.of(aiModel));
 
         DiagnosisValidationService.DiagnosisContext context = validationService.validate(null, request);
 
         assertTrue(context.cropType().getId().equals(1));
-        assertTrue(context.aiModel().getId().equals(5));
     }
 }

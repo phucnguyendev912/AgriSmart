@@ -34,11 +34,9 @@ public class VisionAIService implements VisionDetectionPort {
      * Download ảnh từ Cloudinary URL, gửi tới YOLO API, trả về kết quả.
      *
      * @param imageUrl      URL ảnh đã upload lên Cloudinary
-     * @param modelFilePath Đường dẫn model AI (không dùng vì model đã load sẵn trên
-     *                      FastAPI)
      * @return Danh sách kết quả nhận diện (1 kết quả cho classification)
      */
-    public List<VisionResultDTO> detect(String imageUrl, String modelFilePath) {
+    public List<VisionResultDTO> detect(String imageUrl) {
         try {
             // 1. Download ảnh từ Cloudinary URL
             byte[] imageBytes = downloadImage(imageUrl);

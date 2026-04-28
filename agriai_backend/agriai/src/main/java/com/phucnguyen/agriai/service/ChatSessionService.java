@@ -92,7 +92,7 @@ public class ChatSessionService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay phien chat."));
     }
 
-    // resolve title
+    // resolve title to default title if null or blank
     private String resolveTitle(CreateChatSessionRequest request) {
         if (request == null || request.getSessionTitle() == null || request.getSessionTitle().isBlank()) {
             return DEFAULT_TITLE;
