@@ -6,7 +6,9 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "drug_interaction")
+@Table(name = "drug_interaction", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"ingredient_a_id", "ingredient_b_id"})
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,4 +37,20 @@ public class DrugInteraction extends BaseEntity {
 
     @Column(name = "interval_days")
     private Integer intervalDays; // Số ngày cần cách nhau khi phun riêng (VD: 3)
+
+    @PrePersist
+    @PreUpdate
+    public void validateAndNormalize() {
+        if (ingredientA != null && ingredientB != null) {
+            if (ingredientA.getId().equals(ingredientB.getId())) {
+                throw new IllegalArgumentException("Hoạt chất không thể tương tác với chính nó");
+            }
+            // Swap if A > B to ensure consistent ordering (prevent A-B and B-A duplicates)
+            if (ingredientA.getId() > ingredientB.getId()) {
+                Ingredient temp = ingredientA;
+                ingredientA = ingredientB;
+                ingredientB = temp;
+            }
+        }
+    }
 }

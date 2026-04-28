@@ -127,3 +127,11 @@ Sort:
 Map:
 
 - row history + list detail + snapshot JSON -> DTO summary/detail
+
+## 4. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **Bổ sung tính năng Lọc lịch sử (vd: Lọc theo thời gian):**
+   - **Backend:** `DiagnoseHistoryRepository.java` (Thêm @Query), `DiagnoseHistoryController.java`, `DiagnoseHistoryService.java`.
+   - **Frontend:** Bổ sung thanh Filter ở `DiagnosisHistoryPage.jsx`.

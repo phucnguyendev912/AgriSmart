@@ -31,27 +31,27 @@ const getCultivationMeasures = (result) => {
 
 const DiagnosisPage = () => {
     // === STATE ===
-    const { accessToken } = useAuth();
-    const [cropTypes, setCropTypes] = useState([]);
-    const [selectedCropTypeId, setSelectedCropTypeId] = useState('');
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState(null);
-    const [error, setError] = useState('');
-    const [gpsStatus, setGpsStatus] = useState('pending');
-    const [coords, setCoords] = useState({ latitude: null, longitude: null });
+    const { user } = useAuth(); // useAuth: lấy thông tin xác thực của người dùng từ Context toàn cục.
+    const [cropTypes, setCropTypes] = useState([]); // useState: lưu danh sách loại cây trồng tải về từ API.
+    const [selectedCropTypeId, setSelectedCropTypeId] = useState(''); // useState: lưu ID loại cây người dùng đang chọn.
+    const [selectedFile, setSelectedFile] = useState(null); // useState: lưu file ảnh người dùng đã chọn để chẩn đoán.
+    const [previewUrl, setPreviewUrl] = useState(null); // useState: lưu URL xem trước ảnh được tạo từ file đã chọn.
+    const [loading, setLoading] = useState(false); // useState: trạng thái đang gọi API chẩn đoán.
+    const [result, setResult] = useState(null); // useState: lưu kết quả chẩn đoán trả về từ backend.
+    const [error, setError] = useState(''); // useState: lưu thông báo lỗi nếu chẩn đoán thất bại.
+    const [gpsStatus, setGpsStatus] = useState('pending'); // useState: trạng thái quyền GPS (pending/granted/denied).
+    const [coords, setCoords] = useState({ latitude: null, longitude: null }); // useState: lưu tọa độ GPS của người dùng.
 
     // Rating modal state
-    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-    const [showToast, setShowToast] = useState(false);
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false); // useState: kiểm soát hiển thị modal đánh giá kết quả.
+    const [showToast, setShowToast] = useState(false); // useState: điều khiển hiển thị thông báo cảm ơn sau khi đánh giá.
 
     // === FETCH CROP TYPES ===
+    // useEffect: tự động tải danh sách loại cây trồng khi component mount.
     useEffect(() => {
         const fetchCropTypes = async () => {
             try {
                 const res = await axios.get(`${API_URL}/api/crop-types`, {
-                    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
                     withCredentials: true
                 });
                 setCropTypes(res.data);
@@ -61,9 +61,10 @@ const DiagnosisPage = () => {
             }
         };
         fetchCropTypes();
-    }, [accessToken]);
+    }, []);
 
     // === REQUEST GPS ===
+    // useEffect: yêu cầu quyền truy cập GPS một lần khi component mount.
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -109,12 +110,11 @@ const DiagnosisPage = () => {
             const res = await axios.post(`${API_URL}/api/diagnosis`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
                 },
                 withCredentials: true
             });
             setResult(res.data);
-            if (!accessToken) {
+            if (!user) {
                 toast.info('Vui lòng đăng nhập để có thể xem lại kết quả chẩn đoán sau khi chẩn đoán.');
             }
         } catch (err) {
@@ -126,8 +126,8 @@ const DiagnosisPage = () => {
 
     // === HANDLE OPEN RATING MODAL ===
     const handleOpenRating = () => {
-        if (!accessToken) {
-            toast.warning('Vui lòng đăng nhập để đánh giá kết quả.');
+        if (!user) {
+            toast.error('Vui lòng đăng nhập để đánh giá kết quả.');
             return;
         }
         setIsRatingModalOpen(true);
@@ -267,7 +267,6 @@ const DiagnosisPage = () => {
             {isRatingModalOpen && result && (
                 <DiagnosisRatingModal
                     historyId={result.id}
-                    accessToken={accessToken}
                     onClose={() => setIsRatingModalOpen(false)}
                     onSuccess={handleRatingSuccess}
                 />

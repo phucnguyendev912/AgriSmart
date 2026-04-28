@@ -14,17 +14,17 @@ const REASON_LABELS = {
 };
 
 const DiagnosisHistoryDetailPage = () => {
-    const { id } = useParams();
-    const { accessToken } = useAuth();
-    const [result, setResult] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const { id } = useParams(); // useParams: lấy tham số ID từ URL để biết bản ghi lịch sử nào cần hiển thị.
+    const { user } = useAuth(); // useAuth: kiểm tra đăng nhập.
+    const [result, setResult] = useState(null); // useState: lưu dữ liệu chi tiết chẩn đoán lấy từ API.
+    const [loading, setLoading] = useState(true); // useState: trạng thái đang tải dữ liệu chi tiết.
+    const [error, setError] = useState(''); // useState: lưu thông báo lỗi nếu không lấy được dữ liệu.
 
+    // useEffect: tự động tải chi tiết lịch sử khi ID hoặc user thay đổi.
     useEffect(() => {
         const fetchDetail = async () => {
             try {
                 const res = await axios.get(`${API_URL}/api/diagnosis/${id}`, {
-                    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
                     withCredentials: true
                 });
                 setResult(res.data);
@@ -34,9 +34,9 @@ const DiagnosisHistoryDetailPage = () => {
                 setLoading(false);
             }
         };
-        if (accessToken) fetchDetail();
+        if (user) fetchDetail();
         else setLoading(false);
-    }, [id, accessToken]);
+    }, [id, user]);
 
     // === HELPER FUNCTIONS ===
     const getCultivationMeasures = (result) => {

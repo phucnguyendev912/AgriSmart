@@ -12,16 +12,12 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-/**
- * Service gọi Google Gemini API qua LangChain4J để sinh hướng dẫn
- * canh tác tự nhiên cho nông dân dựa trên kết quả chẩn đoán.
- */
 @Service
-public class LLMService implements GuidancePort {
+public class AIService implements GuidancePort {
 
     private final GoogleAiGeminiChatModel chatModel;
 
-    public LLMService(
+    public AIService(
             @Value("${gemini.api.key:}") String apiKey,
             @Value("${gemini.model.name:gemini-2.0-flash}") String modelName) {
         if (apiKey == null || apiKey.isBlank()) {
@@ -35,6 +31,7 @@ public class LLMService implements GuidancePort {
         }
     }
 
+    // generate guidance for farmer
     @Override
     public String generateGuidance(DiagnoseResponse response) {
         if (chatModel == null) {
@@ -49,6 +46,7 @@ public class LLMService implements GuidancePort {
         }
     }
 
+    // fallback guidance
     private String fallbackGuidance(DiagnoseResponse response) {
         if (response.getDiseases() == null || response.getDiseases().isEmpty()) {
             return "Cây của bạn đang trong tình trạng khỏe mạnh. Tiếp tục chăm sóc như hiện tại.";
@@ -57,6 +55,7 @@ public class LLMService implements GuidancePort {
                 + "Kiểm tra lại sau 3-5 ngày. Nếu bệnh không giảm, hãy chẩn đoán lại.";
     }
 
+    // build prompt for LLM
     private String buildPrompt(DiagnoseResponse response) {
         StringBuilder sb = new StringBuilder();
 

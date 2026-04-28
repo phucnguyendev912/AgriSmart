@@ -33,16 +33,12 @@ export default function DiseaseMapPage() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("accessToken");
+      // The browser automatically attaches HttpOnly cookies (withCredentials: true in axios instance/global)
       const params = { days };
       if (diseaseId) params.diseaseId = diseaseId;
 
-      const headers = {};
-      if (token) headers.Authorization = `Bearer ${token}`;
-
       const res = await axios.get(`${API_BASE}/api/map/markers`, {
         params,
-        headers,
       });
       setMarkers(res.data);
     } catch (err) {

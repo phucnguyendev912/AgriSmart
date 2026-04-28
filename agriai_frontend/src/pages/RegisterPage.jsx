@@ -34,11 +34,11 @@ const RegisterPage = () => {
     const errors = {};
 
     if (formData.password !== formData.passwordConfirm) {
-      errors.confirm_password = 'Mat khau khong khop.';
+      errors.confirm_password = 'Mật khẩu không khớp.';
     }
 
     if (!formData.terms) {
-      toast.warning('Ban can dong y voi dieu khoan dich vu.');
+      toast.warning('Bạn cần đồng ý với điều khoản dịch vụ.');
       return;
     }
 
@@ -57,7 +57,7 @@ const RegisterPage = () => {
       });
 
       if (response.status === 200 || response.status === 201) {
-        toast.success('Dang ky tai khoan thanh cong!');
+        toast.success('Đăng ký tài khoản thành công!');
         navigate('/login');
       }
     } catch (error) {
@@ -75,45 +75,45 @@ const RegisterPage = () => {
             || (errorData.message !== 'Du lieu gui len khong hop le.' ? errorData.message : null)
             || errorData.message
             || errorData.error
-            || 'Da xay ra loi!';
+            || 'Đã xảy ra lỗi!';
             
           toast.error(errorMsg);
         } else {
           toast.error(errorData);
         }
       } else {
-        toast.error('Loi cau hinh CSDL hoac ket noi mang!');
+        toast.error('Lỗi cấu hình CSDL hoặc kết nối mạng!');
         console.error(error);
       }
     }
   };
 
   return (
-    <div className="bg-background text-on-background min-h-screen flex items-center justify-center relative overflow-x-hidden">
+    <div className="bg-background text-on-background min-h-screen flex items-center justify-center relative overflow-x-hidden pt-24 pb-12">
       <div className="fixed inset-0 z-0 opacity-15 grayscale bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCu1PkRAwaMPO7mw6Jcd_TBMWsdC7Q1YTmarn9Ie4GKC3EpVFHfHQLGKqPuHDLnYyxtHKi30rU6PnS8lE_ld3PSkl4Ap45VrczeK0aZ3xn9Nx8q7PHLw9o4DmbNXDyeWyChaP9K68iZdWRRxvT0tg73x6OMuXTkHHbPDajrypq8czlAPg0rrRRPsDathEm-Eo5Y0-xzompeOX5Hr5k9nKF-tJuJ3kSUFNDJkFSSNIWOVbV96c19QbWbxmy9eJe2bY85O5rfejCn2lti')" }}></div>
 
-      <main className="relative z-10 w-full max-w-xl md:p-4">
-        <div className="bg-white/90 backdrop-blur-md min-h-screen md:min-h-0 p-6 md:p-12 md:rounded-xl shadow-none md:shadow-sm flex flex-col justify-center border border-gray-100">
+      <main className="relative z-10 w-full max-w-md md:p-2">
+        <div className="bg-white/90 backdrop-blur-md min-h-screen md:min-h-0 p-6 md:p-8 md:rounded-2xl shadow-none md:shadow-lg flex flex-col justify-center border border-gray-100">
           <div className="text-center mb-8 md:mb-10">
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="material-symbols-outlined text-primary text-4xl">psychology</span>
-              <span className="text-2xl font-black text-primary tracking-tighter">AgriAI</span>
+              <span className="text-2xl font-black text-primary tracking-tighter">AgriSmart</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface mb-2">Dang ky moi</h1>
-            <p className="text-on-surface-variant text-sm font-medium px-4">Khoi dau hanh trinh canh tac thong minh cung chuyen gia AI</p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface mb-2">Đăng ký mới</h1>
+            <p className="text-on-surface-variant text-sm font-medium px-4">Khởi đầu hành trình canh tác thông minh cùng chuyên gia AI</p>
           </div>
 
-          <form className="space-y-4 md:space-y-5" onSubmit={handleRegister}>
+          <form className="space-y-4 md:space-y-4" onSubmit={handleRegister}>
             <div className="space-y-1.5">
               <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="fullName">
-                Ho va ten
+                Họ và tên
               </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
                 <input
                   className="w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary transition-all text-on-surface placeholder:text-outline-variant text-base"
                   id="fullName"
-                  placeholder="Nguyen Van A"
+                  placeholder="Nguyễn Văn A"
                   type="text"
                   required
                   value={formData.fullName}
@@ -148,7 +148,7 @@ const RegisterPage = () => {
 
             <div className="space-y-1.5">
               <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="phoneNumber">
-                So dien thoai
+                Số điện thoại
               </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">call</span>
@@ -167,7 +167,7 @@ const RegisterPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="password">
-                  Mat khau
+                  Mật khẩu
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
@@ -185,7 +185,7 @@ const RegisterPage = () => {
 
               <div className="space-y-1.5">
                 <label className="block text-[10px] md:text-xs font-bold tracking-wider text-on-surface-variant uppercase ml-1" htmlFor="passwordConfirm">
-                  Nhap lai mat khau
+                  Nhập lại mật khẩu
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">lock_reset</span>
@@ -217,7 +217,7 @@ const RegisterPage = () => {
                 onChange={handleChange}
               />
               <label className="text-sm text-on-surface-variant leading-relaxed select-none" htmlFor="terms">
-                Toi dong y voi <Link to="#" className="text-primary font-semibold hover:underline">Dieu khoan dich vu</Link> va <Link to="#" className="text-primary font-semibold hover:underline">Chinh sach bao mat</Link> cua AgriAI.
+                Tôi đồng ý với <Link to="#" className="text-primary font-semibold hover:underline">Điều khoản dịch vụ</Link> và <Link to="#" className="text-primary font-semibold hover:underline">Chính sách bảo mật</Link> của AgriAI.
               </label>
             </div>
 
@@ -225,25 +225,25 @@ const RegisterPage = () => {
               className="w-full bg-primary text-white font-bold py-4 rounded-lg shadow-lg hover:bg-primary-container transition-all active:scale-[0.98] mt-4 text-base"
               type="submit"
             >
-              Dang ky
+              Đăng ký
             </button>
           </form>
 
-          <div className="mt-8 text-center border-t border-gray-100 pt-6">
+          <div className="mt-6 text-center border-t border-gray-100 pt-5">
             <p className="text-on-surface-variant text-sm font-medium">
-              Da co tai khoan?
-              <Link to="/login" className="text-primary font-bold ml-1 hover:underline decoration-2 underline-offset-4 inline-flex items-center min-h-[44px]">Dang nhap</Link>
+              Đã có tài khoản?
+              <Link to="/login" className="text-primary font-bold ml-1 hover:underline decoration-2 underline-offset-4 inline-flex items-center min-h-[44px]">Đăng nhập</Link>
             </p>
           </div>
         </div>
 
-        <div className="mt-6 mb-8 flex justify-between px-6 md:px-2 opacity-60">
+        <div className="mt-4 mb-4 flex justify-between px-6 md:px-2 opacity-60">
           <div className="flex items-center gap-4">
             <span className="text-[10px] font-bold text-on-surface-variant tracking-widest uppercase">© 2024 AgriAI Diagnostic</span>
           </div>
           <div className="flex items-center gap-1 text-on-surface-variant">
             <span className="material-symbols-outlined !text-base">language</span>
-            <span className="text-[10px] font-bold tracking-widest uppercase">Tieng Viet</span>
+            <span className="text-[10px] font-bold tracking-widest uppercase">Tiếng Việt</span>
           </div>
         </div>
       </main>

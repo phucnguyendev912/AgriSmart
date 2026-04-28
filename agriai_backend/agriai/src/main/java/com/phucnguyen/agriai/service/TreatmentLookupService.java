@@ -14,10 +14,11 @@ public class TreatmentLookupService {
 
     private final TreatmentPlanRepository treatmentPlanRepository;
 
+    // find treatment plan by disease
     public TreatmentLookupService(TreatmentPlanRepository treatmentPlanRepository) {
         this.treatmentPlanRepository = treatmentPlanRepository;
     }
-
+    // get treatment plan by disease
     public List<TreatmentPlan> findByDisease(Disease disease) {
         if (disease == null || disease.getId() == null) {
             return List.of();

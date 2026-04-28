@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/map/**").permitAll()
                         .requestMatchers("/api/chat/guest/messages").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/reviews/all").permitAll()
                         .anyRequest().authenticated())
 
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

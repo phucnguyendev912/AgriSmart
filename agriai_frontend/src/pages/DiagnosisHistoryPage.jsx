@@ -22,29 +22,29 @@ const getSeverityLabel = (severity) => {
 };
 
 const DiagnosisHistoryPage = () => {
-  const { accessToken } = useAuth();
-  const [historyList, setHistoryList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
+  const { user } = useAuth(); // useAuth: lấy thông tin xác thực để kiểm tra đăng nhập.
+  const [historyList, setHistoryList] = useState([]); // useState: lưu danh sách bản ghi lịch sử chẩn đoán.
+  const [loading, setLoading] = useState(true); // useState: trạng thái đang tải dữ liệu lịch sử từ server.
+  const [page, setPage] = useState(0); // useState: lưu trang hiện tại cho phân trang danh sách lịch sử.
+  const [totalPages, setTotalPages] = useState(0); // useState: tổng số trang nhận từ API phân trang.
+  const [totalElements, setTotalElements] = useState(0); // useState: tổng số bản ghi lịch sử của người dùng.
 
   // Rating Modal state
-  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-  const [selectedHistoryId, setSelectedHistoryId] = useState(null);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false); // useState: kiểm soát hiển thị modal đánh giá từ trang lịch sử.
+  const [selectedHistoryId, setSelectedHistoryId] = useState(null); // useState: lưu ID bản ghi được chọn để đánh giá.
 
   const openRatingModal = (id) => {
     setSelectedHistoryId(id);
     setIsRatingModalOpen(true);
   };
 
+  // useEffect: tải lại danh sách lịch sử mỗi khi user hoặc số trang thay đổi.
   useEffect(() => {
       const fetchHistory = async () => {
           setLoading(true);
           try {
               const res = await axios.get(`${API_URL}/api/diagnosis/history`, {
-                  params: { page, size: 6 },
-                  headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+                  params: { page, size: 10 },
                   withCredentials: true
               });
               setHistoryList(res.data.content);
@@ -56,9 +56,9 @@ const DiagnosisHistoryPage = () => {
               setLoading(false);
           }
       };
-      if (accessToken) fetchHistory();
+      if (user) fetchHistory();
       else setLoading(false);
-  }, [accessToken, page]);
+  }, [user, page]);
 
   return (
     <main className="pt-24 lg:pt-32 pb-12 px-4 md:px-6 min-h-screen">
@@ -92,7 +92,6 @@ const DiagnosisHistoryPage = () => {
                   <th className="px-6 py-4 text-[11px] font-black text-on-surface-variant uppercase tracking-widest">Thời gian</th>
                   <th className="px-6 py-4 text-[11px] font-black text-on-surface-variant uppercase tracking-widest">Mẫu vật</th>
                   <th className="px-6 py-4 text-[11px] font-black text-on-surface-variant uppercase tracking-widest">Loại cây</th>
-                  <th className="px-6 py-4 text-[11px] font-black text-on-surface-variant uppercase tracking-widest">Kết quả chẩn đoán</th>
                   <th className="px-6 py-4 text-[11px] font-black text-on-surface-variant uppercase tracking-widest">Mức độ</th>
                   <th className="px-6 py-4 text-[11px] font-black text-on-surface-variant uppercase tracking-widest">Độ tin cậy</th>
                   <th className="px-6 py-4 text-right"></th>
@@ -113,10 +112,7 @@ const DiagnosisHistoryPage = () => {
                       <img alt={`Plant sample ${index}`} className="w-12 h-12 rounded-lg object-cover ring-1 ring-outline-variant/20" src={item.originalImageUrl || "https://placehold.co/100x100?text=No+Image"} />
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">{item.cropName || 'N/A'}</td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-bold text-on-surface">{item.diseaseName}</p>
-                      <p className="text-[10px] text-on-surface-variant italic">{item.diagnosisType}</p>
-                    </td>
+                 
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${getSeverityClasses(item.severity)}`}>
                         {getSeverityLabel(item.severity)}
@@ -142,10 +138,14 @@ const DiagnosisHistoryPage = () => {
                             <span>Đánh giá</span>
                           </button>
                         ) : (
-                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1">
+                          <button 
+                            onClick={() => openRatingModal(item.id)}
+                            className="text-[10px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors px-2.5 py-1.5 rounded-lg flex items-center gap-1"
+                            title="Sửa đánh giá"
+                          >
                             <span className="material-symbols-outlined text-[14px]">check_circle</span>
                             Đã ĐG
-                          </span>
+                          </button>
                         )}
                         <Link to={`/history/${item.id}`} className="text-primary hover:bg-primary/5 p-2 rounded-lg transition-colors group inline-block" title="Xem chi tiết">
                           <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">visibility</span>
@@ -171,7 +171,7 @@ const DiagnosisHistoryPage = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-[9px] font-bold text-on-surface-variant uppercase tracking-tight">{new Date(item.createdAt).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day: '2-digit', month: '2-digit'})}</p>
-                      <h4 className="text-base font-bold text-on-surface truncate">{item.diseaseName}</h4>
+                     
                       <p className="text-xs text-on-surface-variant">{item.cropName || 'N/A'}</p>
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getSeverityClasses(item.severity)}`}>
@@ -188,10 +188,13 @@ const DiagnosisHistoryPage = () => {
                         <span>Đánh giá</span>
                       </button>
                     ) : (
-                      <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                      <button 
+                        onClick={() => openRatingModal(item.id)}
+                        className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 hover:underline active:scale-95 transition-transform"
+                      >
                         <span className="material-symbols-outlined text-[14px]">check_circle</span>
                         Đã đánh giá
-                      </span>
+                      </button>
                     )}
                     <Link to={`/history/${item.id}`} className="text-[11px] font-bold text-[#006194] flex items-center space-x-1 hover:underline">
                       <span>Chi tiết</span>
@@ -254,7 +257,6 @@ const DiagnosisHistoryPage = () => {
       {isRatingModalOpen && (
         <DiagnosisRatingModal 
           historyId={selectedHistoryId} 
-          accessToken={accessToken}
           onClose={() => setIsRatingModalOpen(false)}
           onSuccess={() => {
             toast.success("Cảm ơn bạn đã đánh giá kết quả chẩn đoán!");

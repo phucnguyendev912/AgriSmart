@@ -5,18 +5,16 @@ import { useAuth } from '../context/AuthContext';
 import AddFarmingAreaModal from '../components/AddFarmingAreaModal';
 
 const FarmingAreaPage = () => {
-    const { accessToken } = useAuth();
-    const [areas, setAreas] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const { user } = useAuth(); // useAuth: check authentication
+    const [areas, setAreas] = useState([]); // useState: lưu danh sách khu vực canh tác tải về từ API.
+    const [loading, setLoading] = useState(true); // useState: trạng thái đang tải dữ liệu khu vực canh tác.
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false); // useState: kiểm soát hiển thị modal thêm khu vực canh tác mới.
 
+    // useCallback: ghi nhớ hàm fetchAreas để tránh tạo lại vô ích khi re-render.
     const fetchAreas = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get('http://localhost:8080/api/areas', {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                },
                 withCredentials: true
             });
             setAreas(response.data);
@@ -26,8 +24,9 @@ const FarmingAreaPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [accessToken]);
+    }, []);
 
+    // useEffect: gọi fetchAreas khi component mount hoặc khi hàm fetchAreas thay đổi.
     useEffect(() => {
         fetchAreas();
     }, [fetchAreas]);
@@ -69,11 +68,9 @@ const FarmingAreaPage = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-widest font-bold">
-                                        <th className="px-6 py-5 whitespace-nowrap">Mã khu vực</th>
                                         <th className="px-6 py-5 whitespace-nowrap">Tên khu vực</th>
                                         <th className="px-6 py-5 whitespace-nowrap">Tỉnh</th>
                                         <th className="px-6 py-5 whitespace-nowrap">Địa chỉ</th>
-                                        <th className="px-6 py-5 text-right whitespace-nowrap">Diện tích (ha)</th>
                                         <th className="px-6 py-5 whitespace-nowrap">Mô tả</th>
                                         <th className="px-6 py-5 text-center whitespace-nowrap">Hành động</th>
                                     </tr>
@@ -90,11 +87,10 @@ const FarmingAreaPage = () => {
                                     ) : (
                                         areas.map((area) => (
                                             <tr key={area.id} className="hover:bg-surface-container-low/50 transition-colors">
-                                                <td className="px-6 py-4 font-mono text-xs text-primary font-bold">{area.areaCode}</td>
+                                                
                                                 <td className="px-6 py-4 font-semibold whitespace-nowrap">{area.areaName}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{area.province}</td>
                                                 <td className="px-6 py-4 text-sm text-on-surface-variant min-w-[200px]">{area.address}</td>
-                                                <td className="px-6 py-4 text-right font-medium">{area.area}</td>
                                                 <td className="px-6 py-4 text-sm text-on-surface-variant italic min-w-[250px] truncate max-w-xs">{area.description}</td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex justify-center gap-2">

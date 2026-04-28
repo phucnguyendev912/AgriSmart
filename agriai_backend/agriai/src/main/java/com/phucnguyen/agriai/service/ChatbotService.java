@@ -17,10 +17,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Xử lý toàn bộ luồng hội thoại của chatbot. Xem chi tiết:
- * docs/chatbot/CHATBOT_ARCHITECTURE.md
- */
 @Service
 @Transactional
 public class ChatbotService {
@@ -47,7 +43,7 @@ public class ChatbotService {
         this.chatModel = chatModel;
     }
 
-    /** Xử lý tin nhắn ở chế độ khách (không lưu lịch sử). */
+    // handle chat as guest
     public ChatResponse chatAsGuest(SendChatMessageRequest request) {
         String answer = buildContextAndGenerate(request.getMessageContent().trim());
         return ChatResponse.builder()
@@ -57,9 +53,7 @@ public class ChatbotService {
                 .build();
     }
 
-    /**
-     * Xử lý tin nhắn trong phiên đã đăng nhập: lưu câu hỏi → gọi AI → lưu trả lời.
-     */
+    // handle chat for session with user logged in
     public ChatResponse chatForSession(String email, Integer sessionId, SendChatMessageRequest request) {
         ChatSession session = chatSessionService.getSessionOrThrow(email, sessionId);
         String userText = request.getMessageContent().trim();
@@ -81,11 +75,13 @@ public class ChatbotService {
                 .build();
     }
 
-    /** Tra cứu DB (bệnh, phác đồ, xung đột) rồi build prompt và gọi AI. */
+    // check disease and build context
     private String buildContextAndGenerate(String userText) {
+        // resolve explicit disease
         Optional<Disease> diseaseOpt = diseaseLookupService.resolveExplicitDisease(userText, null);
 
         String dbContext = "";
+        // if disease is found, build db context text
         if (diseaseOpt.isPresent()) {
             Disease disease = diseaseOpt.get();
             List<TreatmentPlan> plans = treatmentLookupService.findByDisease(disease);
@@ -96,10 +92,7 @@ public class ChatbotService {
         return generateAnswer(buildPrompt(userText, dbContext));
     }
 
-    /**
-     * Chuyển dữ liệu Entity (bệnh, phác đồ, xung đột) thành đoạn text ngữ cảnh cho
-     * AI.
-     */
+    // build db context text send to AI
     private String buildDbContextText(Disease disease, List<TreatmentPlan> plans,
             List<InteractionWarningDTO> warnings) {
         StringBuilder sb = new StringBuilder();
@@ -109,7 +102,7 @@ public class ChatbotService {
             sb.append(" — ").append(disease.getDescription());
         }
         sb.append("\n");
-
+        // checking treatment plan
         if (!plans.isEmpty()) {
             String planText = plans.stream()
                     .map(p -> {
@@ -119,7 +112,7 @@ public class ChatbotService {
                     .collect(Collectors.joining(", "));
             sb.append("Phác đồ điều trị: ").append(planText).append("\n");
         }
-
+        // checking drug interaction
         if (!warnings.isEmpty()) {
             sb.append("Cảnh báo xung đột thuốc:\n");
             warnings.forEach(w -> {
@@ -134,10 +127,7 @@ public class ChatbotService {
         return sb.toString();
     }
 
-    /**
-     * Ghép ngữ cảnh DB (nếu có) và câu hỏi người dùng thành prompt hoàn chỉnh gửi
-     * AI.
-     */
+    // build prompt
     private String buildPrompt(String question, String dbContext) {
         return """
                 Bạn là một chuyên gia nông nghiệp thông minh, thân thiện và am hiểu rộng.
@@ -145,9 +135,9 @@ public class ChatbotService {
 
                 NGUYÊN TẮC TRẢ LỜI:
                 1. Nếu có dữ liệu hệ thống bên dưới, ưu tiên dùng để trả lời chính xác.
-                2. Nếu dữ liệu hệ thống không đủ hoặc không có, dùng kiến thức nông nghiệp và kiến thức chung của bạn để trả lời đầy đủ, không từ chối.
-                3. Không bắt đầu bằng: "Dựa trên dữ liệu...", "Theo thông tin tôi có...", "Kết luận:".
-                4. Giọng văn hỗ trợ, rõ ràng, tập trung vào giải pháp thực tế.
+                2. BẠN CHỈ ĐƯỢC PHÉP TRẢ LỜI CÁC CÂU HỎI TRONG LĨNH VỰC NÔNG NGHIỆP. Nếu người dùng hỏi các chủ đề khác (ví dụ: lập trình, giải trí, chính trị, y tế con người...), TỪ CHỐI TỰ ĐỘNG bằng cách nói lịch sự rằng bạn chỉ là trợ lý nông nghiệp.
+                3. Nếu câu hỏi liên quan đến nông nghiệp nhưng không có dữ liệu hệ thống, hãy dùng kiến thức chung của bạn để tư vấn tự do và chi tiết.
+                4. Không bắt đầu trả lời bằng: "Dựa trên dữ liệu...", "Kết luận:".
                 5. TUYỆT ĐỐI KHÔNG dùng dấu sao (*), dấu thăng (#) hay bất kỳ ký tự markdown nào. Chỉ dùng văn bản thuần túy.
                 %s
                 Câu hỏi: %s
@@ -155,10 +145,7 @@ public class ChatbotService {
                 .formatted(dbContext.isBlank() ? "" : dbContext, question);
     }
 
-    /**
-     * Gọi DeepSeek API và trả về câu trả lời. Có fallback khi AI lỗi hoặc chưa cấu
-     * hình.
-     */
+    // generate answer
     private String generateAnswer(String prompt) {
         if (chatModel == null) {
             return "Hệ thống AI chưa được cấu hình. Vui lòng liên hệ quản trị viên.";

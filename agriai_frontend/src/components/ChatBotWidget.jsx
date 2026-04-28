@@ -16,14 +16,14 @@ import {
   mapHistoryMessageToMessage,
 } from '../utils/chatResponseMapper';
 import {
-  clearGuestMessages,
+
   loadGuestMessages,
   saveGuestMessages,
 } from '../utils/chatStorage';
 
 const ChatBotWidget = () => {
-  const { accessToken } = useAuth();
-  const isAuthenticated = Boolean(accessToken);
+  const { user } = useAuth();
+  const isAuthenticated = Boolean(user);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([createGreetingMessage()]);
@@ -157,11 +157,6 @@ const ChatBotWidget = () => {
     setIsOpen(false);
   };
 
-  const handleClearGuestHistory = () => {
-    clearGuestMessages();
-    setMessages([createGreetingMessage()]);
-  };
-
   return (
     <>
       <div className="fixed bottom-24 right-6 md:bottom-10 md:right-10 z-[100]">
@@ -208,21 +203,13 @@ const ChatBotWidget = () => {
                     <p className="text-xs text-white/80 flex items-center gap-1">
                       <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
                       {isAuthenticated
-                        ? ' Đang lưu lịch sử hội thoại'
-                        : ' Khách vãng lai - lưu tạm trên trình duyệt'}
+                        ? ' Đang hoạt động'
+                        : ' Khách vãng lai'}
                     </p>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {!isAuthenticated && (
-                  <button
-                    onClick={handleClearGuestHistory}
-                    className="hidden md:inline-flex text-xs font-semibold px-3 py-2 rounded-full bg-white/15 hover:bg-white/20 transition-colors"
-                  >
-                    Xóa lịch sử tạm
-                  </button>
-                )}
                 <button
                   onClick={handleClose}
                   className="hover:bg-white/10 p-1 rounded-full transition-colors"

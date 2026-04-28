@@ -89,3 +89,12 @@ Các điểm lệch đáng chú ý:
 
 1. `AuthContext.refreshAuthToken()` mong response có cả `token` và `user`, nhưng backend refresh hiện chỉ trả token mới + refreshToken cũ.
 2. `ChatBotWidget` là mock local, chưa có backend.
+
+## 5. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **Thêm màn hình / Route mới:**
+   - **Định tuyến:** `App.js` (Thêm Route).
+   - **Menu:** Thêm Link vào Sidebar trong `Navbar.jsx`.
+   - **Page:** Tạo file mới trong `/src/pages/`.

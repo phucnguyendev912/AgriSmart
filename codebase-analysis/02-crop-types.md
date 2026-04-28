@@ -84,3 +84,12 @@ Map:
 JOIN:
 
 - Không có JOIN trong chức năng này.
+
+## 4. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **Thêm thuộc tính cho Cây trồng (vd: thời gian sinh trưởng):**
+   - **Entity:** `CropType.java`.
+   - **DTO/Controller:** `CropTypeDTO`, `CropTypeController.java`.
+   - **Frontend:** Nơi hiển thị CropType (vd lúc chọn cây chẩn đoán trong `DiagnosisPage.jsx`).

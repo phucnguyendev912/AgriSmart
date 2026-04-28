@@ -4,9 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-/**
- * DTO trả về thông tin đánh giá của một lần chẩn đoán.
- */
 @Data
 @Builder
 public class DiagnoseReviewResponse {
@@ -16,4 +13,5 @@ public class DiagnoseReviewResponse {
     private Integer rating;
     private String feedback;
     private LocalDateTime createdAt;
+    private String userName;
 }

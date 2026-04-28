@@ -3,7 +3,19 @@ import Hero from '../components/Hero';
 import Features from '../components/Features';
 import SEO from '../components/SEO';
 
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
 const LandingPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (user) {
+      navigate('/home');
+    }
+  }, [user, navigate]);
+
   return (
     <>
       <SEO

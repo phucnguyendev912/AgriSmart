@@ -9,7 +9,6 @@ import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
 import com.phucnguyen.agriai.dto.request.DiagnoseRequest;
 import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
-import com.phucnguyen.agriai.entity.AIModel;
 import com.phucnguyen.agriai.entity.CropType;
 import com.phucnguyen.agriai.entity.DiagnoseHistory;
 import com.phucnguyen.agriai.entity.DiagnoseHistoryDetail;
@@ -81,7 +80,6 @@ class DiagnoseServiceTest {
 
         private DiagnoseService diagnoseService;
         private CropType cropType;
-        private AIModel aiModel;
         private Disease disease1;
         private Disease disease2;
 
@@ -101,7 +99,6 @@ class DiagnoseServiceTest {
                                 geocodingService);
 
                 cropType = CropType.builder().id(1).cropName("Lua").isActive(true).build();
-                aiModel = AIModel.builder().id(10).modelFilePath("/models/rice.pt").isActive(true).build();
                 disease1 = Disease.builder()
                                 .id(100)
                                 .diseaseCode("blast")
@@ -179,7 +176,7 @@ class DiagnoseServiceTest {
 
                 VisionResultDTO blastResult = VisionResultDTO.builder().label("blast").confidence(0.92).severity("NANG")
                                 .build();
-                when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of(blastResult));
+                when(visionDetectionPort.detect(anyString())).thenReturn(List.of(blastResult));
                 when(weatherPort.getCurrentWeather(10.1, 106.2)).thenReturn(null);
                 mockGrouping(List.of(blastResult));
                 when(diseaseMapper.findDisease("blast")).thenReturn(Optional.of(disease1));
@@ -205,7 +202,7 @@ class DiagnoseServiceTest {
                                 .build();
                 VisionResultDTO sheathBlight = VisionResultDTO.builder().label("sheath_blight").confidence(0.85)
                                 .build();
-                when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of(blast, sheathBlight));
+                when(visionDetectionPort.detect(anyString())).thenReturn(List.of(blast, sheathBlight));
                 when(weatherPort.getCurrentWeather(10.1, 106.2)).thenReturn(null);
                 mockGrouping(List.of(blast, sheathBlight));
                 when(diseaseMapper.findDisease("blast")).thenReturn(Optional.of(disease1));
@@ -226,7 +223,7 @@ class DiagnoseServiceTest {
                 DiagnoseRequest request = createRequest(null, null);
                 mockContext(request);
                 when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/3.jpg");
-                when(visionDetectionPort.detect(anyString(), anyString()))
+                when(visionDetectionPort.detect(anyString()))
                                 .thenReturn(List.of(
                                                 VisionResultDTO.builder().label("healthy").confidence(0.99).build()));
 
@@ -246,7 +243,7 @@ class DiagnoseServiceTest {
                 when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/4.jpg");
 
                 VisionResultDTO lowConfidence = VisionResultDTO.builder().label("blast").confidence(0.10).build();
-                when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of(lowConfidence));
+                when(visionDetectionPort.detect(anyString())).thenReturn(List.of(lowConfidence));
                 mockGrouping(List.of());
 
                 DiagnoseResponse response = diagnoseService.diagnose("farmer@agriai.vn", request);
@@ -262,7 +259,7 @@ class DiagnoseServiceTest {
                 DiagnoseRequest request = createRequest(10.5, 106.7);
                 mockContext(request);
                 when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/5.jpg");
-                when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of());
+                when(visionDetectionPort.detect(anyString())).thenReturn(List.of());
                 mockGrouping(List.of());
 
                 WeatherDTO weather = WeatherDTO.builder().temperature(28.0).humidity(85.0).rainfall(12.0).build();
@@ -281,7 +278,7 @@ class DiagnoseServiceTest {
                 DiagnoseRequest request = createRequest(null, null);
                 mockContext(request);
                 when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/6.jpg");
-                when(visionDetectionPort.detect(anyString(), anyString())).thenReturn(List.of());
+                when(visionDetectionPort.detect(anyString())).thenReturn(List.of());
                 mockGrouping(List.of());
 
                 DiagnoseResponse response = diagnoseService.diagnose("farmer@agriai.vn", request);
@@ -302,7 +299,7 @@ class DiagnoseServiceTest {
 
         private void mockContext(DiagnoseRequest request) {
                 when(diagnosisValidationService.validate(anyString(), any())).thenReturn(
-                                new DiagnosisValidationService.DiagnosisContext(null, cropType, aiModel));
+                                new DiagnosisValidationService.DiagnosisContext(null, cropType));
         }
 
         private void mockGrouping(List<VisionResultDTO> results) {

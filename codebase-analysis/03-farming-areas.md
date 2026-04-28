@@ -187,3 +187,12 @@ Lưu ý:
 
 - Frontend hiện gửi `areaSize`, nhưng backend DTO đang nhận `area`.
 - UI hiển thị `areaCode` nhưng response backend không trả field này.
+
+## 5. Hướng dẫn chỉnh sửa (Modification Guide)
+
+**Khi cần thay đổi tính năng, bạn cần mở các file sau:**
+
+1. **Thay đổi cách lưu tọa độ (vd: từ 1 điểm GPS sang lưu đa giác - Polygon):**
+   - **Entity:** `AreaInfor.java` (Đổi kiểu dữ liệu sang mảng).
+   - **DTOs:** `AreaInforRequest.java`.
+   - **Frontend:** `FarmingAreaPage.jsx` (Sử dụng component vạch đa giác trên bản đồ).

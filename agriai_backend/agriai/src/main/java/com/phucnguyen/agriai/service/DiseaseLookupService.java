@@ -3,9 +3,7 @@ package com.phucnguyen.agriai.service;
 import com.phucnguyen.agriai.entity.CropType;
 import com.phucnguyen.agriai.entity.Disease;
 import com.phucnguyen.agriai.repository.DiseaseRepository;
-import java.text.Normalizer;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +18,7 @@ public class DiseaseLookupService {
         this.diseaseRepository = diseaseRepository;
     }
 
-    /** Tìm bệnh khớp chính xác theo diseaseName, diseaseNameEn hoặc diseaseCode. */
+    // resolve explicit disease
     public Optional<Disease> resolveExplicitDisease(String diseaseName, CropType cropType) {
         if (diseaseName == null || diseaseName.isBlank()) {
             return Optional.empty();
@@ -37,10 +35,4 @@ public class DiseaseLookupService {
                 .findFirst();
     }
 
-    private String normalize(String value) {
-        return Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase(Locale.ROOT)
-                .trim();
-    }
 }

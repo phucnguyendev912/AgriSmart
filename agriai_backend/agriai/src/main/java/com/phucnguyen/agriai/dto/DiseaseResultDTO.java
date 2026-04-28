@@ -17,8 +17,4 @@ public class DiseaseResultDTO {
     private String diseaseName;
     private Double confidence;
     private String severity;
-    private Integer boxX;
-    private Integer boxY;
-    private Integer boxWidth;
-    private Integer boxHeight;
 }

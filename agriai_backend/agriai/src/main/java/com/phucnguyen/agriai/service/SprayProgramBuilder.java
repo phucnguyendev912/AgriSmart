@@ -87,6 +87,7 @@ public class SprayProgramBuilder {
         return programs;
     }
 
+    // building strategy for treatment plan
     public String deriveStrategy(List<TreatmentProgramDTO> programs, List<InteractionWarningDTO> interactionWarnings) {
         if (programs.isEmpty()) {
             return "NO_TREATMENT";

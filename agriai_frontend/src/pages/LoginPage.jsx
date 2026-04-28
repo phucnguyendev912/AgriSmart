@@ -29,11 +29,10 @@ const LoginPage = () => {
 
       if (response.status === 200 || response.status === 201) {
         toast.success('Đăng nhập thành công!');
-        //Lấy token và user từ response
-        const accessToken = response.data.token;
+        // Token được lưu bằng HttpOnly cookie; frontend chỉ cần user để cập nhật UI.
         const userData = response.data.user;
-        if (accessToken) {
-          loginContext(accessToken, userData);
+        if (userData) {
+          loginContext(userData);
         }
 
         navigate('/home');

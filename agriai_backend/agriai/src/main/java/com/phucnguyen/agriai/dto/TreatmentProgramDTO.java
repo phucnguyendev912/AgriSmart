@@ -22,5 +22,5 @@ public class TreatmentProgramDTO {
     private List<String> reasons;
     private List<String> warnings;
     private List<TreatmentDTO> treatments;
-    private Integer intervalDays; // Số ngày cách nhau với đợt phun trước (chỉ có khi CONFLICT_SEPARATED)
+    private Integer intervalDays;
 }

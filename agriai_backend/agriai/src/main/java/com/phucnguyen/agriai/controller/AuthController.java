@@ -28,7 +28,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResponse lr = authService.login(request);
         Cookie access = new Cookie("accessToken", lr.getToken());
-        access.setHttpOnly(false); // Cho phép frontend đọc để không bị mất khi refresh
+        access.setHttpOnly(true);
         access.setPath("/");
         access.setMaxAge(3600);
         Cookie refresh = new Cookie("refreshToken", lr.getRefreshToken());
@@ -37,7 +37,9 @@ public class AuthController {
         refresh.setMaxAge(7 * 24 * 3600);
         response.addCookie(access);
         response.addCookie(refresh);
-        return ResponseEntity.ok(lr);
+        return ResponseEntity.ok(LoginResponse.builder()
+                .user(lr.getUser())
+                .build());
     }
 
     @PostMapping("/refresh-token")
@@ -47,17 +49,19 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         LoginResponse lr = authService.refreshToken(refreshToken);
         Cookie access = new Cookie("accessToken", lr.getToken());
-        access.setHttpOnly(false);
+        access.setHttpOnly(true);
         access.setPath("/");
         access.setMaxAge(3600);
         response.addCookie(access);
-        return ResponseEntity.ok(lr);
+        return ResponseEntity.ok(LoginResponse.builder()
+                .user(lr.getUser())
+                .build());
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie a = new Cookie("accessToken", null);
-        a.setHttpOnly(false);
+        a.setHttpOnly(true);
         a.setPath("/");
         a.setMaxAge(0);
         Cookie r = new Cookie("refreshToken", null);

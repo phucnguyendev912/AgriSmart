@@ -62,7 +62,20 @@ public class DiagnoseResponseBuilder {
                                 .build();
         }
 
+        // resolve severity based on confidence
         String resolveSeverity(DetectedDiseaseMatch match) {
+                Double confidence = match.visionResult().getConfidence();
+                if (confidence != null) {
+                        if (confidence > 0.75) {
+                                return SeverityLevel.NANG.name();
+                        } else if (confidence > 0.60) {
+                                return SeverityLevel.TRUNG_BINH.name();
+                        } else {
+                                return SeverityLevel.NHE.name();
+                        }
+                }
+
+                // Fallback nếu không có confidence
                 if (match.visionResult().getSeverity() != null && !match.visionResult().getSeverity().isBlank()) {
                         return match.visionResult().getSeverity();
                 }
