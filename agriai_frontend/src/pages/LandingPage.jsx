@@ -1,7 +1,7 @@
 import React from 'react';
-import Hero from '../components/Hero';
-import Features from '../components/Features';
-import SEO from '../components/SEO';
+import Hero from '../features/landing/components/Hero';
+import Features from '../features/landing/components/Features';
+import SEO from '../components/common/SEO';
 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

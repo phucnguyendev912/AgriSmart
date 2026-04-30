@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import Navbar from "./layout/Navbar";
+import Footer from "./layout/Footer";
 import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -14,8 +14,8 @@ import DiagnosisHistoryDetailPage from "./pages/DiagnosisHistoryDetailPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import DiseaseMapPage from "./pages/DiseaseMapPage";
 import ProfilePage from "./pages/ProfilePage";
-import ChatBotWidget from "./components/ChatBotWidget";
-import GlobalNotificationListener from "./components/GlobalNotificationListener";
+import ChatBotWidget from "./features/chat/components/ChatBotWidget";
+import GlobalNotificationListener from "./layout/GlobalNotificationListener";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

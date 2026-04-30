@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import SEO from '../components/SEO';
+import SEO from '../components/common/SEO';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 

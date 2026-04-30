@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import AddFarmingAreaModal from '../components/AddFarmingAreaModal';
+import AddFarmingAreaModal from '../features/farmingArea/components/AddFarmingAreaModal';
 
 const FarmingAreaPage = () => {
     const { user } = useAuth(); // useAuth: check authentication

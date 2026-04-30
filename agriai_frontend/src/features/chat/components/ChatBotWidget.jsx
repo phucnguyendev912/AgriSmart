@@ -1,25 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import ChatGreeting from './chat/ChatGreeting';
-import ChatReferences from './chat/ChatReferences';
+import { useAuth } from '../../../context/AuthContext';
+import ChatGreeting from './ChatGreeting';
+import ChatReferences from './ChatReferences';
 import {
   createChatSession,
   fetchChatMessages,
   fetchChatSessions,
   sendChatMessage,
   sendGuestChatMessage,
-} from '../services/chatApi';
+} from '../../../services/chatApi';
 import {
   createGreetingMessage,
   createUserMessage,
   mapApiResponseToMessage,
   mapHistoryMessageToMessage,
-} from '../utils/chatResponseMapper';
+} from '../../../utils/chatResponseMapper';
 import {
 
   loadGuestMessages,
   saveGuestMessages,
-} from '../utils/chatStorage';
+} from '../../../utils/chatStorage';
 
 const ChatBotWidget = () => {
   const { user } = useAuth();
