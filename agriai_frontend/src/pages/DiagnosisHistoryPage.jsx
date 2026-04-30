@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import DiagnosisRatingModal from '../components/DiagnosisRatingModal';
+import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 

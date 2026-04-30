@@ -3,18 +3,18 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import SEO from '../components/SEO';
+import SEO from '../components/common/SEO';
 
 // Diagnosis sub-components
-import DiagnoseUploadPanel from '../components/diagnosis/DiagnoseUploadPanel';
-import DiagnoseWeatherCards from '../components/diagnosis/DiagnoseWeatherCards';
-import DiagnoseResultPanel from '../components/diagnosis/DiagnoseResultPanel';
-import DiagnoseSprayProgramsPanel from '../components/diagnosis/DiagnoseSprayProgramsPanel';
-import DiagnoseInteractionWarnings from '../components/diagnosis/DiagnoseInteractionWarnings';
-import DiagnoseWeatherAlertsPanel from '../components/diagnosis/DiagnoseWeatherAlertsPanel';
-import DiagnoseCultivationMeasures from '../components/diagnosis/DiagnoseCultivationMeasures';
-import DiagnoseAIGuidance from '../components/diagnosis/DiagnoseAIGuidance';
-import DiagnosisRatingModal from '../components/DiagnosisRatingModal';
+import DiagnoseUploadPanel from '../features/diagnosis/components/DiagnoseUploadPanel';
+import DiagnoseWeatherCards from '../features/diagnosis/components/DiagnoseWeatherCards';
+import DiagnoseResultPanel from '../features/diagnosis/components/DiagnoseResultPanel';
+import DiagnoseSprayProgramsPanel from '../features/diagnosis/components/DiagnoseSprayProgramsPanel';
+import DiagnoseInteractionWarnings from '../features/diagnosis/components/DiagnoseInteractionWarnings';
+import DiagnoseWeatherAlertsPanel from '../features/diagnosis/components/DiagnoseWeatherAlertsPanel';
+import DiagnoseCultivationMeasures from '../features/diagnosis/components/DiagnoseCultivationMeasures';
+import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuidance';
+import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
