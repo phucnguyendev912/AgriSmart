@@ -59,10 +59,10 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
     return (
         <>
             {/* Modal Backdrop */}
-            <div className="fixed inset-0 bg-[#191c1d]/30 backdrop-blur-sm z-40" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-[#191c1d]/30 backdrop-blur-sm z-[110]" onClick={onClose}></div>
 
             {/* Main Modal Container */}
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl bg-white rounded-[1.25rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-full max-w-2xl bg-white rounded-[1.25rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Modal Header */}
                 <div className="px-8 pt-8 pb-6 border-b border-gray-200">
