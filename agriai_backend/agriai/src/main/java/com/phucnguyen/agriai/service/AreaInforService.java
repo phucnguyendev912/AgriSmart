@@ -80,6 +80,9 @@ public class AreaInforService {
                                                 "Khong tim thay nguoi dung."));
                 AreaInfor area = areaInforRepository.findById(id)
                                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy khu vực."));
+                if (!area.getUser().getEmail().equals(email)) {
+                        throw new AppException(HttpStatus.FORBIDDEN, "Không có quyền xóa khu vực này.");
+                }
                 area.setIsDelete(true);
                 area.setDeletedAt(LocalDateTime.now());
                 area.setDeletedBy(user.getId());
