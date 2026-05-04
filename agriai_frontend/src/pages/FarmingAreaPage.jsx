@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import AddFarmingAreaModal from '../features/farmingArea/components/AddFarmingAreaModal';
+import EditFarmingAreaModal from '../features/farmingArea/components/EditFarmingAreaModal';
 
 const FarmingAreaPage = () => {
     const { user } = useAuth(); // useAuth: check authentication
     const [areas, setAreas] = useState([]); // useState: lưu danh sách khu vực canh tác tải về từ API.
     const [loading, setLoading] = useState(true); // useState: trạng thái đang tải dữ liệu khu vực canh tác.
     const [isAddModalOpen, setIsAddModalOpen] = useState(false); // useState: kiểm soát hiển thị modal thêm khu vực canh tác mới.
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false); // useState: kiểm soát hiển thị modal sửa khu vực canh tác.
 
     // useCallback: ghi nhớ hàm fetchAreas để tránh tạo lại vô ích khi re-render.
     const fetchAreas = useCallback(async () => {
@@ -35,12 +37,22 @@ const FarmingAreaPage = () => {
         setAreas((prev) => [newArea, ...prev]);
     };
 
+    const handleEditSuccess = (updatedArea) => {
+        setAreas((prev) => prev.map((a) => (a.id === updatedArea.id ? updatedArea : a)));
+    };
+
     return (
         <div className="pt-20 min-h-screen bg-background relative">
             <AddFarmingAreaModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onAddSuccess={handleAddSuccess}
+            />
+            <EditFarmingAreaModal
+                isOpen={!!isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                area={isEditModalOpen || null}
+                onEditSuccess={handleEditSuccess}
             />
 
             {/* HEADER SYSTEM */}
@@ -94,7 +106,11 @@ const FarmingAreaPage = () => {
                                                 <td className="px-6 py-4 text-sm text-on-surface-variant italic min-w-[250px] truncate max-w-xs">{area.description}</td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex justify-center gap-2">
-                                                        <button className="w-8 h-8 rounded-lg bg-[#00BFFF]/10 text-[#00BFFF] flex items-center justify-center hover:bg-[#00BFFF] hover:text-white transition-all" title="Chỉnh sửa">
+                                                        <button
+                                                            className="w-8 h-8 rounded-lg bg-[#00BFFF]/10 text-[#00BFFF] flex items-center justify-center hover:bg-[#00BFFF] hover:text-white transition-all"
+                                                            title="Chỉnh sửa"
+                                                            onClick={() => setIsEditModalOpen(area)}
+                                                        >
                                                             <span className="material-symbols-outlined text-[18px]">edit</span>
                                                         </button>
                                                         <button className="w-8 h-8 rounded-lg bg-error-container/50 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all" title="Xóa">
