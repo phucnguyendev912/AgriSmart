@@ -13,7 +13,7 @@ const PROVINCES = [
   'Ninh Bình', 'Ninh Thuận', 'Phú Thọ', 'Phú Yên', 'Quảng Bình',
   'Quảng Nam', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị', 'Sóc Trăng',
   'Sơn La', 'Tây Ninh', 'Thái Bình', 'Thái Nguyên', 'Thanh Hóa',
-  'Thừa Thiên Huế', 'Tiền Giang', 'TP Hồ Chí Minh', 'Trà Vinh',
+  'Huế', 'Tiền Giang', 'TP Hồ Chí Minh', 'Trà Vinh',
   'Tuyên Quang', 'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái',
 ];
 
@@ -40,9 +40,9 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
   const [apiError, setApiError] = useState(null);
   const [showToast, setShowToast] = useState(false);
 
-  // Sync formData khi area prop thay đổi
+  // Sync formData khi area prop thay đổi (bao gồm cả khi modal mở)
   useEffect(() => {
-    if (area) {
+    if (isOpen && area) {
       setFormData({
         areaName: area.areaName ?? '',
         province: area.province ?? '',
@@ -53,13 +53,13 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
       setErrors({});
       setApiError(null);
     }
-  }, [area]);
-
-  if (!isOpen) return null;
+  }, [isOpen, area]);
 
   // ---------------------------------------------------------------------------
   // Validation
   // ---------------------------------------------------------------------------
+  if (!isOpen) return null;
+
   const validate = () => {
     const newErrors = {};
     if (!formData.areaName.trim()) newErrors.areaName = 'Vui lòng nhập tên vườn';
@@ -263,29 +263,6 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
                   className="w-full bg-white border border-outline-variant px-4 py-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all placeholder:text-on-surface-variant/50"
                 />
               </div>
-
-              {/* Diện tích */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Diện tích (ha)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    name="area"
-                    type="number"
-                    value={formData.area}
-                    onChange={handleChange}
-                    step="0.01"
-                    min="0.01"
-                    placeholder="0"
-                    className="w-full bg-white border border-outline-variant px-4 py-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all"
-                  />
-                  <div className="flex items-center justify-center w-16 bg-surface-container rounded-lg border border-outline-variant text-on-surface-variant font-bold text-sm flex-shrink-0">
-                    ha
-                  </div>
-                </div>
-              </div>
-
               {/* Mô tả */}
               <div className="space-y-1.5 md:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
