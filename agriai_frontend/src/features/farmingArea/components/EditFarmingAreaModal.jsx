@@ -13,7 +13,7 @@ const PROVINCES = [
   'Ninh Bình', 'Ninh Thuận', 'Phú Thọ', 'Phú Yên', 'Quảng Bình',
   'Quảng Nam', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị', 'Sóc Trăng',
   'Sơn La', 'Tây Ninh', 'Thái Bình', 'Thái Nguyên', 'Thanh Hóa',
-  'Huế', 'Tiền Giang', 'TP Hồ Chí Minh', 'Trà Vinh',
+  'Huế', 'Tiền Giang', 'Hồ Chí Minh', 'Trà Vinh',
   'Tuyên Quang', 'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái',
 ];
 
