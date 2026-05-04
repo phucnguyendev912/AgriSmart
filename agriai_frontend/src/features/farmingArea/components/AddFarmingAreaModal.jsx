@@ -128,28 +128,6 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                                 </div>
                             </div>
 
-                            {/* 4. Diện tích */}
-                            <div className="space-y-2">
-                                <label className="text-[0.75rem] font-bold text-[#3d4a3d] uppercase tracking-wider">Diện tích (ha) *</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        name="areaSize"
-                                        value={formData.areaSize}
-                                        onChange={handleChange}
-                                        required
-                                        step="0.01"
-                                        min="0.01"
-                                        className="w-full bg-[#f3f4f5] border-b-2 border-transparent focus:border-[#22C55E] px-4 py-3 rounded-t-lg transition-all outline-none text-[#191c1d]"
-                                        placeholder="0"
-                                        type="number"
-                                    />
-                                    <select disabled className="w-24 bg-[#f3f4f5] border-b-2 border-transparent px-3 py-3 rounded-t-lg appearance-none outline-none text-[#191c1d] font-bold text-sm text-center">
-                                        <option value="ha">ha</option>
-                                        <option value="m2">m2</option>
-                                    </select>
-                                </div>
-                            </div>
-
                             {/* 3. Địa chỉ chi tiết */}
                             <div className="md:col-span-2 space-y-2">
                                 <label className="text-[0.75rem] font-bold text-[#3d4a3d] uppercase tracking-wider">Địa chỉ chi tiết</label>

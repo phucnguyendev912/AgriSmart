@@ -1,0 +1,81 @@
+# ============================================================
+# AGRIAI — ROOT .gitignore
+# Covers: React Frontend · Spring Boot Backend · Docker · AI
+# ============================================================
+
+
+# ── AI / Agent files ─────────────────────────────────────────
+.agent/
+skills/
+codebase-analysis/
+*.md
+!README.md
+!docs/**/*.md
+
+
+# ── Secrets & Environment ────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets/
+
+
+# ── OS & Editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/settings.json
+.vscode/*.log
+.idea/
+*.iml
+*.iws
+*.ipr
+*.suo
+*.user
+
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# ══════════════════════════════════════════════════════════════
+# FRONTEND (React / Vite / Node)
+# ══════════════════════════════════════════════════════════════
+agriai_frontend/node_modules/
+agriai_frontend/dist/
+agriai_frontend/build/
+agriai_frontend/.cache/
+agriai_frontend/.parcel-cache/
+agriai_frontend/coverage/
+agriai_frontend/.env
+agriai_frontend/.env.*
+!agriai_frontend/.env.example
+
+
+# ══════════════════════════════════════════════════════════════
+# BACKEND (Spring Boot / Maven)
+# ══════════════════════════════════════════════════════════════
+agriai_backend/**/target/
+agriai_backend/**/.mvn/wrapper/maven-wrapper.jar
+agriai_backend/**/hs_err_pid*
+agriai_backend/**/*.class
+agriai_backend/**/*.jar
+!agriai_backend/**/test*.jar
+agriai_backend/**/*.war
+agriai_backend/**/*.ear
+agriai_backend/**/application-local.yml
+agriai_backend/**/application-local.properties
+
+
+# ══════════════════════════════════════════════════════════════
+# DOCKER
+# ══════════════════════════════════════════════════════════════
+docker/volumes/
+.docker/
