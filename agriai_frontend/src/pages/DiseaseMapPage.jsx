@@ -72,7 +72,7 @@ export default function DiseaseMapPage() {
       const params = { days };
       if (diseaseId) params.diseaseId = diseaseId;
       const res = await axios.get(`${API_BASE}/api/map/markers`, { params });
-      setMarkers(res.data);
+      setMarkers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setError("Không thể tải dữ liệu bản đồ. Vui lòng thử lại.");
       console.error(err);

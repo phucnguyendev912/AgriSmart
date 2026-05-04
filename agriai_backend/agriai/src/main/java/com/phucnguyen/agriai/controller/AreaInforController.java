@@ -45,4 +45,11 @@ public class AreaInforController {
             @Valid @RequestBody AreaInforRequest request) {
         return ResponseEntity.ok(areaInforService.update(principal.getName(), id, request));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(Principal principal, @PathVariable Integer id) {
+        areaInforService.delete(principal.getName(), id);
+        return ResponseEntity.noContent().build();
+    }
+
 }
