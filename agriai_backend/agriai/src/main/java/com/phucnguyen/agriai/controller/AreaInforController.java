@@ -37,4 +37,12 @@ public class AreaInforController {
             @RequestBody(required = false) AreaInforConfirmRequest request) {
         return ResponseEntity.ok(areaInforService.confirm(principal.getName(), id, request));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AreaInforResponse> update(
+            Principal principal,
+            @PathVariable Integer id,
+            @Valid @RequestBody AreaInforRequest request) {
+        return ResponseEntity.ok(areaInforService.update(principal.getName(), id, request));
+    }
 }

@@ -59,10 +59,10 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
     return (
         <>
             {/* Modal Backdrop */}
-            <div className="fixed inset-0 bg-[#191c1d]/30 backdrop-blur-sm z-40" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-[#191c1d]/30 backdrop-blur-sm z-[110]" onClick={onClose}></div>
 
             {/* Main Modal Container */}
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl bg-white rounded-[1.25rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-full max-w-2xl bg-white rounded-[1.25rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Modal Header */}
                 <div className="px-8 pt-8 pb-6 border-b border-gray-200">
@@ -125,28 +125,6 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                                         {/* Thực tế sẽ lấy từ API tỉnh thành, tạm hardcode vài tỉnh */}
                                     </select>
                                     <span className="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-[#3d4a3d]">expand_more</span>
-                                </div>
-                            </div>
-
-                            {/* 4. Diện tích */}
-                            <div className="space-y-2">
-                                <label className="text-[0.75rem] font-bold text-[#3d4a3d] uppercase tracking-wider">Diện tích (ha) *</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        name="areaSize"
-                                        value={formData.areaSize}
-                                        onChange={handleChange}
-                                        required
-                                        step="0.01"
-                                        min="0.01"
-                                        className="w-full bg-[#f3f4f5] border-b-2 border-transparent focus:border-[#22C55E] px-4 py-3 rounded-t-lg transition-all outline-none text-[#191c1d]"
-                                        placeholder="0"
-                                        type="number"
-                                    />
-                                    <select disabled className="w-24 bg-[#f3f4f5] border-b-2 border-transparent px-3 py-3 rounded-t-lg appearance-none outline-none text-[#191c1d] font-bold text-sm text-center">
-                                        <option value="ha">ha</option>
-                                        <option value="m2">m2</option>
-                                    </select>
                                 </div>
                             </div>
 

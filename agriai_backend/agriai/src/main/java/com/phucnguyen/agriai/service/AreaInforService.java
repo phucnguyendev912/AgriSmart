@@ -55,6 +55,23 @@ public class AreaInforService {
                 return toResponse(areaInforRepository.save(area));
         }
 
+        public AreaInforResponse update(String email, Integer id, AreaInforRequest request) {
+                AreaInfor area = areaInforRepository.findById(id)
+                                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy khu vực."));
+
+                if (!area.getUser().getEmail().equals(email)) {
+                        throw new AppException(HttpStatus.FORBIDDEN, "Không có quyền chỉnh sửa khu vực này.");
+                }
+
+                area.setAreaName(request.getAreaName());
+                area.setProvince(request.getProvince());
+                area.setAddress(request.getAddress());
+                area.setArea(request.getArea());
+                area.setDescription(request.getDescription());
+
+                return toResponse(areaInforRepository.save(area));
+        }
+
         private AreaInforResponse toResponse(AreaInfor a) {
                 return AreaInforResponse.builder().id(a.getId()).areaName(a.getAreaName())
                                 .province(a.getProvince()).address(a.getAddress())
