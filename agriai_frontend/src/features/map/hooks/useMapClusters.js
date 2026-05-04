@@ -6,6 +6,7 @@ import useSupercluster from "use-supercluster";
  * Supercluster dùng [longitude, latitude] (GeoJSON standard) — đảo ngược so với Leaflet.
  */
 function toGeoJsonPoints(markers) {
+  if (!Array.isArray(markers)) return [];
   return markers.map((m) => ({
     type: "Feature",
     geometry: {
