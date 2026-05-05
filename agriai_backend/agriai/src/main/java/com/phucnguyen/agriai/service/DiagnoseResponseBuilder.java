@@ -19,7 +19,7 @@ public class DiagnoseResponseBuilder {
                         String imageUrl,
                         WeatherDTO weather,
                         boolean gpsUsed,
-                        DiagnosisAnalysis analysis,
+                        DiagnoseService.DiagnosisAnalysis analysis,
                         RuleEngineService.RuleEngineResult ruleResult) {
 
                 String diagnosisType = analysis.isHealthy()
@@ -46,7 +46,7 @@ public class DiagnoseResponseBuilder {
                                 .build();
         }
 
-        DiseaseResultDTO toDiseaseResult(DetectedDiseaseMatch match) {
+        DiseaseResultDTO toDiseaseResult(DiagnoseService.DetectedDiseaseMatch match) {
                 String diseaseName = match.disease().getDiseaseNameEn() != null
                                 && !match.disease().getDiseaseNameEn().isBlank()
                                                 ? match.disease().getDiseaseNameEn() + " ("
@@ -63,7 +63,7 @@ public class DiagnoseResponseBuilder {
         }
 
         // resolve severity based on confidence
-        String resolveSeverity(DetectedDiseaseMatch match) {
+        String resolveSeverity(DiagnoseService.DetectedDiseaseMatch match) {
                 Double confidence = match.visionResult().getConfidence();
                 if (confidence != null) {
                         if (confidence > 0.75) {

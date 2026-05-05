@@ -9,6 +9,7 @@ import com.phucnguyen.agriai.entity.Disease;
 import com.phucnguyen.agriai.enums.Status;
 import com.phucnguyen.agriai.exception.AppException;
 import com.phucnguyen.agriai.port.GuidancePort;
+import com.phucnguyen.agriai.port.ImageStoragePort;
 import com.phucnguyen.agriai.port.VisionDetectionPort;
 import com.phucnguyen.agriai.port.WeatherPort;
 import com.phucnguyen.agriai.repository.DiagnoseHistoryRepository;
@@ -19,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @Transactional(noRollbackFor = AppException.class)
+@RequiredArgsConstructor
 public class DiagnoseService {
 
     private static final double MIN_CONFIDENCE = 0.4d;
@@ -34,7 +37,7 @@ public class DiagnoseService {
 
     private final DiagnoseHistoryRepository diagnoseHistoryRepository;
     private final DiagnosisValidationService diagnosisValidationService;
-    private final DiagnosisAttachmentService diagnosisAttachmentService;
+    private final ImageStoragePort imageStoragePort;
     private final VisionDetectionPort visionDetectionPort;
     private final WeatherPort weatherPort;
     private final RuleEngineService ruleEngineService;
@@ -43,31 +46,6 @@ public class DiagnoseService {
     private final DiagnoseResponseBuilder diagnoseResponseBuilder;
     private final DiagnoseHistoryPersistenceService historyPersistenceService;
     private final GeocodingService geocodingService;
-
-    public DiagnoseService(
-            DiagnoseHistoryRepository diagnoseHistoryRepository,
-            DiagnosisValidationService diagnosisValidationService,
-            DiagnosisAttachmentService diagnosisAttachmentService,
-            VisionDetectionPort visionDetectionPort,
-            WeatherPort weatherPort,
-            RuleEngineService ruleEngineService,
-            GuidancePort guidancePort,
-            DiseaseMapper diseaseMapper,
-            DiagnoseResponseBuilder diagnoseResponseBuilder,
-            DiagnoseHistoryPersistenceService historyPersistenceService,
-            GeocodingService geocodingService) {
-        this.diagnoseHistoryRepository = diagnoseHistoryRepository;
-        this.diagnosisValidationService = diagnosisValidationService;
-        this.diagnosisAttachmentService = diagnosisAttachmentService;
-        this.visionDetectionPort = visionDetectionPort;
-        this.weatherPort = weatherPort;
-        this.ruleEngineService = ruleEngineService;
-        this.guidancePort = guidancePort;
-        this.diseaseMapper = diseaseMapper;
-        this.diagnoseResponseBuilder = diagnoseResponseBuilder;
-        this.historyPersistenceService = historyPersistenceService;
-        this.geocodingService = geocodingService;
-    }
 
     public DiagnoseResponse diagnose(String email, DiagnoseRequest request) {
         // validate request
@@ -81,7 +59,7 @@ public class DiagnoseService {
                 .status(Status.PENDING)
                 .build());
         try {
-            String imageUrl = diagnosisAttachmentService.uploadAndSave(request.getImage(), history.getId());
+            String imageUrl = imageStoragePort.upload(request.getImage());
 
             CompletableFuture<List<VisionResultDTO>> visionFuture = CompletableFuture.supplyAsync(
                     () -> visionDetectionPort.detect(imageUrl));
@@ -174,4 +152,9 @@ public class DiagnoseService {
     private String normalizeLabel(String label) {
         return label.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
+
+    // Package-private inner records — used by DiagnoseResponseBuilder and DiagnoseHistoryPersistenceService
+    record DetectedDiseaseMatch(Disease disease, VisionResultDTO visionResult) {}
+
+    record DiagnosisAnalysis(boolean isHealthy, boolean isUnknown, List<DetectedDiseaseMatch> detectedDiseases) {}
 }
