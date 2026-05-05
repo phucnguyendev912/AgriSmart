@@ -6,22 +6,17 @@ import com.phucnguyen.agriai.entity.User;
 import com.phucnguyen.agriai.exception.AppException;
 import com.phucnguyen.agriai.repository.CropTypeRepository;
 import com.phucnguyen.agriai.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@RequiredArgsConstructor
 public class DiagnosisValidationService {
 
     private final UserRepository userRepository;
     private final CropTypeRepository cropTypeRepository;
-
-    public DiagnosisValidationService(
-            UserRepository userRepository,
-            CropTypeRepository cropTypeRepository) {
-        this.userRepository = userRepository;
-        this.cropTypeRepository = cropTypeRepository;
-    }
 
     public DiagnosisContext validate(String email, DiagnoseRequest request) {
         validateImage(request.getImage());
