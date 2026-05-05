@@ -14,6 +14,7 @@ import com.phucnguyen.agriai.repository.DiagnoseHistoryRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,23 +23,13 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class DiagnoseHistoryPersistenceService {
 
     private final DiagnoseHistoryRepository diagnoseHistoryRepository;
     private final DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
     private final DiagnoseResponseBuilder diagnoseResponseBuilder;
     private final ObjectMapper objectMapper;
-
-    public DiagnoseHistoryPersistenceService(
-            DiagnoseHistoryRepository diagnoseHistoryRepository,
-            DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository,
-            DiagnoseResponseBuilder diagnoseResponseBuilder,
-            ObjectMapper objectMapper) {
-        this.diagnoseHistoryRepository = diagnoseHistoryRepository;
-        this.diagnoseHistoryDetailRepository = diagnoseHistoryDetailRepository;
-        this.diagnoseResponseBuilder = diagnoseResponseBuilder;
-        this.objectMapper = objectMapper;
-    }
 
     // update history
     public void updateHistory(DiagnoseHistory history, String imageUrl, WeatherDTO weather, Status status) {
@@ -52,7 +43,7 @@ public class DiagnoseHistoryPersistenceService {
     public void saveDetails(
             DiagnoseHistory history,
             com.phucnguyen.agriai.dto.response.DiagnoseResponse response,
-            DiagnosisAnalysis analysis) {
+            DiagnoseService.DiagnosisAnalysis analysis) {
 
         if (analysis.detectedDiseases().isEmpty()) {
             DiagnoseHistoryDetail detail = DiagnoseHistoryDetail.builder()

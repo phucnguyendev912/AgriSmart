@@ -6,45 +6,33 @@ import com.phucnguyen.agriai.dto.TreatmentProgramDTO;
 import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
 import com.phucnguyen.agriai.entity.TreatmentPlan;
-import com.phucnguyen.agriai.repository.TreatmentPlanRepository;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class RuleEngineService {
 
-    private final TreatmentPlanRepository treatmentPlanRepository;
+    private final TreatmentLookupService treatmentLookupService;
     private final TreatmentSelector treatmentSelector;
     private final DrugInteractionChecker drugInteractionChecker;
     private final WeatherAlertEvaluator weatherAlertEvaluator;
     private final SprayProgramBuilder sprayProgramBuilder;
 
-    public RuleEngineService(
-            TreatmentPlanRepository treatmentPlanRepository,
-            TreatmentSelector treatmentSelector,
-            DrugInteractionChecker drugInteractionChecker,
-            WeatherAlertEvaluator weatherAlertEvaluator,
-            SprayProgramBuilder sprayProgramBuilder) {
-        this.treatmentPlanRepository = treatmentPlanRepository;
-        this.treatmentSelector = treatmentSelector;
-        this.drugInteractionChecker = drugInteractionChecker;
-        this.weatherAlertEvaluator = weatherAlertEvaluator;
-        this.sprayProgramBuilder = sprayProgramBuilder;
-    }
-
     public RuleEngineResult process(List<Integer> diseaseIds, WeatherDTO weather) {
         if (diseaseIds == null || diseaseIds.isEmpty()) {
             return RuleEngineResult.empty();
         }
-        // get treatment plans by disease ids
+        // get treatment plans by disease ids via TreatmentLookupService
         Map<Integer, List<TreatmentPlan>> plansByDisease = new LinkedHashMap<>();
         for (Integer diseaseId : diseaseIds) {
-            List<TreatmentPlan> plans = treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(diseaseId);
+            List<TreatmentPlan> plans = treatmentLookupService.findByDiseaseId(diseaseId);
             if (!plans.isEmpty()) {
                 plansByDisease.put(diseaseId, plans);
             }
