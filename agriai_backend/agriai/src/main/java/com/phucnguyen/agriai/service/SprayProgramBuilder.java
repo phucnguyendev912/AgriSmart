@@ -9,16 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SprayProgramBuilder {
 
     private final DrugInteractionChecker drugInteractionChecker;
-
-    public SprayProgramBuilder(DrugInteractionChecker drugInteractionChecker) {
-        this.drugInteractionChecker = drugInteractionChecker;
-    }
 
     public List<TreatmentProgramDTO> buildPrograms(
             List<TreatmentPlan> selectedPlans,

@@ -12,17 +12,15 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 // checking weather condition
 @Component
+@RequiredArgsConstructor
 public class WeatherAlertEvaluator {
 
     private final TreatmentWeatherConditionRepository weatherConditionRepository;
-
-    public WeatherAlertEvaluator(TreatmentWeatherConditionRepository weatherConditionRepository) {
-        this.weatherConditionRepository = weatherConditionRepository;
-    }
 
     public Map<Integer, List<WeatherAlertDTO>> buildWeatherAlerts(List<TreatmentPlan> plans, WeatherDTO weather) {
         if (weather == null || plans.isEmpty()) {
