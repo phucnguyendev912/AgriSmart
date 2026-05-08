@@ -17,6 +17,7 @@ import com.phucnguyen.agriai.entity.User;
 import com.phucnguyen.agriai.enums.SeverityLevel;
 import com.phucnguyen.agriai.exception.AppException;
 import com.phucnguyen.agriai.port.GuidancePort;
+import com.phucnguyen.agriai.port.ImageStoragePort;
 import com.phucnguyen.agriai.port.VisionDetectionPort;
 import com.phucnguyen.agriai.port.WeatherPort;
 import com.phucnguyen.agriai.repository.DiagnoseHistoryDetailRepository;
@@ -60,7 +61,7 @@ class DiagnoseServiceTest {
         @Mock
         private DiagnosisValidationService diagnosisValidationService;
         @Mock
-        private DiagnosisAttachmentService diagnosisAttachmentService;
+        private ImageStoragePort imageStoragePort;
         @Mock
         private VisionDetectionPort visionDetectionPort;
         @Mock
@@ -88,7 +89,7 @@ class DiagnoseServiceTest {
                 diagnoseService = new DiagnoseService(
                                 diagnoseHistoryRepository,
                                 diagnosisValidationService,
-                                diagnosisAttachmentService,
+                                imageStoragePort,
                                 visionDetectionPort,
                                 weatherPort,
                                 ruleEngineService,
@@ -130,7 +131,7 @@ class DiagnoseServiceTest {
                                         String imageUrl = invocation.getArgument(1);
                                         WeatherDTO weather = invocation.getArgument(2);
                                         boolean gpsUsed = invocation.getArgument(3);
-                                        DiagnosisAnalysis analysis = invocation.getArgument(4);
+                                        DiagnoseService.DiagnosisAnalysis analysis = invocation.getArgument(4);
                                         RuleEngineService.RuleEngineResult ruleResult = invocation.getArgument(5);
                                         boolean healthy = analysis != null && analysis.isHealthy();
                                         List<DiseaseResultDTO> diseases = analysis == null ? List.of()
@@ -172,7 +173,7 @@ class DiagnoseServiceTest {
         void diagnose_singleDisease_success() {
                 DiagnoseRequest request = createRequest(10.1, 106.2);
                 mockContext(request);
-                when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/1.jpg");
+                when(imageStoragePort.upload(any())).thenReturn("https://img/1.jpg");
 
                 VisionResultDTO blastResult = VisionResultDTO.builder().label("blast").confidence(0.92).severity("NANG")
                                 .build();
@@ -196,7 +197,7 @@ class DiagnoseServiceTest {
         void diagnose_multipleDiseases_success() {
                 DiagnoseRequest request = createRequest(10.1, 106.2);
                 mockContext(request);
-                when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/2.jpg");
+                when(imageStoragePort.upload(any())).thenReturn("https://img/2.jpg");
 
                 VisionResultDTO blast = VisionResultDTO.builder().label("blast").confidence(0.91).severity("NANG")
                                 .build();
@@ -222,7 +223,7 @@ class DiagnoseServiceTest {
         void diagnose_healthyPlant() {
                 DiagnoseRequest request = createRequest(null, null);
                 mockContext(request);
-                when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/3.jpg");
+                when(imageStoragePort.upload(any())).thenReturn("https://img/3.jpg");
                 when(visionDetectionPort.detect(anyString()))
                                 .thenReturn(List.of(
                                                 VisionResultDTO.builder().label("healthy").confidence(0.99).build()));
@@ -240,7 +241,7 @@ class DiagnoseServiceTest {
         void diagnose_unknownDisease() {
                 DiagnoseRequest request = createRequest(null, null);
                 mockContext(request);
-                when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/4.jpg");
+                when(imageStoragePort.upload(any())).thenReturn("https://img/4.jpg");
 
                 VisionResultDTO lowConfidence = VisionResultDTO.builder().label("blast").confidence(0.10).build();
                 when(visionDetectionPort.detect(anyString())).thenReturn(List.of(lowConfidence));
@@ -258,7 +259,7 @@ class DiagnoseServiceTest {
         void diagnose_withGps_weatherSuccess() {
                 DiagnoseRequest request = createRequest(10.5, 106.7);
                 mockContext(request);
-                when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/5.jpg");
+                when(imageStoragePort.upload(any())).thenReturn("https://img/5.jpg");
                 when(visionDetectionPort.detect(anyString())).thenReturn(List.of());
                 mockGrouping(List.of());
 
@@ -277,7 +278,7 @@ class DiagnoseServiceTest {
         void diagnose_withoutGps() {
                 DiagnoseRequest request = createRequest(null, null);
                 mockContext(request);
-                when(diagnosisAttachmentService.uploadAndSave(any(), any())).thenReturn("https://img/6.jpg");
+                when(imageStoragePort.upload(any())).thenReturn("https://img/6.jpg");
                 when(visionDetectionPort.detect(anyString())).thenReturn(List.of());
                 mockGrouping(List.of());
 

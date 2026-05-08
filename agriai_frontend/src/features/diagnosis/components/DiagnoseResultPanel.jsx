@@ -11,11 +11,8 @@ const getSeverityLabel = (severity) => {
     if (severity === 'NHE') return 'Nhẹ';
     return severity || 'N/A';
 };
-const getSeverityColor = (sev) => {
-    if (sev === 'HIGH') return 'text-red-600 bg-red-50 border-red-200';
-    if (sev === 'MEDIUM') return 'text-orange-600 bg-orange-50 border-orange-200';
-    return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-};
+
+
 
 /**
  * Hiển thị danh sách bệnh phát hiện được cùng các cảnh báo thời tiết và warnings nhanh.
