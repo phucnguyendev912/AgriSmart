@@ -56,7 +56,6 @@ const DiagnosisHistoryDetailPage = () => {
     };
 
     const diseases = result?.diseases || [];
-    const weather = result?.weather;
     const sprayPrograms = result?.sprayPrograms || [];
     const interactionWarnings = result?.interactionWarnings || [];
     const weatherAlerts = result?.weatherAlerts || [];
@@ -158,12 +157,6 @@ const DiagnosisHistoryDetailPage = () => {
                                 <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {diseases.map((disease, idx) => {
-                                            const diseaseTreatmentIds = (result.treatments || [])
-                                                .filter(t => t.diseaseId === disease.diseaseId)
-                                                .map(t => t.treatmentPlanId);
-                                            const relevantWeatherAlerts = (result.weatherAlerts || [])
-                                                .filter(a => diseaseTreatmentIds.includes(a.treatmentPlanId) && a.violated);
-
                                             return (
                                                 <div key={idx} className="p-4 rounded-xl border-2 border-primary bg-primary/5 shadow-sm">
                                                     <div className="flex justify-between items-start mb-2">
