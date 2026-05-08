@@ -18,7 +18,7 @@ import {
 
 
 const SKILL_OPTIONS = [
-  { value: 'DISEASE',     label: '🌿 Nhận diện bệnh' },
+  { value: 'DISEASE',     label: '🌿Bệnh' },
   { value: 'TREATMENT',  label: '💊 Phác đồ điều trị' },
   { value: 'CONFLICT',   label: '⚠️ Xung đột thuốc' },
   { value: 'CULTIVATION',label: '🌾 Kỹ thuật canh tác' },
@@ -31,6 +31,7 @@ const ChatBotWidget = () => {
   const [selectedSkill, setSelectedSkill] = useState('DISEASE');
   const [messages, setMessages] = useState([createGreetingMessage()]);
   const [activeSessionId, setActiveSessionId] = useState(null);
+  const [sessionTitle, setSessionTitle] = useState('Trợ lý AgriAI');
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef(null);
 
@@ -64,6 +65,7 @@ const ChatBotWidget = () => {
         }
 
         setActiveSessionId(sessionId);
+        setSessionTitle(firstSession?.sessionTitle || 'Trợ lý AgriAI');
 
         const messagesPage = await fetchChatMessages(sessionId, {
           page: 0,
@@ -99,6 +101,7 @@ const ChatBotWidget = () => {
     try {
       const createdSession = await createChatSession({});
       setActiveSessionId(createdSession.id);
+      setSessionTitle(createdSession.sessionTitle || 'Trợ lý AgriAI');
       setMessages([createGreetingMessage()]);
       setInput('');
       setSelectedSkill('DISEASE');
@@ -133,6 +136,12 @@ const ChatBotWidget = () => {
       const response = await sendChatMessage(sessionId, { messageContent, selectedSkill });
       const assistantMessage = mapApiResponseToMessage(response);
       setMessages((prev) => [...prev, assistantMessage]);
+      // update title after first user message triggers auto-title on BE
+      if (messages.filter((m) => m.sender === 'user').length === 0) {
+        const sessions = await fetchChatSessions({ page: 0, size: 1 });
+        const updatedTitle = sessions?.content?.[0]?.sessionTitle;
+        if (updatedTitle) setSessionTitle(updatedTitle);
+      }
     } catch (error) {
       console.error('Failed to send chat message:', error);
       setMessages((prev) => [
@@ -197,7 +206,7 @@ const ChatBotWidget = () => {
                   </div>
                   <div>
                     <h2 className="font-bold text-lg leading-tight">
-                      Trợ lý AgriAI
+                      {sessionTitle}
                     </h2>
                     <p className="text-xs text-white/80 flex items-center gap-1">
                       <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
