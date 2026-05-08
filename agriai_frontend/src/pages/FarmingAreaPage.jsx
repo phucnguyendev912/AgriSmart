@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+
+
 import AddFarmingAreaModal from '../features/farmingArea/components/AddFarmingAreaModal';
 import EditFarmingAreaModal from '../features/farmingArea/components/EditFarmingAreaModal';
 
 const FarmingAreaPage = () => {
-    const { user } = useAuth(); // useAuth: check authentication
     const [areas, setAreas] = useState([]); // useState: lưu danh sách khu vực canh tác tải về từ API.
     const [loading, setLoading] = useState(true); // useState: trạng thái đang tải dữ liệu khu vực canh tác.
     const [isAddModalOpen, setIsAddModalOpen] = useState(false); // useState: kiểm soát hiển thị modal thêm khu vực canh tác mới.

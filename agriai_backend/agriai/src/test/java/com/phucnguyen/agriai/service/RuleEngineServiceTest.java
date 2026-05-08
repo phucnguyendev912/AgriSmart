@@ -13,7 +13,6 @@ import com.phucnguyen.agriai.entity.TreatmentWeatherCondition;
 import com.phucnguyen.agriai.enums.Operator;
 import com.phucnguyen.agriai.enums.WeatherFactor;
 import com.phucnguyen.agriai.repository.DrugInteractionRepository;
-import com.phucnguyen.agriai.repository.TreatmentPlanRepository;
 import com.phucnguyen.agriai.repository.TreatmentWeatherConditionRepository;
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,7 +36,7 @@ import static org.mockito.Mockito.when;
 class RuleEngineServiceTest {
 
         @Mock
-        private TreatmentPlanRepository treatmentPlanRepository;
+        private TreatmentLookupService treatmentLookupService;
         @Mock
         private DrugInteractionRepository drugInteractionRepository;
         @Mock
@@ -61,7 +60,7 @@ class RuleEngineServiceTest {
                 TreatmentSelector treatmentSelector = new TreatmentSelector();
 
                 ruleEngineService = new RuleEngineService(
-                                treatmentPlanRepository,
+                                treatmentLookupService,
                                 treatmentSelector,
                                 drugInteractionChecker,
                                 weatherAlertEvaluator,
@@ -113,7 +112,7 @@ class RuleEngineServiceTest {
         @Test
         @DisplayName("TC3: Single disease produces DEFAULT_PRIORITY reason")
         void process_singleDisease_defaultPriority() {
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+                when(treatmentLookupService.findByDiseaseId(10)).thenReturn(List.of(planA));
 
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), null);
 
@@ -128,8 +127,8 @@ class RuleEngineServiceTest {
         @Test
         @DisplayName("TC4: Drug interaction splits into separate spray programs")
         void process_withDrugInteraction_separatePrograms() {
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
+                when(treatmentLookupService.findByDiseaseId(10)).thenReturn(List.of(planA));
+                when(treatmentLookupService.findByDiseaseId(20)).thenReturn(List.of(planB));
 
                 DrugInteraction interaction = DrugInteraction.builder()
                                 .ingredientA(ingredientA).ingredientB(ingredientB)
@@ -163,8 +162,8 @@ class RuleEngineServiceTest {
         @Test
         @DisplayName("TC5: No drug interaction → single mix program with MIX_COMPATIBLE")
         void process_withoutDrugInteraction_singleMixProgram() {
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
+                when(treatmentLookupService.findByDiseaseId(10)).thenReturn(List.of(planA));
+                when(treatmentLookupService.findByDiseaseId(20)).thenReturn(List.of(planB));
                 when(drugInteractionRepository.findInteractionsBetweenIngredients(anyList())).thenReturn(List.of());
 
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10, 20),
@@ -179,7 +178,7 @@ class RuleEngineServiceTest {
         @Test
         @DisplayName("TC6: TreatmentDTO maps all fields correctly")
         void process_mapsNewFieldsCorrectly() {
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+                when(treatmentLookupService.findByDiseaseId(10)).thenReturn(List.of(planA));
 
                 RuleEngineService.RuleEngineResult result = ruleEngineService.process(List.of(10), null);
 
@@ -199,7 +198,7 @@ class RuleEngineServiceTest {
         @Test
         @DisplayName("TC7: Weather alert outside range is marked as violated")
         void process_weatherAlert_violatedWhenOutsideRange() {
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+                when(treatmentLookupService.findByDiseaseId(10)).thenReturn(List.of(planA));
 
                 TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
                                 .id(500).treatmentplan(planA)
@@ -229,7 +228,7 @@ class RuleEngineServiceTest {
         @Test
         @DisplayName("TC8: Weather within range is not violated")
         void process_weatherWithinRange_notViolated() {
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+                when(treatmentLookupService.findByDiseaseId(10)).thenReturn(List.of(planA));
 
                 TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
                                 .id(500).treatmentplan(planA)
@@ -252,7 +251,7 @@ class RuleEngineServiceTest {
         @Test
         @DisplayName("TC9: Required weather violation produces WEATHER_BLOCKED status")
         void process_requiredWeatherViolation_weatherBlockedStatus() {
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
+                when(treatmentLookupService.findByDiseaseId(10)).thenReturn(List.of(planA));
 
                 TreatmentWeatherCondition condition = TreatmentWeatherCondition.builder()
                                 .id(500).treatmentplan(planA)
@@ -276,8 +275,8 @@ class RuleEngineServiceTest {
         @Test
         @DisplayName("TC10: Warnings list is always empty — use interactionWarnings DTO instead")
         void process_warningsListIsEmpty() {
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(10)).thenReturn(List.of(planA));
-                when(treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(20)).thenReturn(List.of(planB));
+                when(treatmentLookupService.findByDiseaseId(10)).thenReturn(List.of(planA));
+                when(treatmentLookupService.findByDiseaseId(20)).thenReturn(List.of(planB));
 
                 DrugInteraction interaction = DrugInteraction.builder()
                                 .ingredientA(ingredientA).ingredientB(ingredientB)

@@ -7,7 +7,6 @@ import {
   fetchChatMessages,
   fetchChatSessions,
   sendChatMessage,
-  sendGuestChatMessage,
 } from '../../../services/chatApi';
 import {
   createGreetingMessage,
@@ -15,17 +14,21 @@ import {
   mapApiResponseToMessage,
   mapHistoryMessageToMessage,
 } from '../../../utils/chatResponseMapper';
-import {
 
-  loadGuestMessages,
-  saveGuestMessages,
-} from '../../../utils/chatStorage';
+
+
+const SKILL_OPTIONS = [
+  { value: 'DISEASE',     label: '🌿 Nhận diện bệnh' },
+  { value: 'TREATMENT',  label: '💊 Phác đồ điều trị' },
+  { value: 'CONFLICT',   label: '⚠️ Xung đột thuốc' },
+  { value: 'CULTIVATION',label: '🌾 Kỹ thuật canh tác' },
+];
 
 const ChatBotWidget = () => {
-  const { user } = useAuth();
-  const isAuthenticated = Boolean(user);
+  const isAuthenticated = Boolean(useAuth().user);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [selectedSkill, setSelectedSkill] = useState('DISEASE');
   const [messages, setMessages] = useState([createGreetingMessage()]);
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -45,50 +48,44 @@ const ChatBotWidget = () => {
     let cancelled = false;
 
     const loadConversation = async () => {
-      if (isAuthenticated) {
-        try {
-          const sessionsPage = await fetchChatSessions({ page: 0, size: 1 });
-          const firstSession = sessionsPage?.content?.[0];
-          let sessionId = firstSession?.id ?? null;
+      if (!isAuthenticated) return;
+      try {
+        const sessionsPage = await fetchChatSessions({ page: 0, size: 1 });
+        const firstSession = sessionsPage?.content?.[0];
+        let sessionId = firstSession?.id ?? null;
 
-          if (!sessionId) {
-            const createdSession = await createChatSession({});
-            sessionId = createdSession.id;
-          }
-
-          if (cancelled) {
-            return;
-          }
-
-          setActiveSessionId(sessionId);
-
-          const messagesPage = await fetchChatMessages(sessionId, {
-            page: 0,
-            size: 50,
-          });
-
-          if (cancelled) {
-            return;
-          }
-
-          const mappedMessages = (messagesPage?.content || []).map(
-            mapHistoryMessageToMessage,
-          );
-          setMessages(
-            mappedMessages.length > 0
-              ? mappedMessages
-              : [createGreetingMessage()],
-          );
-        } catch (error) {
-          console.error('Failed to load chat session:', error);
-          setMessages([createGreetingMessage()]);
+        if (!sessionId) {
+          const createdSession = await createChatSession({});
+          sessionId = createdSession.id;
         }
-        return;
-      }
 
-      const guestMessages = loadGuestMessages();
-      setActiveSessionId(null);
-      setMessages(guestMessages.length > 0 ? guestMessages : [createGreetingMessage()]);
+        if (cancelled) {
+          return;
+        }
+
+        setActiveSessionId(sessionId);
+
+        const messagesPage = await fetchChatMessages(sessionId, {
+          page: 0,
+          size: 50,
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        const mappedMessages = (messagesPage?.content || []).map(
+          mapHistoryMessageToMessage,
+        );
+        setMessages(
+          mappedMessages.length > 0
+            ? mappedMessages
+            : [createGreetingMessage()],
+        );
+      } catch (error) {
+        console.error('Failed to load chat session:', error);
+        setMessages([createGreetingMessage()]);
+      }
     };
 
     loadConversation();
@@ -98,11 +95,17 @@ const ChatBotWidget = () => {
     };
   }, [isAuthenticated, isOpen]);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      saveGuestMessages(messages);
+  const handleNewSession = async () => {
+    try {
+      const createdSession = await createChatSession({});
+      setActiveSessionId(createdSession.id);
+      setMessages([createGreetingMessage()]);
+      setInput('');
+      setSelectedSkill('DISEASE');
+    } catch (error) {
+      console.error('Failed to create new session:', error);
     }
-  }, [isAuthenticated, messages]);
+  };
 
   const ensureSession = async () => {
     if (activeSessionId) {
@@ -114,8 +117,9 @@ const ChatBotWidget = () => {
   };
 
   const handleSend = async (text) => {
+    if (!isAuthenticated) return;
     const messageContent = (text || input).trim();
-    if (!messageContent) {
+    if (!messageContent || isTyping) {
       return;
     }
 
@@ -125,13 +129,8 @@ const ChatBotWidget = () => {
     setIsTyping(true);
 
     try {
-      let response;
-      if (isAuthenticated) {
-        const sessionId = await ensureSession();
-        response = await sendChatMessage(sessionId, { messageContent });
-      } else {
-        response = await sendGuestChatMessage({ messageContent });
-      }
+      const sessionId = await ensureSession();
+      const response = await sendChatMessage(sessionId, { messageContent, selectedSkill });
       const assistantMessage = mapApiResponseToMessage(response);
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
@@ -202,9 +201,7 @@ const ChatBotWidget = () => {
                     </h2>
                     <p className="text-xs text-white/80 flex items-center gap-1">
                       <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
-                      {isAuthenticated
-                        ? ' Đang hoạt động'
-                        : ' Khách vãng lai'}
+                      {' Đang hoạt động'}
                     </p>
                   </div>
                 </div>
@@ -219,6 +216,31 @@ const ChatBotWidget = () => {
               </div>
             </header>
 
+            {/* Auth gate — show login prompt if not authenticated */}
+            {!isAuthenticated ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 bg-slate-50">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span
+                    className="material-symbols-outlined text-primary text-4xl"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    lock
+                  </span>
+                </div>
+                <div className="text-center space-y-2">
+                  <h3 className="text-lg font-bold text-on-surface">Yêu cầu đăng nhập</h3>
+                  <p className="text-sm text-outline max-w-xs leading-relaxed">
+                    Vui lòng đăng nhập để sử dụng trợ lý AgriAI và lưu lịch sử hội thoại của bạn.
+                  </p>
+                </div>
+                <a
+                  href="/login"
+                  className="px-6 py-3 bg-[#00A651] text-white rounded-full font-semibold text-sm hover:brightness-95 active:scale-95 transition-all shadow-md"
+                >
+                  Đăng nhập ngay
+                </a>
+              </div>
+            ) : (
             <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-6"
@@ -289,10 +311,37 @@ const ChatBotWidget = () => {
               )}
             </div>
 
-            <div className="p-4 md:p-6 bg-white border-t border-outline-variant/20">
+            )} {/* end auth gate */}
+
+
+            {isAuthenticated && (
+            <div className="p-4 md:p-6 bg-white border-t border-outline-variant/20 space-y-3">
+              {/* skill selector + new session row */}
+              <div className="flex items-center justify-between gap-2">
+                <select
+                  value={selectedSkill}
+                  onChange={(e) => setSelectedSkill(e.target.value)}
+                  className="flex-1 bg-surface-container-low border border-outline-variant/30 rounded-full px-4 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 focus:outline-none cursor-pointer"
+                >
+                  {SKILL_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleNewSession}
+                  disabled={isTyping}
+                  title="Tạo cuộc trò chuyện mới"
+                  className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant/30 text-sm text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-base">add_comment</span>
+                  <span className="hidden md:inline">Mới</span>
+                </button>
+              </div>
+              {/* message input row */}
               <div className="relative flex items-center gap-3">
                 <input
-                  className="flex-1 bg-surface-container-low border-none rounded-full px-5 md:px-6 py-3 md:py-4 focus:ring-2 focus:ring-primary/20 text-on-surface text-sm md:text-base placeholder:text-outline"
+                  disabled={isTyping}
+                  className="flex-1 bg-surface-container-low border-none rounded-full px-5 md:px-6 py-3 md:py-4 focus:ring-2 focus:ring-primary/20 text-on-surface text-sm md:text-base placeholder:text-outline disabled:opacity-50"
                   placeholder="Nhập câu hỏi về bệnh lúa, thuốc, phác đồ hoặc kỹ thuật canh tác..."
                   type="text"
                   value={input}
@@ -305,7 +354,8 @@ const ChatBotWidget = () => {
                 />
                 <button
                   onClick={() => handleSend()}
-                  className="w-10 h-10 md:w-12 md:h-12 bg-[#00A651] text-white rounded-full flex items-center justify-center hover:brightness-95 active:scale-95 transition-all shadow-lg shrink-0"
+                  disabled={isTyping}
+                  className="w-10 h-10 md:w-12 md:h-12 bg-[#00A651] text-white rounded-full flex items-center justify-center hover:brightness-95 active:scale-95 transition-all shadow-lg shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span
                     className="material-symbols-outlined"
@@ -316,6 +366,7 @@ const ChatBotWidget = () => {
                 </button>
               </div>
             </div>
+            )} {/* end isAuthenticated input bar */}
           </div>
         </div>
       )}
