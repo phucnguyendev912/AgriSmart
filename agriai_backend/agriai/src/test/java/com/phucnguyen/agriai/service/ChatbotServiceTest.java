@@ -14,114 +14,84 @@ import com.phucnguyen.agriai.service.IntentClassifier.Confidence;
 import com.phucnguyen.agriai.service.IntentClassifier.IntentResult;
 import com.phucnguyen.agriai.service.IntentClassifier.Source;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ChatbotServiceTest {
 
-    @Mock
-    private IntentClassifier intentClassifier;
-    @Mock
-    private ChatQueryModeClassifier queryModeClassifier;
-    @Mock
-    private MultiSkillChainResolver chainResolver;
-    @Mock
-    private SkillContextBuilder contextBuilder;
-    @Mock
-    private ChatSessionService chatSessionService;
-    @Mock
-    private ChatMessageService chatMessageService;
-    @Mock
-    private ChatLanguageModel chatModel;  // fixed: was OpenAiChatModel
+    @Mock private IntentClassifier intentClassifier;
+    @Mock private ChatQueryModeClassifier queryModeClassifier;
+    @Mock private MultiSkillChainResolver chainResolver;
+    @Mock private SkillContextBuilder contextBuilder;
+    @Mock private ChatSessionService chatSessionService;
+    @Mock private ChatMessageService chatMessageService;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private ChatLanguageModel chatModel;
 
     private ChatbotService chatbotService;
-    private ChatbotService chatbotServiceNoLLM;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         chatbotService = new ChatbotService(
                 intentClassifier, queryModeClassifier, chainResolver, contextBuilder,
                 chatSessionService, chatMessageService, chatModel);
-        chatbotServiceNoLLM = new ChatbotService(
-                intentClassifier, queryModeClassifier, chainResolver, contextBuilder,
-                chatSessionService, chatMessageService, null);
+        // inject self-reference: normally done by Spring @Autowired @Lazy
+        Field selfField = ChatbotService.class.getDeclaredField("self");
+        selfField.setAccessible(true);
+        selfField.set(chatbotService, chatbotService);
     }
 
-    // --- Guest chat tests ---
+    // --- helpers ---
 
-    @Test
-    @DisplayName("chatAsGuest should return AI response with skill pipeline")
-    void chatAsGuestReturnsSkillBasedResponse() {
-        SendChatMessageRequest request = SendChatMessageRequest.builder()
-                .messageContent("Lúa bị đạo ôn").build();
-
-        when(intentClassifier.classify(anyString()))
-                .thenReturn(new IntentResult(SkillDefinition.DISEASE, Confidence.HIGH, Source.KEYWORD));
-        when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.DIAGNOSIS_CASE);
-        when(chainResolver.resolve(eq(SkillDefinition.DISEASE), anyString()))
-                .thenReturn(List.of(SkillDefinition.DISEASE));
-        when(contextBuilder.buildContext(eq(SkillDefinition.DISEASE), anyString()))
-                .thenReturn("Đạo ôn: vết hình thoi...");
-        when(chatModel.chat(anyString())).thenReturn("Lúa bạn bị đạo ôn, nên phun thuốc...");
-
-        ChatResponse response = chatbotService.chatAsGuest(request);
-
-        assertEquals(SenderType.AI, response.getSenderType());
-        assertEquals("Lúa bạn bị đạo ôn, nên phun thuốc...", response.getMessageContent());
+    private ChatSession sessionOf(int id) {
+        return ChatSession.builder().id(id).sessionTitle("Phiên tư vấn mới").build();
     }
 
-    @Test
-    @DisplayName("chatAsGuest without LLM should return config error")
-    void chatAsGuestNoLLMReturnsError() {
-        SendChatMessageRequest request = SendChatMessageRequest.builder()
-                .messageContent("Lúa bị đạo ôn").build();
-
-        when(intentClassifier.classify(anyString()))
-                .thenReturn(new IntentResult(SkillDefinition.DISEASE, Confidence.HIGH, Source.KEYWORD));
-        when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.KNOWLEDGE_QUERY);
-        when(chainResolver.resolve(any(), anyString()))
-                .thenReturn(List.of(SkillDefinition.DISEASE));
-        when(contextBuilder.buildContext(any(), anyString())).thenReturn("context");
-
-        ChatResponse response = chatbotServiceNoLLM.chatAsGuest(request);
-        assertTrue(response.getMessageContent().contains("chưa được cấu hình"));
+    private void givenSessionExists(ChatSession session) {
+        when(chatSessionService.getSessionOrThrow(anyString(), anyInt())).thenReturn(session);
+        when(chatMessageService.saveUserMessage(eq(session), anyString()))
+                .thenReturn(ChatMessage.builder().id(1).messageContent("msg")
+                        .senderType(SenderType.USER).createdAt(LocalDateTime.now()).build());
+        when(chatMessageService.saveAiMessage(eq(session), anyString()))
+                .thenReturn(ChatMessage.builder().id(2).messageContent("ai reply")
+                        .senderType(SenderType.AI).createdAt(LocalDateTime.now()).build());
     }
 
-    // --- Session chat tests ---
+    private void givenLLMResponds(String text) {
+        when(chatModel.chat(anyList()).aiMessage().text()).thenReturn(text);
+    }
+
+    // --- chatForSession: core pipeline ---
 
     @Test
-    @DisplayName("chatForSession should persist messages and return response")
-    void chatForSessionPersistsMessages() {
-        String email = "farmer@example.com";
-        Integer sessionId = 11;
-        ChatSession session = ChatSession.builder().id(sessionId).build();
+    @DisplayName("chatForSession should persist user and AI messages and return response")
+    void chatForSession_persistsMessages() {
+        int sessionId = 11;
+        ChatSession session = sessionOf(sessionId);
         SendChatMessageRequest request = SendChatMessageRequest.builder()
                 .messageContent("Đạo ôn phun thuốc gì").build();
 
-        when(chatSessionService.getSessionOrThrow(email, sessionId)).thenReturn(session);
-        when(chatMessageService.saveUserMessage(eq(session), anyString()))
-                .thenReturn(ChatMessage.builder().id(1).messageContent("Đạo ôn phun thuốc gì")
-                        .createdAt(LocalDateTime.now()).build());
+        givenSessionExists(session);
+        when(chatMessageService.getRecentMessages(eq(session), anyInt()))
+                .thenReturn(Collections.emptyList());
         when(intentClassifier.classify(anyString()))
                 .thenReturn(new IntentResult(SkillDefinition.DISEASE, Confidence.HIGH, Source.KEYWORD));
         when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.KNOWLEDGE_QUERY);
-        when(chainResolver.resolve(any(), anyString()))
-                .thenReturn(List.of(SkillDefinition.DISEASE, SkillDefinition.TREATMENT));
         when(contextBuilder.buildContext(any(), anyString())).thenReturn("skill context");
-        when(chatModel.chat(anyString())).thenReturn("AI answer");
-        when(chatMessageService.saveAiMessage(eq(session), anyString()))
-                .thenReturn(ChatMessage.builder().id(2).messageContent("AI answer")
-                        .createdAt(LocalDateTime.now()).build());
+        givenLLMResponds("AI answer");
 
-        ChatResponse response = chatbotService.chatForSession(email, sessionId, request);
+        ChatResponse response = chatbotService.chatForSession("farmer@example.com", sessionId, request);
 
         assertEquals(sessionId, response.getSessionId());
         assertEquals(2, response.getMessageId());
@@ -130,95 +100,157 @@ class ChatbotServiceTest {
         verify(chatSessionService, times(2)).updateLastMessage(eq(session), anyString(), any());
     }
 
-    // --- Mode injection tests ---
-
     @Test
-    @DisplayName("Prompt should contain KNOWLEDGE_QUERY for symptom knowledge questions")
-    void promptContainsKnowledgeQueryModeForSymptomQuestion() {
-        SendChatMessageRequest request = SendChatMessageRequest.builder()
-                .messageContent("Bệnh đốm nâu có triệu chứng như nào?").build();
+    @DisplayName("chatForSession without LLM should return config error message")
+    void chatForSession_noLLM_returnsError() throws Exception {
+        ChatbotService noLlmService = new ChatbotService(
+                intentClassifier, queryModeClassifier, chainResolver, contextBuilder,
+                chatSessionService, chatMessageService, null);
+        Field selfField = ChatbotService.class.getDeclaredField("self");
+        selfField.setAccessible(true);
+        selfField.set(noLlmService, noLlmService);
 
+        int sessionId = 1;
+        ChatSession session = sessionOf(sessionId);
+        givenSessionExists(session);
+        when(chatMessageService.getRecentMessages(eq(session), anyInt()))
+                .thenReturn(Collections.emptyList());
         when(intentClassifier.classify(anyString()))
                 .thenReturn(new IntentResult(SkillDefinition.DISEASE, Confidence.HIGH, Source.KEYWORD));
         when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.KNOWLEDGE_QUERY);
-        when(chainResolver.resolve(any(), anyString()))
-                .thenReturn(List.of(SkillDefinition.DISEASE));
-        when(contextBuilder.buildContext(any(), anyString())).thenReturn("context");
+        when(contextBuilder.buildContext(any(), anyString())).thenReturn("ctx");
 
-        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
-        when(chatModel.chat(promptCaptor.capture())).thenReturn("answer");
+        ChatResponse response = noLlmService.chatForSession("u@e.com", sessionId,
+                SendChatMessageRequest.builder().messageContent("test").build());
 
-        chatbotService.chatAsGuest(request);
-
-        String capturedPrompt = promptCaptor.getValue();
-        assertTrue(capturedPrompt.contains("KNOWLEDGE_QUERY"),
-                "Prompt should contain KNOWLEDGE_QUERY mode block");
+        assertTrue(response.getMessageContent().contains("chưa được cấu hình"));
     }
 
-    @Test
-    @DisplayName("Prompt should contain DIAGNOSIS_CASE for real field queries")
-    void promptContainsDiagnosisCaseModeForFieldQuery() {
-        SendChatMessageRequest request = SendChatMessageRequest.builder()
-                .messageContent("Lúa tôi có đốm nâu trên lá").build();
-
-        when(intentClassifier.classify(anyString()))
-                .thenReturn(new IntentResult(SkillDefinition.DISEASE, Confidence.HIGH, Source.KEYWORD));
-        when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.DIAGNOSIS_CASE);
-        when(chainResolver.resolve(any(), anyString()))
-                .thenReturn(List.of(SkillDefinition.DISEASE));
-        when(contextBuilder.buildContext(any(), anyString())).thenReturn("context");
-
-        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
-        when(chatModel.chat(promptCaptor.capture())).thenReturn("Bạn có thể cho biết vết...");
-
-        chatbotService.chatAsGuest(request);
-
-        String capturedPrompt = promptCaptor.getValue();
-        assertTrue(capturedPrompt.contains("DIAGNOSIS_CASE"),
-                "Prompt should contain DIAGNOSIS_CASE mode block");
-    }
-
-    // --- Pipeline integration tests ---
+    // --- resolveSkill ---
 
     @Test
-    @DisplayName("Should chain 2 skills and combine context")
-    void shouldChainTwoSkills() {
+    @DisplayName("HIGH confidence intent overrides selectedSkill from dropdown")
+    void resolveSkill_highConfidenceOverridesDropdown() {
+        ChatSession session = sessionOf(1);
+        // user selected CULTIVATION but intent classifier is HIGH confidence DISEASE
         SendChatMessageRequest request = SendChatMessageRequest.builder()
-                .messageContent("Bệnh đạo ôn phun thuốc gì").build();
+                .messageContent("Đạo ôn triệu chứng gì")
+                .selectedSkill(SkillDefinition.CULTIVATION)
+                .build();
 
+        givenSessionExists(session);
+        when(chatMessageService.getRecentMessages(eq(session), anyInt()))
+                .thenReturn(Collections.emptyList());
         when(intentClassifier.classify(anyString()))
                 .thenReturn(new IntentResult(SkillDefinition.DISEASE, Confidence.HIGH, Source.KEYWORD));
         when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.KNOWLEDGE_QUERY);
-        when(chainResolver.resolve(eq(SkillDefinition.DISEASE), anyString()))
-                .thenReturn(List.of(SkillDefinition.DISEASE, SkillDefinition.TREATMENT));
-        when(contextBuilder.buildContext(eq(SkillDefinition.DISEASE), anyString()))
-                .thenReturn("disease context");
-        when(contextBuilder.buildContext(eq(SkillDefinition.TREATMENT), anyString()))
-                .thenReturn("treatment context");
-        when(chatModel.chat(anyString())).thenReturn("combined answer");
+        when(contextBuilder.buildContext(any(), anyString())).thenReturn("ctx");
+        givenLLMResponds("answer");
 
-        ChatResponse response = chatbotService.chatAsGuest(request);
+        chatbotService.chatForSession("u@e.com", 1, request);
 
-        assertEquals("combined answer", response.getMessageContent());
+        // DISEASE (intent) should win, not CULTIVATION (dropdown)
         verify(contextBuilder).buildContext(eq(SkillDefinition.DISEASE), anyString());
-        verify(contextBuilder).buildContext(eq(SkillDefinition.TREATMENT), anyString());
+        verify(contextBuilder, never()).buildContext(eq(SkillDefinition.CULTIVATION), anyString());
     }
 
     @Test
-    @DisplayName("Should handle LLM exception gracefully")
-    void handleLLMException() {
+    @DisplayName("LOW confidence defers to selectedSkill from dropdown")
+    void resolveSkill_lowConfidenceDeferesToDropdown() {
+        ChatSession session = sessionOf(2);
+        // history contains "đạo ôn" so enrichment won't be needed for TREATMENT
+        ChatMessage histMsg = ChatMessage.builder()
+                .messageContent("bệnh đạo ôn triệu chứng").senderType(SenderType.USER)
+                .createdAt(LocalDateTime.now()).build();
         SendChatMessageRequest request = SendChatMessageRequest.builder()
-                .messageContent("test").build();
+                .messageContent("thuốc trị đạo ôn loại nào tốt")
+                .selectedSkill(SkillDefinition.TREATMENT)
+                .build();
 
+        givenSessionExists(session);
+        when(chatMessageService.getRecentMessages(eq(session), anyInt()))
+                .thenReturn(List.of(histMsg));
         when(intentClassifier.classify(anyString()))
                 .thenReturn(new IntentResult(SkillDefinition.DISEASE, Confidence.LOW, Source.KEYWORD));
         when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.KNOWLEDGE_QUERY);
-        when(chainResolver.resolve(any(), anyString()))
-                .thenReturn(List.of(SkillDefinition.DISEASE));
         when(contextBuilder.buildContext(any(), anyString())).thenReturn("ctx");
-        when(chatModel.chat(anyString())).thenThrow(new RuntimeException("API error"));
+        givenLLMResponds("answer");
 
-        ChatResponse response = chatbotService.chatAsGuest(request);
+        chatbotService.chatForSession("u@e.com", 2, request);
+
+        // LOW confidence + selectedSkill TREATMENT → TREATMENT should win
+        verify(contextBuilder).buildContext(eq(SkillDefinition.TREATMENT), anyString());
+    }
+
+    // --- Follow-up subject enrichment ---
+
+    @Test
+    @DisplayName("TREATMENT follow-up without history should return clarification (no LLM call)")
+    void followUp_noHistory_returnsClarification() {
+        ChatSession session = sessionOf(3);
+        SendChatMessageRequest request = SendChatMessageRequest.builder()
+                .messageContent("cách trị?")  // short, no disease name
+                .selectedSkill(SkillDefinition.TREATMENT)
+                .build();
+
+        givenSessionExists(session);
+        when(chatMessageService.getRecentMessages(eq(session), anyInt()))
+                .thenReturn(Collections.emptyList());
+        when(intentClassifier.classify(anyString()))
+                .thenReturn(new IntentResult(SkillDefinition.TREATMENT, Confidence.HIGH, Source.KEYWORD));
+        when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.KNOWLEDGE_QUERY);
+
+        ChatResponse response = chatbotService.chatForSession("u@e.com", 3, request);
+
+        assertTrue(response.getMessageContent().contains("bệnh nào"),
+                "Should ask for clarification when no subject found in history");
+        verify(chatModel, never()).chat(anyList()); // no LLM call
+    }
+
+    @Test
+    @DisplayName("TREATMENT follow-up enriches query from history disease subject")
+    void followUp_withHistory_enrichesQuery() {
+        ChatSession session = sessionOf(4);
+        ChatMessage histMsg = ChatMessage.builder()
+                .messageContent("bệnh đốm nâu trên lá lúa").senderType(SenderType.USER)
+                .createdAt(LocalDateTime.now()).build();
+        SendChatMessageRequest request = SendChatMessageRequest.builder()
+                .messageContent("cách trị?")  // short, no disease name
+                .selectedSkill(SkillDefinition.TREATMENT)
+                .build();
+
+        givenSessionExists(session);
+        when(chatMessageService.getRecentMessages(eq(session), anyInt()))
+                .thenReturn(List.of(histMsg));
+        when(intentClassifier.classify(anyString()))
+                .thenReturn(new IntentResult(SkillDefinition.TREATMENT, Confidence.HIGH, Source.KEYWORD));
+        when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.KNOWLEDGE_QUERY);
+        when(contextBuilder.buildContext(any(), anyString())).thenReturn("ctx");
+        givenLLMResponds("treatment answer");
+
+        chatbotService.chatForSession("u@e.com", 4, request);
+
+        // contextBuilder should be called with enriched query containing "đốm nâu"
+        verify(contextBuilder).buildContext(eq(SkillDefinition.TREATMENT),
+                argThat(q -> q.contains("đốm nâu")));
+    }
+
+    @Test
+    @DisplayName("LLM exception should return graceful error message")
+    void handleLLMException_returnsGracefulMessage() {
+        ChatSession session = sessionOf(5);
+        givenSessionExists(session);
+        when(chatMessageService.getRecentMessages(eq(session), anyInt()))
+                .thenReturn(Collections.emptyList());
+        when(intentClassifier.classify(anyString()))
+                .thenReturn(new IntentResult(SkillDefinition.DISEASE, Confidence.HIGH, Source.KEYWORD));
+        when(queryModeClassifier.classify(anyString())).thenReturn(ChatQueryMode.KNOWLEDGE_QUERY);
+        when(contextBuilder.buildContext(any(), anyString())).thenReturn("ctx");
+        when(chatModel.chat(anyList())).thenThrow(new RuntimeException("API error"));
+
+        ChatResponse response = chatbotService.chatForSession("u@e.com", 5,
+                SendChatMessageRequest.builder().messageContent("test").build());
+
         assertTrue(response.getMessageContent().contains("gián đoạn"));
     }
 }
