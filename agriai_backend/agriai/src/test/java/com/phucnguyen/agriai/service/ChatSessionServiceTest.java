@@ -82,6 +82,28 @@ class ChatSessionServiceTest {
     }
 
     @Test
+    void updateTitleFromFirstMessage_usesShortNormalizedMessage() {
+        ChatSession session = ChatSession.builder().id(2).user(user).sessionTitle("Default").build();
+        when(chatSessionRepository.save(any(ChatSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ChatSession saved = chatSessionService.updateTitleFromFirstMessage(session, "  Lua bi dao on   tren la  ");
+
+        assertEquals("Lua bi dao on tren la", saved.getSessionTitle());
+    }
+
+    @Test
+    void updateTitleFromFirstMessage_truncatesLongMessage() {
+        ChatSession session = ChatSession.builder().id(2).user(user).sessionTitle("Default").build();
+        when(chatSessionRepository.save(any(ChatSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ChatSession saved = chatSessionService.updateTitleFromFirstMessage(session,
+                "Lua bi vang la va co nhieu vet nau tren than can tu van phac do xu ly gap");
+
+        assertTrue(saved.getSessionTitle().length() <= 60);
+        assertTrue(saved.getSessionTitle().endsWith("..."));
+    }
+
+    @Test
     void softDeleteSession_marksDeleted() {
         ChatSession session = ChatSession.builder().id(99).user(user).sessionTitle("Phiên").build();
         when(userRepository.findByEmail("farmer@example.com")).thenReturn(Optional.of(user));
