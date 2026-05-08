@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ChatGreeting from './ChatGreeting';
 import ChatReferences from './ChatReferences';
 import {
@@ -15,17 +14,26 @@ import {
   mapHistoryMessageToMessage,
 } from '../../../utils/chatResponseMapper';
 
-
-
 const SKILL_OPTIONS = [
-  { value: 'DISEASE',     label: '🌿Bệnh' },
+  { value: 'DISEASE',     label: '🌿 Bệnh' },
   { value: 'TREATMENT',  label: '💊 Phác đồ điều trị' },
   { value: 'CONFLICT',   label: '⚠️ Xung đột thuốc' },
   { value: 'CULTIVATION',label: '🌾 Kỹ thuật canh tác' },
 ];
 
+function formatRelativeTime(dateStr) {
+  if (!dateStr) return '';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Vừa xong';
+  if (mins < 60) return `${mins} phút trước`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} giờ trước`;
+  const days = Math.floor(hrs / 24);
+  return `${days} ngày trước`;
+}
+
 const ChatBotWidget = () => {
-  const isAuthenticated = Boolean(useAuth().user);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [selectedSkill, setSelectedSkill] = useState('DISEASE');
@@ -33,6 +41,13 @@ const ChatBotWidget = () => {
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [sessionTitle, setSessionTitle] = useState('Trợ lý AgriAI');
   const [isTyping, setIsTyping] = useState(false);
+
+  // history panel state
+  const [showHistory, setShowHistory] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isLoadingSession, setIsLoadingSession] = useState(false);
+
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -41,15 +56,12 @@ const ChatBotWidget = () => {
     }
   }, [messages, isTyping]);
 
+  // load most recent session on open
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
+    if (!isOpen) return;
     let cancelled = false;
 
     const loadConversation = async () => {
-      if (!isAuthenticated) return;
       try {
         const sessionsPage = await fetchChatSessions({ page: 0, size: 1 });
         const firstSession = sessionsPage?.content?.[0];
@@ -59,31 +71,16 @@ const ChatBotWidget = () => {
           const createdSession = await createChatSession({});
           sessionId = createdSession.id;
         }
-
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         setActiveSessionId(sessionId);
         setSessionTitle(firstSession?.sessionTitle || 'Trợ lý AgriAI');
 
-        const messagesPage = await fetchChatMessages(sessionId, {
-          page: 0,
-          size: 50,
-        });
+        const messagesPage = await fetchChatMessages(sessionId, { page: 0, size: 50 });
+        if (cancelled) return;
 
-        if (cancelled) {
-          return;
-        }
-
-        const mappedMessages = (messagesPage?.content || []).map(
-          mapHistoryMessageToMessage,
-        );
-        setMessages(
-          mappedMessages.length > 0
-            ? mappedMessages
-            : [createGreetingMessage()],
-        );
+        const mappedMessages = (messagesPage?.content || []).map(mapHistoryMessageToMessage);
+        setMessages(mappedMessages.length > 0 ? mappedMessages : [createGreetingMessage()]);
       } catch (error) {
         console.error('Failed to load chat session:', error);
         setMessages([createGreetingMessage()]);
@@ -91,11 +88,48 @@ const ChatBotWidget = () => {
     };
 
     loadConversation();
+    return () => { cancelled = true; };
+  }, [isOpen]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuthenticated, isOpen]);
+  // load history sessions list
+  const loadHistory = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const page = await fetchChatSessions({ page: 0, size: 20 });
+      setSessions(page?.content || []);
+    } catch (err) {
+      console.error('Failed to load history:', err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, []);
+
+  const handleToggleHistory = () => {
+    if (!showHistory) loadHistory();
+    setShowHistory((prev) => !prev);
+  };
+
+  // switch to a session from history
+  const handleSelectSession = async (session) => {
+    if (isLoadingSession || session.id === activeSessionId) {
+      setShowHistory(false);
+      return;
+    }
+    setIsLoadingSession(true);
+    try {
+      const messagesPage = await fetchChatMessages(session.id, { page: 0, size: 50 });
+      const mappedMessages = (messagesPage?.content || []).map(mapHistoryMessageToMessage);
+      setActiveSessionId(session.id);
+      setSessionTitle(session.sessionTitle || 'Trợ lý AgriAI');
+      setMessages(mappedMessages.length > 0 ? mappedMessages : [createGreetingMessage()]);
+      setInput('');
+      setShowHistory(false);
+    } catch (err) {
+      console.error('Failed to load session messages:', err);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  };
 
   const handleNewSession = async () => {
     try {
@@ -105,26 +139,24 @@ const ChatBotWidget = () => {
       setMessages([createGreetingMessage()]);
       setInput('');
       setSelectedSkill('DISEASE');
+      // prepend new session to history list
+      setSessions((prev) => [createdSession, ...prev.filter((s) => s.id !== createdSession.id)]);
+      setShowHistory(false);
     } catch (error) {
       console.error('Failed to create new session:', error);
     }
   };
 
   const ensureSession = async () => {
-    if (activeSessionId) {
-      return activeSessionId;
-    }
+    if (activeSessionId) return activeSessionId;
     const createdSession = await createChatSession({});
     setActiveSessionId(createdSession.id);
     return createdSession.id;
   };
 
   const handleSend = async (text) => {
-    if (!isAuthenticated) return;
     const messageContent = (text || input).trim();
-    if (!messageContent || isTyping) {
-      return;
-    }
+    if (!messageContent || isTyping) return;
 
     const userMessage = createUserMessage(messageContent);
     setMessages((prev) => [...prev, userMessage]);
@@ -136,12 +168,27 @@ const ChatBotWidget = () => {
       const response = await sendChatMessage(sessionId, { messageContent, selectedSkill });
       const assistantMessage = mapApiResponseToMessage(response);
       setMessages((prev) => [...prev, assistantMessage]);
-      // update title after first user message triggers auto-title on BE
+
+      // refresh title after first message
       if (messages.filter((m) => m.sender === 'user').length === 0) {
-        const sessions = await fetchChatSessions({ page: 0, size: 1 });
-        const updatedTitle = sessions?.content?.[0]?.sessionTitle;
-        if (updatedTitle) setSessionTitle(updatedTitle);
+        const refreshed = await fetchChatSessions({ page: 0, size: 1 });
+        const updatedTitle = refreshed?.content?.[0]?.sessionTitle;
+        if (updatedTitle) {
+          setSessionTitle(updatedTitle);
+          setSessions((prev) =>
+            prev.map((s) => (s.id === sessionId ? { ...s, sessionTitle: updatedTitle } : s)),
+          );
+        }
       }
+
+      // update last message in history list
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === sessionId
+            ? { ...s, lastMessage: messageContent, lastMessageAt: new Date().toISOString() }
+            : s,
+        ),
+      );
     } catch (error) {
       console.error('Failed to send chat message:', error);
       setMessages((prev) => [
@@ -161,12 +208,9 @@ const ChatBotWidget = () => {
     }
   };
 
-  const handleClose = () => {
-    setIsOpen(false);
-  };
-
   return (
     <>
+      {/* FAB button */}
       <div className="fixed bottom-24 right-6 md:bottom-10 md:right-10 z-[100]">
         <button
           onClick={() => setIsOpen(true)}
@@ -186,26 +230,26 @@ const ChatBotWidget = () => {
 
       {isOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-0 md:p-8 bg-on-surface/20 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-5xl h-full max-h-[870px] bg-white rounded-none md:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in duration-300">
-            <header className="bg-[#00A651] px-6 py-4 flex items-center justify-between text-white shrink-0">
-              <div className="flex items-center gap-4">
+          <div className="relative w-full max-w-5xl h-full max-h-[870px] bg-white rounded-none md:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in duration-300">
+
+            {/* ── Header ── */}
+            <header className="bg-[#00A651] px-4 md:px-6 py-3 md:py-4 flex items-center justify-between text-white shrink-0">
+              {/* left: back + title */}
+              <div className="flex items-center gap-3">
                 <button
-                  onClick={handleClose}
-                  className="hover:bg-white/10 p-2 rounded-full transition-colors flex items-center"
+                  onClick={() => setIsOpen(false)}
+                  className="hover:bg-white/10 p-2 rounded-full transition-colors"
                 >
                   <span className="material-symbols-outlined">arrow_back</span>
                 </button>
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-2 rounded-lg">
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
                       eco
                     </span>
                   </div>
                   <div>
-                    <h2 className="font-bold text-lg leading-tight">
+                    <h2 className="font-bold text-base md:text-lg leading-tight line-clamp-1 max-w-[180px] md:max-w-xs">
                       {sessionTitle}
                     </h2>
                     <p className="text-xs text-white/80 flex items-center gap-1">
@@ -215,44 +259,106 @@ const ChatBotWidget = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+
+              {/* right: new session + history + close */}
+              <div className="flex items-center gap-1">
+                {/* New session */}
                 <button
-                  onClick={handleClose}
-                  className="hover:bg-white/10 p-1 rounded-full transition-colors"
+                  onClick={handleNewSession}
+                  disabled={isTyping}
+                  title="Tạo cuộc trò chuyện mới"
+                  className="hover:bg-white/10 p-2 rounded-full transition-colors disabled:opacity-40"
                 >
-                  <span className="material-symbols-outlined text-3xl">close</span>
+                  <span className="material-symbols-outlined">add_comment</span>
+                </button>
+
+                {/* History toggle */}
+                <button
+                  onClick={handleToggleHistory}
+                  title="Lịch sử hội thoại"
+                  className={`p-2 rounded-full transition-colors ${showHistory ? 'bg-white/20' : 'hover:bg-white/10'}`}
+                >
+                  <span className="material-symbols-outlined">history</span>
+                </button>
+
+                {/* Close */}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="hover:bg-white/10 p-2 rounded-full transition-colors ml-1"
+                >
+                  <span className="material-symbols-outlined text-2xl">close</span>
                 </button>
               </div>
             </header>
 
-            {/* Auth gate — show login prompt if not authenticated */}
-            {!isAuthenticated ? (
-              <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 bg-slate-50">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span
-                    className="material-symbols-outlined text-primary text-4xl"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    lock
-                  </span>
+            {/* ── History Panel (slide-in overlay inside card) ── */}
+            {showHistory && (
+              <div className="absolute inset-0 z-20 flex mt-[64px] md:mt-[72px] rounded-b-2xl overflow-hidden">
+                {/* backdrop */}
+                <div
+                  className="absolute inset-0 bg-black/30"
+                  onClick={() => setShowHistory(false)}
+                />
+                {/* panel */}
+                <div className="relative ml-auto w-full max-w-xs md:max-w-sm h-full bg-white shadow-2xl flex flex-col overflow-hidden">
+                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="font-bold text-slate-800 text-sm">Lịch sử hội thoại</h3>
+                    <button
+                      onClick={() => setShowHistory(false)}
+                      className="p-1 rounded-full hover:bg-slate-100 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-lg text-slate-500">close</span>
+                    </button>
+                  </div>
+
+                  {/* scrollable session list */}
+                  <div className="flex-1 overflow-y-auto">
+                    {isLoadingHistory ? (
+                      <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
+                        <div className="w-6 h-6 border-2 border-primary/40 border-t-primary rounded-full animate-spin" />
+                        <span className="text-sm">Đang tải...</span>
+                      </div>
+                    ) : sessions.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
+                        <span className="material-symbols-outlined text-4xl">chat_bubble_outline</span>
+                        <span className="text-sm">Chưa có cuộc trò chuyện nào</span>
+                      </div>
+                    ) : (
+                      <ul className="divide-y divide-slate-100">
+                        {sessions.map((session) => (
+                          <li key={session.id}>
+                            <button
+                              disabled={isLoadingSession}
+                              onClick={() => handleSelectSession(session)}
+                              className={`w-full text-left px-4 py-3 transition-colors hover:bg-slate-50 disabled:opacity-50 ${
+                                session.id === activeSessionId ? 'bg-primary/5 border-l-2 border-primary' : ''
+                              }`}
+                            >
+                              <p className={`text-sm font-semibold line-clamp-1 ${session.id === activeSessionId ? 'text-primary' : 'text-slate-800'}`}>
+                                {session.sessionTitle || 'Phiên tư vấn'}
+                              </p>
+                              {session.lastMessage && (
+                                <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">
+                                  {session.lastMessage}
+                                </p>
+                              )}
+                              <p className="text-[10px] text-slate-300 mt-1">
+                                {formatRelativeTime(session.lastMessageAt || session.createdAt)}
+                              </p>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
-                <div className="text-center space-y-2">
-                  <h3 className="text-lg font-bold text-on-surface">Yêu cầu đăng nhập</h3>
-                  <p className="text-sm text-outline max-w-xs leading-relaxed">
-                    Vui lòng đăng nhập để sử dụng trợ lý AgriAI và lưu lịch sử hội thoại của bạn.
-                  </p>
-                </div>
-                <a
-                  href="/login"
-                  className="px-6 py-3 bg-[#00A651] text-white rounded-full font-semibold text-sm hover:brightness-95 active:scale-95 transition-all shadow-md"
-                >
-                  Đăng nhập ngay
-                </a>
               </div>
-            ) : (
+            )}
+
+            {/* ── Message area ── */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-6"
+              className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-6 relative"
             >
               {messages.map((message) => (
                 <div
@@ -273,14 +379,9 @@ const ChatBotWidget = () => {
                       className={`p-4 rounded-2xl shadow-sm border border-outline-variant/10 ${message.sender === 'ai' ? 'bg-white rounded-tl-none text-on-surface-variant' : 'bg-slate-200 rounded-tr-none text-on-surface font-medium'}`}
                     >
                       {message.isGreeting ? (
-                        <ChatGreeting
-                          message={message}
-                          onSuggestionClick={handleSend}
-                        />
+                        <ChatGreeting message={message} onSuggestionClick={handleSend} />
                       ) : (
-                        <p className="text-sm md:text-base leading-relaxed">
-                          {message.text}
-                        </p>
+                        <p className="text-sm md:text-base leading-relaxed">{message.text}</p>
                       )}
                     </div>
 
@@ -290,9 +391,7 @@ const ChatBotWidget = () => {
 
                     {message.suggestedAction && (
                       <button
-                        onClick={() => {
-                          window.location.href = message.suggestedAction.path;
-                        }}
+                        onClick={() => { window.location.href = message.suggestedAction.path; }}
                         className="px-4 py-2 border border-primary text-primary text-xs md:text-sm font-medium rounded-full hover:bg-primary/5 transition-colors"
                       >
                         {message.suggestedAction.label}
@@ -305,9 +404,7 @@ const ChatBotWidget = () => {
               {isTyping && (
                 <div className="flex items-start gap-3 max-w-[85%]">
                   <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-on-primary-container">
-                      smart_toy
-                    </span>
+                    <span className="material-symbols-outlined text-on-primary-container">smart_toy</span>
                   </div>
                   <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-outline-variant/10">
                     <div className="flex gap-1 items-center py-1">
@@ -320,13 +417,10 @@ const ChatBotWidget = () => {
               )}
             </div>
 
-            )} {/* end auth gate */}
-
-
-            {isAuthenticated && (
+            {/* ── Input bar ── */}
             <div className="p-4 md:p-6 bg-white border-t border-outline-variant/20 space-y-3">
-              {/* skill selector + new session row */}
-              <div className="flex items-center justify-between gap-2">
+              {/* skill selector row */}
+              <div className="flex items-center gap-2">
                 <select
                   value={selectedSkill}
                   onChange={(e) => setSelectedSkill(e.target.value)}
@@ -336,17 +430,9 @@ const ChatBotWidget = () => {
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <button
-                  onClick={handleNewSession}
-                  disabled={isTyping}
-                  title="Tạo cuộc trò chuyện mới"
-                  className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant/30 text-sm text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-base">add_comment</span>
-                  <span className="hidden md:inline">Mới</span>
-                </button>
               </div>
-              {/* message input row */}
+
+              {/* input + send */}
               <div className="relative flex items-center gap-3">
                 <input
                   disabled={isTyping}
@@ -354,28 +440,21 @@ const ChatBotWidget = () => {
                   placeholder="Nhập câu hỏi về bệnh lúa, thuốc, phác đồ hoặc kỹ thuật canh tác..."
                   type="text"
                   value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      handleSend();
-                    }
-                  }}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
                 />
                 <button
                   onClick={() => handleSend()}
                   disabled={isTyping}
                   className="w-10 h-10 md:w-12 md:h-12 bg-[#00A651] text-white rounded-full flex items-center justify-center hover:brightness-95 active:scale-95 transition-all shadow-lg shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
+                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
                     send
                   </span>
                 </button>
               </div>
             </div>
-            )} {/* end isAuthenticated input bar */}
+
           </div>
         </div>
       )}
