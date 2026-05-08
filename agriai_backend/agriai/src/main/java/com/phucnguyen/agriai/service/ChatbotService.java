@@ -56,15 +56,6 @@ public class ChatbotService {
     // subject
     private static final int SHORT_QUERY_THRESHOLD = 25;
 
-    // handle chat as guest — stateless, single-turn (no history)
-    public ChatResponse chatAsGuest(SendChatMessageRequest request) {
-        String answer = buildContextAndGenerate(request.getMessageContent().trim());
-        return ChatResponse.builder()
-                .senderType(SenderType.AI)
-                .messageContent(answer)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
 
     // handle chat for session — multi-turn with conversation history
     // DB connection is NOT held during the AI call (expensive network call).
