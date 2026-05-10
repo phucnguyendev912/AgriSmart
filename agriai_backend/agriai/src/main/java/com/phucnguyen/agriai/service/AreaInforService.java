@@ -50,10 +50,6 @@ public class AreaInforService {
                         throw new AppException(HttpStatus.FORBIDDEN, "Khong co quyen truy cap khu vuc nay.");
                 }
 
-                area.setConfirmed(true);
-                if (request != null && request.getAddress() != null) {
-                        area.setAddress(request.getAddress());
-                }
                 return toResponse(areaInforRepository.save(area));
         }
 
