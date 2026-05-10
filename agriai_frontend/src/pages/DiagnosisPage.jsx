@@ -15,10 +15,12 @@ import DiagnoseWeatherAlertsPanel from '../features/diagnosis/components/Diagnos
 import DiagnoseCultivationMeasures from '../features/diagnosis/components/DiagnoseCultivationMeasures';
 import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuidance';
 import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
+import { getCultivationMeasures as getDiagnosisCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 /** Trả về danh sách biện pháp canh tác từ kết quả chẩn đoán */
+// eslint-disable-next-line no-unused-vars
 const getCultivationMeasures = (result) => {
     if (!result) return [];
     const { diagnosisType, sprayPrograms } = result;
@@ -218,10 +220,10 @@ const DiagnosisPage = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         {/* Left: Technical panels */}
                         <div className="lg:col-span-8 space-y-6">
-                            <DiagnoseSprayProgramsPanel sprayPrograms={result.sprayPrograms} />
+                            <DiagnoseSprayProgramsPanel sprayPrograms={result.sprayPrograms} treatments={result.treatments} />
                             <DiagnoseInteractionWarnings interactionWarnings={result.interactionWarnings} />
-                            <DiagnoseWeatherAlertsPanel weatherAlerts={result.weatherAlerts} />
-                            <DiagnoseCultivationMeasures measures={getCultivationMeasures(result)} />
+                            <DiagnoseWeatherAlertsPanel weatherAlerts={result.weatherAlerts} diseaseWeatherRisks={result.diseaseWeatherRisks} />
+                            <DiagnoseCultivationMeasures measures={getDiagnosisCultivationMeasures(result)} />
 
                             {/* Rating Button */}
                             <div className="flex justify-center mt-8">

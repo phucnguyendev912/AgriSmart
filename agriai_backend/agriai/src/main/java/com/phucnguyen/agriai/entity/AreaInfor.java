@@ -2,6 +2,7 @@ package com.phucnguyen.agriai.entity;
 
 import com.phucnguyen.agriai.common.BaseEntity;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -41,6 +42,4 @@ public class AreaInfor extends BaseEntity {
     @Column(name = "longitude")
     private Double longitude;
 
-    @Column(name = "confirmed")
-    private Boolean confirmed;
 }

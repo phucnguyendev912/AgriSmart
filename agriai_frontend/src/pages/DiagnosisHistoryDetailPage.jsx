@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { buildTreatmentPrograms, getCultivationMeasures as getDiagnosisCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -39,6 +40,7 @@ const DiagnosisHistoryDetailPage = () => {
     }, [id, user]);
 
     // === HELPER FUNCTIONS ===
+    // eslint-disable-next-line no-unused-vars
     const getCultivationMeasures = (result) => {
         if (!result) return [];
         const { diagnosisType, sprayPrograms } = result;
@@ -56,9 +58,11 @@ const DiagnosisHistoryDetailPage = () => {
     };
 
     const diseases = result?.diseases || [];
-    const sprayPrograms = result?.sprayPrograms || [];
+    const treatments = result?.treatments || [];
+    const sprayPrograms = buildTreatmentPrograms(result?.sprayPrograms || [], treatments);
     const interactionWarnings = result?.interactionWarnings || [];
     const weatherAlerts = result?.weatherAlerts || [];
+    const diseaseWeatherRisks = result?.diseaseWeatherRisks || [];
     const warnings = result?.warnings || [];
 
     const getSeverityClasses = (severity) => {
@@ -289,7 +293,7 @@ const DiagnosisHistoryDetailPage = () => {
                                                                 <span className="font-bold text-on-surface text-lg">{t.drugName || t.treatmentName}</span>
                                                                 {t.diseaseName && <span className="text-xs text-slate-400 font-medium">({t.diseaseName})</span>}
                                                             </div>
-                                                            {t.dosage && <span className="text-[#2E7D32] font-black text-lg">{t.dosage}</span>}
+                                                            {(t.displayDosage || t.dosage) && <span className="text-[#2E7D32] font-black text-lg">{t.displayDosage || t.dosage}</span>}
                                                         </div>
 
                                                         <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -305,10 +309,10 @@ const DiagnosisHistoryDetailPage = () => {
                                                                     <p className="text-sm font-bold text-on-surface">{t.dosagePerHaValue} {t.dosagePerHaUnit}</p>
                                                                 </div>
                                                             )}
-                                                            {t.waterVolumePerHa && (
+                                                            {(t.displayWaterVolume || t.waterVolumePerHa) && (
                                                                 <div>
                                                                     <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">💧 Lượng nước/ha</p>
-                                                                    <p className="text-sm font-bold text-on-surface">{t.waterVolumePerHa}</p>
+                                                                    <p className="text-sm font-bold text-on-surface">{t.displayWaterVolume || t.waterVolumePerHa}</p>
                                                                 </div>
                                                             )}
                                                             {t.applicationMethod && (
@@ -323,10 +327,10 @@ const DiagnosisHistoryDetailPage = () => {
                                                                     <p className="text-sm font-bold text-on-surface">{t.applicationTime}</p>
                                                                 </div>
                                                             )}
-                                                            {t.frequency && (
+                                                            {(t.sprayInterval || t.frequency) && (
                                                                 <div>
                                                                     <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">⏱ Tần suất</p>
-                                                                    <p className="text-sm font-bold text-on-surface">{t.frequency}</p>
+                                                                    <p className="text-sm font-bold text-on-surface">{t.sprayInterval || t.frequency}</p>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -385,6 +389,36 @@ const DiagnosisHistoryDetailPage = () => {
                             </div>
                         )}
 
+                        {/* DISEASE WEATHER RISKS */}
+                        {diseaseWeatherRisks.length > 0 && (
+                            <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-surface-container-highest">
+                                <div className="px-6 py-4 border-b border-surface-container-highest bg-amber-50 dark:bg-amber-900/20">
+                                    <h3 className="text-sm font-black text-amber-700 uppercase tracking-wider flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-xl">cloud_alert</span>
+                                        Nguy cơ thời tiết theo bệnh
+                                    </h3>
+                                </div>
+                                <div className="divide-y divide-surface-container-highest">
+                                    {diseaseWeatherRisks.map((risk, idx) => (
+                                        <div key={`${risk.diseaseId || idx}-${risk.conditionGroup || 'risk'}`} className="p-5">
+                                            <div className="flex flex-col gap-1 mb-2">
+                                                <span className="font-bold text-on-surface">{risk.diseaseName}</span>
+                                                {risk.conditionGroup && <span className="text-xs text-on-surface-variant">Nhóm điều kiện: {risk.conditionGroup}</span>}
+                                            </div>
+                                            {risk.matchedConditions && risk.matchedConditions.length > 0 && (
+                                                <ul className="space-y-1 mb-2">
+                                                    {risk.matchedConditions.map((condition, cIdx) => (
+                                                        <li key={cIdx} className="text-sm text-on-surface-variant">{condition}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {risk.recommendationNotes && <p className="text-xs text-amber-700 font-medium">{risk.recommendationNotes}</p>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* WEATHER ALERTS */}
                         {weatherAlerts.filter(a => a.violated).length > 0 && (
                             <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-surface-container-highest">
@@ -412,13 +446,13 @@ const DiagnosisHistoryDetailPage = () => {
                         )}
 
                         {/* CULTIVATION MEASURES */}
-                        {getCultivationMeasures(result).length > 0 && (
+                        {getDiagnosisCultivationMeasures(result).length > 0 && (
                             <div className="bg-surface-container-lowest p-6 rounded-xl border border-surface-container-highest shadow-sm mt-6">
                                 <h4 className="font-black text-on-surface flex items-center gap-2 text-xs uppercase tracking-widest border-l-4 border-[#2E7D32] pl-3 mb-4">
                                     BIỆN PHÁP CANH TÁC BỔ SUNG
                                 </h4>
                                 <ul className="space-y-3">
-                                    {getCultivationMeasures(result).map((m, i) => (
+                                    {getDiagnosisCultivationMeasures(result).map((m, i) => (
                                         <li key={`measure-${i}`} className="flex gap-3 items-start text-sm leading-relaxed text-on-surface">
                                             <span className="material-symbols-outlined text-[#2E7D32] text-[18px] mt-0.5">check_circle</span>
                                             <span>{m}</span>

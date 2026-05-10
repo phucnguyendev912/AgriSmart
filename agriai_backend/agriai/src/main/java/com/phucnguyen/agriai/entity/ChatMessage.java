@@ -25,6 +25,7 @@ public class ChatMessage extends BaseEntity {
     @Column(name = "messageContent", columnDefinition = "TEXT")
     private String messageContent;
 
-    @Column(name = "imageURL", length = 255)
-    private String imageUrl;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attachment_id")
+    private Attachment attachment;
 }

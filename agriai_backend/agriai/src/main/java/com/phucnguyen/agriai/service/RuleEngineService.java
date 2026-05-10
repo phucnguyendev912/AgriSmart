@@ -1,15 +1,16 @@
 package com.phucnguyen.agriai.service;
 
+import com.phucnguyen.agriai.dto.DiseaseWeatherRiskDTO;
 import com.phucnguyen.agriai.dto.InteractionWarningDTO;
 import com.phucnguyen.agriai.dto.TreatmentDTO;
 import com.phucnguyen.agriai.dto.TreatmentProgramDTO;
 import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
 import com.phucnguyen.agriai.entity.TreatmentPlan;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,46 +21,52 @@ import org.springframework.transaction.annotation.Transactional;
 public class RuleEngineService {
 
     private final TreatmentLookupService treatmentLookupService;
-    private final TreatmentSelector treatmentSelector;
+    private final TreatmentRankingService treatmentRankingService;
     private final DrugInteractionChecker drugInteractionChecker;
-    private final WeatherAlertEvaluator weatherAlertEvaluator;
-    private final SprayProgramBuilder sprayProgramBuilder;
+    private final DiseaseWeatherRiskEvaluator diseaseWeatherRiskEvaluator;
 
     public RuleEngineResult process(List<Integer> diseaseIds, WeatherDTO weather) {
         if (diseaseIds == null || diseaseIds.isEmpty()) {
             return RuleEngineResult.empty();
         }
-        // get treatment plans by disease ids via TreatmentLookupService
-        Map<Integer, List<TreatmentPlan>> plansByDisease = new LinkedHashMap<>();
-        for (Integer diseaseId : diseaseIds) {
-            List<TreatmentPlan> plans = treatmentLookupService.findByDiseaseId(diseaseId);
-            if (!plans.isEmpty()) {
-                plansByDisease.put(diseaseId, plans);
-            }
+
+        Map<Integer, List<TreatmentPlan>> plansByDisease = treatmentLookupService
+                .findByDiseaseIds(diseaseIds);
+
+        if (plansByDisease.isEmpty()) {
+            List<DiseaseWeatherRiskDTO> weatherRisks = diseaseWeatherRiskEvaluator
+                    .evaluate(diseaseIds, weather);
+            return new RuleEngineResult(
+                    List.of(), List.of(), List.of(), List.of(), List.of(),
+                    weatherRisks, false, null);
         }
 
-        List<TreatmentPlan> selectedPlans = plansByDisease.values().stream()
-                .map(treatmentSelector::selectPrimaryPlan)
-                .filter(Objects::nonNull)
-                .toList();
+        List<TreatmentPlan> allPlans = new ArrayList<>();
+        for (List<TreatmentPlan> plans : plansByDisease.values()) {
+            allPlans.addAll(plans);
+        }
 
-        List<InteractionWarningDTO> interactionWarnings = drugInteractionChecker
-                .buildInteractionWarnings(selectedPlans);
-        Map<Integer, List<WeatherAlertDTO>> weatherAlertsByPlan = weatherAlertEvaluator
-                .buildWeatherAlerts(selectedPlans, weather);
-        List<WeatherAlertDTO> weatherAlerts = weatherAlertsByPlan.values().stream()
-                .flatMap(List::stream)
-                .toList();
-        // building spray program
-        List<TreatmentProgramDTO> programs = sprayProgramBuilder.buildPrograms(selectedPlans, interactionWarnings,
-                weatherAlertsByPlan);
-        // flat list of treatments
-        List<TreatmentDTO> flatTreatments = programs.stream()
-                .flatMap(program -> program.getTreatments().stream())
-                .toList();
-        // building strategy
-        String strategy = sprayProgramBuilder.deriveStrategy(programs, interactionWarnings);
-        return new RuleEngineResult(flatTreatments, List.of(), programs, interactionWarnings, weatherAlerts, strategy);
+        List<TreatmentDTO> rankedTreatments = treatmentRankingService.rankPlans(plansByDisease);
+
+        CompletableFuture<DrugInteractionChecker.InteractionResult> interactionFuture =
+                CompletableFuture.supplyAsync(() -> drugInteractionChecker
+                        .checkRecommendedPlans(rankedTreatments, allPlans));
+        CompletableFuture<List<DiseaseWeatherRiskDTO>> weatherRiskFuture =
+                CompletableFuture.supplyAsync(() -> diseaseWeatherRiskEvaluator
+                        .evaluate(diseaseIds, weather));
+
+        DrugInteractionChecker.InteractionResult interactionResult = interactionFuture.join();
+        List<DiseaseWeatherRiskDTO> weatherRisks = weatherRiskFuture.join();
+
+        return new RuleEngineResult(
+                rankedTreatments,
+                List.of(),
+                List.of(),
+                interactionResult.warnings(),
+                List.of(),
+                weatherRisks,
+                interactionResult.hasWarning(),
+                interactionResult.summary());
     }
 
     public record RuleEngineResult(
@@ -68,9 +75,12 @@ public class RuleEngineService {
             List<TreatmentProgramDTO> sprayPrograms,
             List<InteractionWarningDTO> interactionWarnings,
             List<WeatherAlertDTO> weatherAlerts,
-            String strategy) {
+            List<DiseaseWeatherRiskDTO> diseaseWeatherRisks,
+            boolean hasInteractionWarning,
+            String interactionSummary) {
         static RuleEngineResult empty() {
-            return new RuleEngineResult(List.of(), List.of(), List.of(), List.of(), List.of(), "NO_TREATMENT");
+            return new RuleEngineResult(
+                    List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), false, null);
         }
     }
 }

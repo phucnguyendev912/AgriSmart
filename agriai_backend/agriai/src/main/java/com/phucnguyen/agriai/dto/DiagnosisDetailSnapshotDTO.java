@@ -18,5 +18,6 @@ public class DiagnosisDetailSnapshotDTO {
     private List<TreatmentProgramDTO> sprayPrograms;
     private List<InteractionWarningDTO> interactionWarnings;
     private List<WeatherAlertDTO> weatherAlerts;
+    private List<DiseaseWeatherRiskDTO> diseaseWeatherRisks;
     private List<String> warnings;
 }

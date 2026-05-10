@@ -23,12 +23,16 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import com.phucnguyen.agriai.dto.DiseaseResultDTO;
+import com.phucnguyen.agriai.dto.DiseaseWeatherRiskDTO;
 import com.phucnguyen.agriai.dto.InteractionWarningDTO;
 import com.phucnguyen.agriai.dto.TreatmentDTO;
 import com.phucnguyen.agriai.dto.TreatmentProgramDTO;
 import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
 import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
+import com.phucnguyen.agriai.entity.DiagnoseTreatmentRecommendation;
+import com.phucnguyen.agriai.repository.DiagnoseTreatmentRecommendationRepository;
+import java.util.Comparator;
 
 @Service
 @Transactional
@@ -44,6 +48,9 @@ public class DiagnoseHistoryService {
 
     @Autowired
     private DiagnoseReviewRepository diagnoseReviewRepository;
+
+    @Autowired
+    private DiagnoseTreatmentRecommendationRepository recommendationRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -134,6 +141,7 @@ public class DiagnoseHistoryService {
         List<TreatmentProgramDTO> sprayPrograms = new ArrayList<>();
         List<InteractionWarningDTO> interactionWarnings = new ArrayList<>();
         List<WeatherAlertDTO> weatherAlerts = new ArrayList<>();
+        List<DiseaseWeatherRiskDTO> diseaseWeatherRisks = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
         String guidance = null;
         String diagnosisType = null;
@@ -165,6 +173,9 @@ public class DiagnoseHistoryService {
                 if (snapshot.getWeatherAlerts() != null) {
                     weatherAlerts.addAll(snapshot.getWeatherAlerts());
                 }
+                if (snapshot.getDiseaseWeatherRisks() != null) {
+                    diseaseWeatherRisks.addAll(snapshot.getDiseaseWeatherRisks());
+                }
                 if (snapshot.getWarnings() != null) {
                     warnings.addAll(snapshot.getWarnings());
                 }
@@ -176,6 +187,10 @@ public class DiagnoseHistoryService {
             if (detail.getRiskWarning() != null && !detail.getRiskWarning().isBlank()) {
                 warnings.add(detail.getRiskWarning());
             }
+        }
+
+        if (treatments.isEmpty()) {
+            treatments.addAll(loadTreatmentsFromRecommendations(details));
         }
 
         List<String> distinctWarnings = warnings.stream().filter(Objects::nonNull).distinct().toList();
@@ -193,6 +208,11 @@ public class DiagnoseHistoryService {
                 .collect(Collectors.toMap(this::weatherAlertKey, alert -> alert,
                         (left, right) -> left, LinkedHashMap::new))
                 .values().stream().toList();
+        List<DiseaseWeatherRiskDTO> distinctDiseaseWeatherRisks = diseaseWeatherRisks.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(this::diseaseWeatherRiskKey, risk -> risk,
+                        (left, right) -> left, LinkedHashMap::new))
+                .values().stream().toList();
 
         return DiagnoseResponse.builder()
                 .originalImageUrl(history.getOriginalImageUrl())
@@ -202,6 +222,7 @@ public class DiagnoseHistoryService {
                 .sprayPrograms(distinctPrograms)
                 .interactionWarnings(distinctInteractionWarnings)
                 .weatherAlerts(distinctWeatherAlerts)
+                .diseaseWeatherRisks(distinctDiseaseWeatherRisks)
                 .warnings(distinctWarnings)
                 .userGuidance(guidance)
                 .diagnosisType(diagnosisType)
@@ -237,5 +258,38 @@ public class DiagnoseHistoryService {
         return String.valueOf(alert.getTreatmentPlanId()) + ":"
                 + String.valueOf(alert.getWeatherFactor()) + ":"
                 + String.valueOf(alert.getOperator());
+    }
+
+    private String diseaseWeatherRiskKey(DiseaseWeatherRiskDTO risk) {
+        return String.valueOf(risk.getDiseaseId()) + ":"
+                + String.valueOf(risk.getConditionGroup());
+    }
+
+    private List<TreatmentDTO> loadTreatmentsFromRecommendations(List<DiagnoseHistoryDetail> details) {
+        List<Integer> detailIds = details.stream()
+                .map(DiagnoseHistoryDetail::getId)
+                .filter(Objects::nonNull)
+                .toList();
+        if (detailIds.isEmpty()) {
+            return List.of();
+        }
+
+        return recommendationRepository.findByDiagnoseHistoryDetailIdInAndIsDeleteFalse(detailIds).stream()
+                .sorted(Comparator.comparing(
+                        DiagnoseTreatmentRecommendation::getRankScore,
+                        Comparator.nullsLast(Integer::compareTo)))
+                .map(this::toTreatmentFromRecommendation)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private TreatmentDTO toTreatmentFromRecommendation(DiagnoseTreatmentRecommendation recommendation) {
+        if (recommendation.getTreatmentPlan() == null) {
+            return null;
+        }
+        TreatmentDTO dto = TreatmentDTO.fromEntity(recommendation.getTreatmentPlan());
+        dto.setRank(recommendation.getRankScore());
+        dto.setRecommended(recommendation.getRankScore() != null && recommendation.getRankScore() == 1);
+        return dto;
     }
 }

@@ -21,6 +21,7 @@ const DiagnoseResultPanel = ({ result }) => {
     if (!result) return null;
 
     const diseases = result.diseases || [];
+    const diseaseWeatherRisks = result.diseaseWeatherRisks || [];
     const weatherAlerts = result.weatherAlerts || [];
     const warnings = result.warnings || [];
 
@@ -71,8 +72,25 @@ const DiagnoseResultPanel = ({ result }) => {
                         ))}
                     </div>
 
-                    {/* Unified Weather Alerts */}
-                    {weatherAlerts.filter(a => a.violated).length > 0 && (
+                    {/* Disease weather risks from Phase 3 contract */}
+                    {diseaseWeatherRisks.length > 0 && (
+                        <div className="mt-4 space-y-3">
+                            {diseaseWeatherRisks.map((risk, rIdx) => (
+                                <div key={rIdx} className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                                    <span className="material-symbols-outlined text-amber-600 mt-0.5">cloud_alert</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-amber-700 break-words leading-tight">{risk.diseaseName || 'Nguy cơ thời tiết'}</span>
+                                        <span className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                                            {risk.recommendationNotes || 'Điều kiện thời tiết hiện tại thuận lợi cho bệnh phát triển.'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Legacy weather alerts */}
+                    {diseaseWeatherRisks.length === 0 && weatherAlerts.filter(a => a.violated).length > 0 && (
                         <div className="mt-4 space-y-3">
                             {weatherAlerts.filter(a => a.violated).map((alert, aIdx) => {
                                 const text = alert.recommendationNote || `${alert.weatherFactor} hiện tại (${alert.actualValue}${alert.unit || ''}) không thích hợp.`;
