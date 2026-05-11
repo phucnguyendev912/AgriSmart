@@ -61,8 +61,8 @@ const DiagnoseSprayProgramsPanel = ({ sprayPrograms, treatments }) => {
                                 <div key={t.treatmentPlanId || tIdx} className="bg-white dark:bg-slate-800 rounded-xl border border-surface-container-highest overflow-hidden shadow-sm">
                                     <div className="px-5 py-3 bg-surface-container-low border-b border-surface-container-highest flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                                         <div className="flex flex-wrap items-center gap-2 min-w-0">
-                                            <span className="font-bold text-on-surface text-lg break-words">{t.drugName || t.treatmentName || 'Phác đồ điều trị'}</span>
-                                            {t.diseaseName && <span className="text-xs text-slate-400 font-medium">({t.diseaseName})</span>}
+                                            <span className="font-bold text-on-surface text-lg break-words">{t.treatmentName || t.drugName || 'Phác đồ điều trị'}</span>
+
                                             {t.recommended && <span className="text-[10px] px-2 py-0.5 rounded-full font-black uppercase bg-primary-container text-on-primary-container">Khuyến nghị</span>}
                                             {t.rank && <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-surface-container text-on-surface-variant">Rank #{t.rank}</span>}
                                         </div>
@@ -71,44 +71,57 @@ const DiagnoseSprayProgramsPanel = ({ sprayPrograms, treatments }) => {
                                         )}
                                     </div>
 
-                                    <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4">
                                         {t.ingredientName && (
                                             <div>
-                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Hoạt chất</p>
+                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1 flex items-center gap-1.5">
+                                                    <span className="text-xs">🧪</span> Hoạt chất
+                                                </p>
                                                 <p className="text-sm font-bold text-on-surface">{t.ingredientName}</p>
                                             </div>
                                         )}
                                         {t.mixingInstruction && (
                                             <div>
-                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Hướng dẫn pha</p>
+                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1 flex items-center gap-1.5">
+                                                    <span className="text-xs">🥣</span> Hướng dẫn pha
+                                                </p>
                                                 <p className="text-sm font-bold text-on-surface">{t.mixingInstruction}</p>
                                             </div>
                                         )}
                                         {(t.displayWaterVolume || t.waterVolumePerHa) && (
                                             <div>
-                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Lượng nước/ha</p>
+                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1 flex items-center gap-1.5">
+                                                    <span className="text-xs">💧</span> Lượng nước/ha
+                                                </p>
                                                 <p className="text-sm font-bold text-on-surface">{t.displayWaterVolume || t.waterVolumePerHa}</p>
                                             </div>
                                         )}
                                         {t.applicationMethod && (
                                             <div>
-                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Cách dùng</p>
+                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1 flex items-center gap-1.5">
+                                                    <span className="text-xs">🎯</span> Cách dùng
+                                                </p>
                                                 <p className="text-sm font-bold text-on-surface">{t.applicationMethod}</p>
                                             </div>
                                         )}
                                         {t.applicationTime && (
                                             <div>
-                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Thời điểm</p>
+                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1 flex items-center gap-1.5">
+                                                    <span className="text-xs">🌅</span> Thời điểm
+                                                </p>
                                                 <p className="text-sm font-bold text-on-surface">{t.applicationTime}</p>
                                             </div>
                                         )}
                                         {(t.sprayInterval || t.frequency) && (
                                             <div>
-                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Tần suất</p>
+                                                <p className="text-[10px] font-bold text-on-surface-variant uppercase mb-1 flex items-center gap-1.5">
+                                                    <span className="text-xs">⏱</span> Tần suất
+                                                </p>
                                                 <p className="text-sm font-bold text-on-surface">{t.sprayInterval || t.frequency}</p>
                                             </div>
                                         )}
-                                       
+
+
                                     </div>
 
                                 </div>

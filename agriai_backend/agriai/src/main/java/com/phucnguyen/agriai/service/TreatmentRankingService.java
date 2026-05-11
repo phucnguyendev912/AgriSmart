@@ -10,9 +10,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import com.phucnguyen.agriai.mapper.TreatmentMapper;
 
 @Service
+@RequiredArgsConstructor
 public class TreatmentRankingService {
+
+    private final TreatmentMapper treatmentMapper;
 
     // Rank tất cả plans, trả về flat list với recommended + rank đã fill
     public List<TreatmentDTO> rankPlans(Map<Integer, List<TreatmentPlan>> plansByDisease) {
@@ -36,7 +41,7 @@ public class TreatmentRankingService {
         return IntStream.range(0, sorted.size())
                 .mapToObj(i -> {
                     TreatmentPlan plan = sorted.get(i);
-                    TreatmentDTO dto = TreatmentDTO.fromEntity(plan);
+                    TreatmentDTO dto = treatmentMapper.toDTO(plan);
                     dto.setRank(i + 1);
                     dto.setRecommended(i == 0);
                     dto.setRecommendationReason(i == 0 ? buildReason(plan) : null);

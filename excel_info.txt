@@ -1,0 +1,55 @@
+--- Analyzing C:\Users\nguye\Downloads\rice-disease-treatment-seed-report-v8.1-scoped.xlsx ---
+Columns:
+  - Bệnh
+  - Tên tiếng Anh
+  - Số record
+  - Trạng thái
+  - Ghi chú
+
+Shape: (13, 5)
+
+Null counts:
+Bệnh             3
+Tên tiếng Anh    3
+Số record        5
+Trạng thái       5
+Ghi chú          5
+dtype: int64
+
+Sample rows with nulls:
+           Bệnh                                                                                                                  Tên tiếng Anh  Số record Trạng thái Ghi chú
+8           NaN                                                                                                                            NaN        NaN        NaN     NaN
+9           NaN                                                                                                                            NaN        NaN        NaN     NaN
+10  v8.1 update                      Bổ sung crawl weather threshold định lượng; chỉ seed yếu tố có số rõ, không tự tạo ngưỡng từ mô tả mơ hồ.        NaN        NaN     NaN
+11          NaN                                                                                                                            NaN        NaN        NaN     NaN
+12   v8.1 scope  Weather crawl v8.1 chỉ giới hạn trong 8 nhãn: Bạc lá, Sọc vi khuẩn, Đốm nâu, Khỏe mạnh, Đạo ôn, Cháy bìa lá, Khô vằn, Tungro.        NaN        NaN     NaN
+
+Sample data:
+           Bệnh          Tên tiếng Anh  Số record                      Trạng thái                                                          Ghi chú
+0        Bạc lá  Bacterial Leaf Blight        4.0  Đã crawl được record dùng được  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+1  Sọc vi khuẩn  Bacterial Leaf Streak        3.0    Đã crawl được nhưng còn mỏng  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+2       Đốm nâu             Brown Spot        3.0    Đã crawl được nhưng còn mỏng  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+3        Đạo ôn             Leaf Blast        8.0  Đã crawl được record dùng được  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+4   Cháy bìa lá             Leaf Scald        3.0    Đã crawl được nhưng còn mỏng  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+
+==================================================
+--- Analyzing C:\Users\nguye\Downloads\rice-disease-treatment-seed-v8.1-demo-clean.xlsx ---
+Columns:
+  - Bảng
+  - Số dòng
+  - Ghi chú
+
+Shape: (7, 3)
+
+Null counts:
+Series([], dtype: int64)
+
+No nulls found!
+
+Sample data:
+              Bảng  Số dòng                                                                 Ghi chú
+0          disease        8                              8 bệnh/trạng thái đúng scope user yêu cầu.
+1       ingredient       15                                            Hoạt chất chuẩn hóa từ seed.
+2             drug       21                                              Thuốc thương phẩm từ v8.1.
+3  drug_ingredient       38                Liên kết thuốc - hoạt chất, có hàm lượng nếu parse được.
+4   treatment_plan       32  Phác đồ theo disease_code + drug_name; Healthy không có phác đồ thuốc.

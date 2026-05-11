@@ -1,0 +1,486 @@
+--- Analyzing C:\Users\nguye\Downloads\rice-disease-treatment-seed-report-v8.1-scoped.xlsx ---
+Sheets: ['TongHop', 'BacLa', 'SocVK', 'DomNau', 'DaoOn', 'ChayBiaLa', 'KhoVan', 'Tungro', 'Healthy', 'PhuLuc', 'WeatherThresholds_v8_1', 'WeatherSeedSQL_v8_1', 'CrawlLog_v8_1']
+
+=== Sheet: TongHop ===
+Columns:
+  - Bệnh
+  - Tên tiếng Anh
+  - Số record
+  - Trạng thái
+  - Ghi chú
+
+Shape: (13, 5)
+
+Null counts:
+Bệnh             3
+Tên tiếng Anh    3
+Số record        5
+Trạng thái       5
+Ghi chú          5
+dtype: int64
+
+Sample rows with nulls:
+           Bệnh                                                                                                                  Tên tiếng Anh  Số record Trạng thái Ghi chú
+8           NaN                                                                                                                            NaN        NaN        NaN     NaN
+9           NaN                                                                                                                            NaN        NaN        NaN     NaN
+10  v8.1 update                      Bổ sung crawl weather threshold định lượng; chỉ seed yếu tố có số rõ, không tự tạo ngưỡng từ mô tả mơ hồ.        NaN        NaN     NaN
+11          NaN                                                                                                                            NaN        NaN        NaN     NaN
+12   v8.1 scope  Weather crawl v8.1 chỉ giới hạn trong 8 nhãn: Bạc lá, Sọc vi khuẩn, Đốm nâu, Khỏe mạnh, Đạo ôn, Cháy bìa lá, Khô vằn, Tungro.        NaN        NaN     NaN
+
+Data preview:
+            Bệnh                                                                                                                  Tên tiếng Anh  Số record                      Trạng thái                                                          Ghi chú
+0         Bạc lá                                                                                                          Bacterial Leaf Blight        4.0  Đã crawl được record dùng được  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+1   Sọc vi khuẩn                                                                                                          Bacterial Leaf Streak        3.0    Đã crawl được nhưng còn mỏng  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+2        Đốm nâu                                                                                                                     Brown Spot        3.0    Đã crawl được nhưng còn mỏng  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+3         Đạo ôn                                                                                                                     Leaf Blast        8.0  Đã crawl được record dùng được  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+4    Cháy bìa lá                                                                                                                     Leaf Scald        3.0    Đã crawl được nhưng còn mỏng  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+5        Khô vằn                                                                                                                  Sheath Blight        8.0  Đã crawl được record dùng được  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+6         Tungro                                                                                                              Rice Tungro Virus        3.0    Đã crawl được nhưng còn mỏng  Có thể còn cần vòng crawl tiếp theo để đạt mức 7-8 record/bệnh.
+7        Healthy                                                                                                                        Healthy        1.0                       Đối chứng                                 Nhãn đối chứng, không phải bệnh.
+8            NaN                                                                                                                            NaN        NaN                             NaN                                                              NaN
+9            NaN                                                                                                                            NaN        NaN                             NaN                                                              NaN
+10   v8.1 update                      Bổ sung crawl weather threshold định lượng; chỉ seed yếu tố có số rõ, không tự tạo ngưỡng từ mô tả mơ hồ.        NaN                             NaN                                                              NaN
+11           NaN                                                                                                                            NaN        NaN                             NaN                                                              NaN
+12    v8.1 scope  Weather crawl v8.1 chỉ giới hạn trong 8 nhãn: Bạc lá, Sọc vi khuẩn, Đốm nâu, Khỏe mạnh, Đạo ôn, Cháy bìa lá, Khô vằn, Tungro.        NaN                             NaN                                                              NaN
+--------------------------------------------------
+
+=== Sheet: BacLa ===
+Columns:
+  - BONNY 4SL | Bạc lá (Bacterial Leaf Blight)
+  - BONNY 4SL | Bạc lá (Bacterial Leaf Blight).1
+
+Shape: (42, 2)
+
+Null counts:
+BONNY 4SL | Bạc lá (Bacterial Leaf Blight)      3
+BONNY 4SL | Bạc lá (Bacterial Leaf Blight).1    3
+dtype: int64
+
+Sample rows with nulls:
+   BONNY 4SL | Bạc lá (Bacterial Leaf Blight) BONNY 4SL | Bạc lá (Bacterial Leaf Blight).1
+9                                         NaN                                          NaN
+20                                        NaN                                          NaN
+31                                        NaN                                          NaN
+
+Data preview:
+         BONNY 4SL | Bạc lá (Bacterial Leaf Blight)                                                                                                                          BONNY 4SL | Bạc lá (Bacterial Leaf Blight).1
+0                              Thành phần hoạt chất                                                                                                                                                   Ningnanmycin 40 g/L
+1                                    Nhóm hoạt chất                                                                                                                                                   Kháng sinh sinh học
+2                                  Phác đồ điều trị     Phun khi bệnh chớm xuất hiện trên lá lúa.. Số lần phun: Nguồn sản phẩm không ghi số lần cố định.. Khoảng cách: Đánh giá lại sau 5-7 ngày nếu áp lực bệnh còn cao.
+3                  Có thể phối hợp / không xung đột  AVISO 350SC; NEWBEM 750WP. Nông Dược HAI nêu rõ BONNY 4SL có thể hỗn hợp với AVISO 350SC và NEWBEM 750WP để tăng hiệu quả phòng trừ bệnh hại lúa do nấm và vi khuẩn.
+4                     Xung đột / không nên phối hợp  Không thấy nguồn web nêu cặp xung đột cụ thể.. Nguồn tham khảo hiện có không ghi nhận cặp xung đột hoạt chất cụ thể cho sản phẩm này; dùng theo đúng nhãn hướng dẫn.
+5                                 Điều kiện sử dụng                                   Nóng ẩm, mưa nhiều, độ ẩm cao; tránh phun sát lúc mưa.. Giai đoạn: Sinh trưởng mạnh đến làm đòng.. Mức độ bệnh: Bệnh mới xuất hiện.
+6                        Hướng dẫn pha và phối trộn    Cho nước vào bồn trước, thêm BONNY 4SL khi đang khuấy.. Thử nghiệm trước: Có. Nếu phối với AVISO 350SC hoặc NEWBEM 750WP thì thử hỗn hợp nhỏ trước khi pha mẻ lớn.
+7                                        Liều lượng                                                                                    0,75 L/ha; pha 20 ml/10 L nước. Lượng nước: Theo lượng nước phun thực tế của ruộng
+8                                             Nguồn         https://nongduochai.vn/cay-lua/thuoc-tru-benh-bonny-4sl---con-chi-vi-khuan-n70.html\nhttps://bacsicayxanh.vn/cay-trong/lua-nuoc/benh/benh-bac-la-tren-lua/75/
+9                                               NaN                                                                                                                                                                   NaN
+10  STARSUPER 10SC | Bạc lá (Bacterial Leaf Blight)                                                                                                                       STARSUPER 10SC | Bạc lá (Bacterial Leaf Blight)
+11                             Thành phần hoạt chất                                                                                                                                    Kasugamycin 9 g/L + Polyoxin 1 g/L
+12                                   Nhóm hoạt chất                                                                                                                           Kháng sinh nông nghiệp + kháng nấm sinh học
+13                                 Phác đồ điều trị     Phun khi bệnh chớm xuất hiện.. Số lần phun: Nguồn sản phẩm không ghi số lần cố định.. Khoảng cách: Có thể đánh giá lại sau 5-7 ngày nếu ruộng còn bệnh hoạt động.
+14                 Có thể phối hợp / không xung đột                            Kasugamycin + Polyoxin. Hai hoạt chất cùng hiện diện trong một công thức thương mại đã đăng ký nên được xem là tương thích ở mức sản phẩm.
+--------------------------------------------------
+
+=== Sheet: SocVK ===
+Columns:
+  - BONNY 4SL | Sọc vi khuẩn (Bacterial Leaf Streak)
+  - BONNY 4SL | Sọc vi khuẩn (Bacterial Leaf Streak).1
+
+Shape: (31, 2)
+
+Null counts:
+BONNY 4SL | Sọc vi khuẩn (Bacterial Leaf Streak)      2
+BONNY 4SL | Sọc vi khuẩn (Bacterial Leaf Streak).1    2
+dtype: int64
+
+Sample rows with nulls:
+   BONNY 4SL | Sọc vi khuẩn (Bacterial Leaf Streak) BONNY 4SL | Sọc vi khuẩn (Bacterial Leaf Streak).1
+9                                               NaN                                                NaN
+20                                              NaN                                                NaN
+
+Data preview:
+      BONNY 4SL | Sọc vi khuẩn (Bacterial Leaf Streak)                                                                                                                                BONNY 4SL | Sọc vi khuẩn (Bacterial Leaf Streak).1
+0                                 Thành phần hoạt chất                                                                                                                                                               Ningnanmycin 40 g/L
+1                                       Nhóm hoạt chất                                                                                                                                                               Kháng sinh sinh học
+2                                     Phác đồ điều trị                          Phun sớm khi ruộng xuất hiện nhóm bệnh vi khuẩn trên lá.. Số lần phun: Nguồn sản phẩm không ghi số lần cố định.. Khoảng cách: Đánh giá lại sau 5-7 ngày.
+3                     Có thể phối hợp / không xung đột                                                                         AVISO 350SC; NEWBEM 750WP. Nông Dược HAI ghi rõ BONNY 4SL có thể hỗn hợp với AVISO 350SC và NEWBEM 750WP.
+4                        Xung đột / không nên phối hợp              Không thấy nguồn web nêu cặp xung đột cụ thể.. Nguồn tham khảo hiện có không ghi nhận cặp xung đột hoạt chất cụ thể cho sản phẩm này; dùng theo đúng nhãn hướng dẫn.
+5                                    Điều kiện sử dụng                               Nhiệt độ 28-30°C, độ ẩm khoảng 80%, mưa gió và bón thừa đạm làm bệnh nặng hơn.. Giai đoạn: Đẻ nhánh đến làm đòng.. Mức độ bệnh: Bệnh mới xuất hiện.
+6                           Hướng dẫn pha và phối trộn                                                          Cho nước trước, thêm BONNY 4SL khi đang khuấy.. Thử nghiệm trước: Có. Nếu phối thêm thuốc nấm thì cần thử cốc nhỏ trước.
+7                                           Liều lượng                                                                                                          0,75 L/ha; pha 20 ml/10 L nước. Lượng nước: Theo lượng nước phun thực tế
+8                                                Nguồn           https://nongduochai.vn/cay-lua/thuoc-tru-benh-bonny-4sl---con-chi-vi-khuan-n70.html\nhttps://bacsicayxanh.vn/cay-trong/lua-nuoc/benh/benh-dom-soc-vi-khuan-hai-lua/76//
+9                                                  NaN                                                                                                                                                                               NaN
+10  TRYXO 750WP | Sọc vi khuẩn (Bacterial Leaf Streak)                                                                                                                                TRYXO 750WP | Sọc vi khuẩn (Bacterial Leaf Streak)
+11                                Thành phần hoạt chất                                                                                                                                    Oxolinic acid 200 g/kg + Tricyclazole 550 g/kg
+12                                      Nhóm hoạt chất                                                                                                                                             Kháng khuẩn quinolone + thuốc trừ nấm
+13                                    Phác đồ điều trị  Phun sớm khi ruộng có triệu chứng bệnh vi khuẩn lá và nguy cơ đồng nhiễm đạo ôn.. Số lần phun: Nguồn sản phẩm không ghi số lần cố định.. Khoảng cách: Theo dõi lại sau 5-7 ngày.
+14                    Có thể phối hợp / không xung đột                                                                                                          Oxolinic acid + Tricyclazole. Cùng hiện diện trong công thức thương mại.
+--------------------------------------------------
+
+=== Sheet: DomNau ===
+Columns:
+  - GAP3 | Đốm nâu (Brown Spot)
+  - GAP3 | Đốm nâu (Brown Spot).1
+
+Shape: (31, 2)
+
+Null counts:
+GAP3 | Đốm nâu (Brown Spot)      2
+GAP3 | Đốm nâu (Brown Spot).1    2
+dtype: int64
+
+Sample rows with nulls:
+   GAP3 | Đốm nâu (Brown Spot) GAP3 | Đốm nâu (Brown Spot).1
+9                          NaN                           NaN
+20                         NaN                           NaN
+
+Data preview:
+                  GAP3 | Đốm nâu (Brown Spot)                                                                                                                                                                                                                         GAP3 | Đốm nâu (Brown Spot).1
+0                        Thành phần hoạt chất                                                                                                  Gói cặp chứa Azoxystrobin 200 g/L + Difenoconazole 125 g/L + Hexaconazole 100 g/L + Fenoxanil 100 g/L + Oxolinic acid 100 g/L + Tricyclazole 300 g/L
+1                              Nhóm hoạt chất                                                                                                                                                                                                         Gói phối hợp đa hoạt chất trừ nấm và vi khuẩn
+2                            Phác đồ điều trị                Dùng ở giai đoạn đòng trổ khi cần quản lý đồng thời đốm nâu, đốm vằn và nhóm bệnh hại quan trọng trên lúa.. Số lần phun: Nguồn sản phẩm không ghi số lần phun cố định.. Khoảng cách: Theo dõi lại sau đợt đầu nếu áp lực bệnh còn cao.
+3            Có thể phối hợp / không xung đột                                                                                       Các hoạt chất được nhà sản xuất đóng gói thành cặp GAP3. Đồng Tháp Sen Hồng bán trọn bộ cho 1.000 m2 hoặc 1 ha, thể hiện tính tương thích trong gói thương mại.
+4               Xung đột / không nên phối hợp                                                                                  Không thấy nguồn web nêu cặp xung đột cụ thể.. Nguồn tham khảo hiện có không ghi nhận cặp xung đột hoạt chất cụ thể cho sản phẩm này; dùng theo đúng nhãn hướng dẫn.
+5                           Điều kiện sử dụng  Bệnh đốm nâu thường mạnh ở đất nghèo dinh dưỡng, ruộng phèn, ẩm độ cao hoặc quản lý dinh dưỡng kém.. Giai đoạn: Từ đẻ nhánh tối đa đến chín sữa, đặc biệt giai đoạn đòng trổ.. Mức độ bệnh: Bệnh xuất hiện trên lá hoặc nguy cơ cao trong ruộng yếu.
+6                  Hướng dẫn pha và phối trộn                                                                             Pha từng thành phần theo thứ tự nhãn của bộ sản phẩm, khuấy đều từng bước.. Thử nghiệm trước: Có. Do là gói đa hoạt chất, không nên tự thêm sản phẩm thứ ba nếu chưa thử.
+7                                  Liều lượng                                                                                                                                                  1 cặp 30 ml/1.000 m2 hoặc 1 cặp 300 ml/10.000 m2. Lượng nước: Theo lượng nước phun thực tế của ruộng
+8                                       Nguồn                                                                                                                   https://dongthapsenhong.com/san-pham/thuoc-tru-benh-gap3/\nhttps://plantix.net/en/library/plant-diseases/100064/brown-spot-of-rice/
+9                                         NaN                                                                                                                                                                                                                                                   NaN
+10  Reflect Xtra 325SC | Đốm nâu (Brown Spot)                                                                                                                                                                                                             Reflect Xtra 325SC | Đốm nâu (Brown Spot)
+11                       Thành phần hoạt chất                                                                                                                                                                                                             Isopyrazam 125 g/L + Azoxystrobin 200 g/L
+12                             Nhóm hoạt chất                                                                                                                                                                                                                                SDHI + QoI strobilurin
+13                           Phác đồ điều trị                                                                                 Phun thời kỳ nuôi đòng, khoảng 50-60 ngày sau sạ.. Số lần phun: Nguồn công bố không ghi số lần phun cố định.. Khoảng cách: Đánh giá lại theo áp lực bệnh trong ruộng.
+14           Có thể phối hợp / không xung đột                                                                                                                                                                    Isopyrazam + Azoxystrobin. Cùng hiện diện trong một công thức thương mại Syngenta.
+--------------------------------------------------
+
+=== Sheet: DaoOn ===
+Columns:
+  - Filia 525SE | Đạo ôn (Leaf Blast)
+  - Filia 525SE | Đạo ôn (Leaf Blast).1
+
+Shape: (86, 2)
+
+Null counts:
+Filia 525SE | Đạo ôn (Leaf Blast)      7
+Filia 525SE | Đạo ôn (Leaf Blast).1    7
+dtype: int64
+
+Sample rows with nulls:
+   Filia 525SE | Đạo ôn (Leaf Blast) Filia 525SE | Đạo ôn (Leaf Blast).1
+9                                NaN                                 NaN
+20                               NaN                                 NaN
+31                               NaN                                 NaN
+42                               NaN                                 NaN
+53                               NaN                                 NaN
+64                               NaN                                 NaN
+75                               NaN                                 NaN
+
+Data preview:
+     Filia 525SE | Đạo ôn (Leaf Blast)                                                                                                                                   Filia 525SE | Đạo ôn (Leaf Blast).1
+0                 Thành phần hoạt chất                                                                                                                          Tricyclazole 400 g/L + Propiconazole 125 g/L
+1                       Nhóm hoạt chất                                                                                                                              Ức chế hình thành melanin + DMI triazole
+2                     Phác đồ điều trị             Phun khi lúa có biểu hiện đạo ôn.. Số lần phun: Nguồn sản phẩm không ghi số lần cố định.. Khoảng cách: Theo dõi 5-7 ngày để quyết định phun nhắc nếu cần.
+3     Có thể phối hợp / không xung đột                                                                                                       Tricyclazole + Propiconazole. Cùng hiện diện trong Filia 525SE.
+4        Xung đột / không nên phối hợp  Không thấy nguồn web nêu cặp xung đột cụ thể.. Nguồn tham khảo hiện có không ghi nhận cặp xung đột hoạt chất cụ thể cho sản phẩm này; dùng theo đúng nhãn hướng dẫn.
+5                    Điều kiện sử dụng                             Nên phun khi ruộng thông thoáng và chưa có mưa ngay sau xử lý.. Giai đoạn: Đạo ôn lá, cổ lá và cổ bông.. Mức độ bệnh: Bệnh vừa xuất hiện.
+6           Hướng dẫn pha và phối trộn                                             Lắc đều chai, cho nước trước rồi thêm thuốc khi khuấy.. Thử nghiệm trước: Có. Thử hỗn hợp trước nếu phối thêm thuốc khác.
+7                           Liều lượng                                                                                 0,5 L/ha; 35 ml/bình 25 L hoặc 20 ml/bình 20 L. Lượng nước: Theo hướng dẫn địa phương
+8                                Nguồn                                                                                                                              https://www.syngenta.com.vn/filiar-525se
+9                                  NaN                                                                                                                                                                   NaN
+10  NewTec 300SC | Đạo ôn (Leaf Blast)                                                                                                                                    NewTec 300SC | Đạo ôn (Leaf Blast)
+11                Thành phần hoạt chất                                                                                                                            Hexaconazole 50 g/L + Tricyclazole 250 g/L
+12                      Nhóm hoạt chất                                                                                                                              DMI triazole + ức chế hình thành melanin
+13                    Phác đồ điều trị           Phun khi tỷ lệ bệnh khoảng 5-10%.. Số lần phun: Nguồn sản phẩm không ghi số lần cố định.. Khoảng cách: Đánh giá lại sau phun đầu nếu ruộng còn áp lực bệnh.
+14    Có thể phối hợp / không xung đột                                                                         Hexaconazole + Tricyclazole. Syngenta mô tả hai hoạt chất tương hỗ mạnh trong cùng công thức.
+--------------------------------------------------
+
+=== Sheet: ChayBiaLa ===
+Columns:
+  - BONNY 4SL | Cháy bìa lá (Leaf Scald)
+  - BONNY 4SL | Cháy bìa lá (Leaf Scald).1
+
+Shape: (31, 2)
+
+Null counts:
+BONNY 4SL | Cháy bìa lá (Leaf Scald)      2
+BONNY 4SL | Cháy bìa lá (Leaf Scald).1    2
+dtype: int64
+
+Sample rows with nulls:
+   BONNY 4SL | Cháy bìa lá (Leaf Scald) BONNY 4SL | Cháy bìa lá (Leaf Scald).1
+9                                   NaN                                    NaN
+20                                  NaN                                    NaN
+
+Data preview:
+         BONNY 4SL | Cháy bìa lá (Leaf Scald)                                                                                                                                                  BONNY 4SL | Cháy bìa lá (Leaf Scald).1
+0                        Thành phần hoạt chất                                                                                                                                                                     Ningnanmycin 40 g/L
+1                              Nhóm hoạt chất                                                                                                                                                                     Kháng sinh sinh học
+2                            Phác đồ điều trị  Phun khi lá bắt đầu cháy từ chóp hoặc mép lá và ruộng có nghi ngờ bệnh lá do vi khuẩn.. Số lần phun: Nguồn sản phẩm không ghi số lần cố định.. Khoảng cách: Theo dõi lại sau 5-7 ngày.
+3            Có thể phối hợp / không xung đột                                                                                            AVISO 350SC; NEWBEM 750WP. Nguồn hãng nêu rõ có thể hỗn hợp với AVISO 350SC và NEWBEM 750WP.
+4               Xung đột / không nên phối hợp                    Không thấy nguồn web nêu cặp xung đột cụ thể.. Nguồn tham khảo hiện có không ghi nhận cặp xung đột hoạt chất cụ thể cho sản phẩm này; dùng theo đúng nhãn hướng dẫn.
+5                           Điều kiện sử dụng                                                                          Nên phun sớm, tránh mưa ngay sau phun.. Giai đoạn: Sinh trưởng đến làm đòng.. Mức độ bệnh: Bệnh mới xuất hiện.
+6                  Hướng dẫn pha và phối trộn                                                               Cho nước trước, thêm BONNY 4SL khi đang khuấy.. Thử nghiệm trước: Có. Nếu phối thêm thuốc khác thì cần thử hỗn hợp trước.
+7                                  Liều lượng                                                                                                                0,75 L/ha; pha 20 ml/10 L nước. Lượng nước: Theo lượng nước phun thực tế
+8                                       Nguồn                           https://nongduochai.vn/cay-lua/thuoc-tru-benh-bonny-4sl---con-chi-vi-khuan-n70.html\nhttps://plantix.net/en/library/plant-diseases/100182/leaf-scald-of-rice/
+9                                         NaN                                                                                                                                                                                     NaN
+10  STARSUPER 10SC | Cháy bìa lá (Leaf Scald)                                                                                                                                               STARSUPER 10SC | Cháy bìa lá (Leaf Scald)
+11                       Thành phần hoạt chất                                                                                                                                                      Kasugamycin 9 g/L + Polyoxin 1 g/L
+12                             Nhóm hoạt chất                                                                                                                                             Kháng sinh nông nghiệp + kháng nấm sinh học
+13                           Phác đồ điều trị                                              Phun khi ruộng xuất hiện cháy mép lá giai đoạn đầu.. Số lần phun: Nguồn không ghi số lần cố định.. Khoảng cách: Đánh giá lại sau 5-7 ngày.
+14           Có thể phối hợp / không xung đột                                                                                                                  Kasugamycin + Polyoxin. Cùng hiện diện trong một công thức thương mại.
+--------------------------------------------------
+
+=== Sheet: KhoVan ===
+Columns:
+  - STARSUPER 10SC | Khô vằn (Sheath Blight)
+  - STARSUPER 10SC | Khô vằn (Sheath Blight).1
+
+Shape: (86, 2)
+
+Null counts:
+STARSUPER 10SC | Khô vằn (Sheath Blight)      7
+STARSUPER 10SC | Khô vằn (Sheath Blight).1    7
+dtype: int64
+
+Sample rows with nulls:
+   STARSUPER 10SC | Khô vằn (Sheath Blight) STARSUPER 10SC | Khô vằn (Sheath Blight).1
+9                                       NaN                                        NaN
+20                                      NaN                                        NaN
+31                                      NaN                                        NaN
+42                                      NaN                                        NaN
+53                                      NaN                                        NaN
+64                                      NaN                                        NaN
+75                                      NaN                                        NaN
+
+Data preview:
+   STARSUPER 10SC | Khô vằn (Sheath Blight)                                                                                                                            STARSUPER 10SC | Khô vằn (Sheath Blight).1
+0                      Thành phần hoạt chất                                                                                                                                    Kasugamycin 9 g/L + Polyoxin 1 g/L
+1                            Nhóm hoạt chất                                                                                                                           Kháng sinh nông nghiệp + kháng nấm sinh học
+2                          Phác đồ điều trị                                                  Phun khi bệnh chớm xuất hiện.. Số lần phun: Nguồn không ghi số lần cố định.. Khoảng cách: Đánh giá lại sau 5-7 ngày.
+3          Có thể phối hợp / không xung đột                                                                                                    Kasugamycin + Polyoxin. Cùng hiện diện trong công thức thương mại.
+4             Xung đột / không nên phối hợp  Không thấy nguồn web nêu cặp xung đột cụ thể.. Nguồn tham khảo hiện có không ghi nhận cặp xung đột hoạt chất cụ thể cho sản phẩm này; dùng theo đúng nhãn hướng dẫn.
+5                         Điều kiện sử dụng                                               Bệnh mạnh khi 28-32°C, ẩm độ 96-100%, tán lá dày.. Giai đoạn: Đẻ nhánh đến làm đòng.. Mức độ bệnh: Bệnh chớm xuất hiện.
+6                Hướng dẫn pha và phối trộn                                          Cho nước trước, thêm thuốc sau, khuấy đều.. Thử nghiệm trước: Nên thử khi phối thêm thuốc khác. Công thức sẵn hoạt chất kép.
+7                                Liều lượng                                                                                                                                0,5-1,0 L/ha. Lượng nước: 400-600 L/ha
+8                                     Nguồn                                        https://dongthapsenhong.com/san-pham/starsuper-10sc/\nhttps://bacsicayxanh.vn/cay-trong/lua-nuoc/benh/benh-kho-van-tren-lua/74
+9                                       NaN                                                                                                                                                                   NaN
+10   NewTec 300SC | Khô vằn (Sheath Blight)                                                                                                                                NewTec 300SC | Khô vằn (Sheath Blight)
+11                     Thành phần hoạt chất                                                                                                                            Hexaconazole 50 g/L + Tricyclazole 250 g/L
+12                           Nhóm hoạt chất                                                                                                                              DMI triazole + ức chế hình thành melanin
+13                         Phác đồ điều trị                    Phun khi tỷ lệ bệnh khoảng 10-20%.. Số lần phun: Nguồn không ghi số lần cố định.. Khoảng cách: Kiểm tra lại sau đợt đầu nếu vết bệnh tiếp tục lan.
+14         Có thể phối hợp / không xung đột                                                                                      Hexaconazole + Tricyclazole. Hai hoạt chất được Syngenta mô tả là tương hỗ mạnh.
+--------------------------------------------------
+
+=== Sheet: Tungro ===
+Columns:
+  - Selecron 500EC | Tungro (Rice Tungro Virus)
+  - Selecron 500EC | Tungro (Rice Tungro Virus).1
+
+Shape: (31, 2)
+
+Null counts:
+Selecron 500EC | Tungro (Rice Tungro Virus)      2
+Selecron 500EC | Tungro (Rice Tungro Virus).1    2
+dtype: int64
+
+Sample rows with nulls:
+   Selecron 500EC | Tungro (Rice Tungro Virus) Selecron 500EC | Tungro (Rice Tungro Virus).1
+9                                          NaN                                           NaN
+20                                         NaN                                           NaN
+
+Data preview:
+   Selecron 500EC | Tungro (Rice Tungro Virus)                                                                                                                                                         Selecron 500EC | Tungro (Rice Tungro Virus).1
+0                         Thành phần hoạt chất                                                                                                                                                                                    Profenofos 500 g/L
+1                               Nhóm hoạt chất                                                                                                                                                                                            Lân hữu cơ
+2                             Phác đồ điều trị                                       Phun khi rầy xanh chớm xuất hiện ở ruộng có nguy cơ Tungro.. Số lần phun: Theo mật độ rầy và áp lực truyền bệnh.. Khoảng cách: Theo dõi quần thể rầy sau xử lý.
+3             Có thể phối hợp / không xung đột                                                                                                      Thuốc nền lý tưởng để pha trộn. Syngenta mô tả Selecron 500EC là thuốc nền lý tưởng để pha trộn.
+4                Xung đột / không nên phối hợp                                  Không thấy nguồn web nêu cặp xung đột cụ thể.. Nguồn tham khảo hiện có không ghi nhận cặp xung đột hoạt chất cụ thể cho sản phẩm này; dùng theo đúng nhãn hướng dẫn.
+5                            Điều kiện sử dụng  Tungro phụ thuộc sự hiện diện của rầy xanh; nên xử lý sớm khi quần thể rầy tăng.. Giai đoạn: Đặc biệt quan trọng ở giai đoạn sinh trưởng dinh dưỡng.. Mức độ bệnh: Ruộng có rầy xanh chớm xuất hiện.
+6                   Hướng dẫn pha và phối trộn                                                             Cho nước trước, thêm Selecron 500EC khi đang khuấy.. Thử nghiệm trước: Có. Dù hãng nói thích hợp pha trộn, vẫn nên thử hỗn hợp nhỏ trước.
+7                                   Liều lượng                                                                                                                                         0,75-1,0 L/ha cho rầy xanh trên lúa. Lượng nước: 400-800 L/ha
+8                                        Nguồn                                            https://www.syngenta.com.vn/selecronr-500ec\nhttps://binhdien.com/dong-hanh-cung-nha-nong/chuong-trinh-canh-tac-thong-minh/benh-tungro-virus-tren-lua.html
+9                                          NaN                                                                                                                                                                                                   NaN
+10  HOPPECIN 50EC | Tungro (Rice Tungro Virus)                                                                                                                                                            HOPPECIN 50EC | Tungro (Rice Tungro Virus)
+11                        Thành phần hoạt chất                                                                                                                          Trang nguồn công khai không hiển thị đầy đủ hoạt chất trong kết quả tìm kiếm
+12                              Nhóm hoạt chất                                                                                                                                                                                Thuốc trừ rầy phổ rộng
+13                            Phác đồ điều trị                                           Phun khi rầy xanh, rầy lưng trắng hoặc rầy nâu chớm xuất hiện.. Số lần phun: Theo mật độ rầy ngoài đồng.. Khoảng cách: Theo dõi lại quần thể rầy sau xử lý.
+14            Có thể phối hợp / không xung đột                                                                                                  Nguồn không nêu cặp phối hợp cụ thể.. Sản phẩm được mô tả có phổ rộng, hiệu lực nhanh trên nhóm rầy.
+--------------------------------------------------
+
+=== Sheet: Healthy ===
+Columns:
+  - Không khuyến nghị dùng thuốc BVTV khi chưa có bệnh | Healthy (Healthy)
+  - Không khuyến nghị dùng thuốc BVTV khi chưa có bệnh | Healthy (Healthy).1
+
+Shape: (9, 2)
+
+Null counts:
+Không khuyến nghị dùng thuốc BVTV khi chưa có bệnh | Healthy (Healthy).1    2
+dtype: int64
+
+Sample rows with nulls:
+  Không khuyến nghị dùng thuốc BVTV khi chưa có bệnh | Healthy (Healthy) Không khuyến nghị dùng thuốc BVTV khi chưa có bệnh | Healthy (Healthy).1
+0                                                   Thành phần hoạt chất                                                                      NaN
+1                                                         Nhóm hoạt chất                                                                      NaN
+
+Data preview:
+  Không khuyến nghị dùng thuốc BVTV khi chưa có bệnh | Healthy (Healthy)                                                                            Không khuyến nghị dùng thuốc BVTV khi chưa có bệnh | Healthy (Healthy).1
+0                                                   Thành phần hoạt chất                                                                                                                                                 NaN
+1                                                         Nhóm hoạt chất                                                                                                                                                 NaN
+2                                                       Phác đồ điều trị            Chỉ theo dõi ruộng, áp dụng quản lý tổng hợp và phun thuốc khi thật sự có đối tượng gây hại.. Số lần phun: 0. Khoảng cách: Không áp dụng
+3                                       Có thể phối hợp / không xung đột                                                                                                         N/A. Trạng thái đối chứng, không phải bệnh.
+4                                          Xung đột / không nên phối hợp                                                                              N/A. Không có xung đột vì không khuyến nghị phun thuốc khi ruộng khỏe.
+5                                                      Điều kiện sử dụng                      Theo dõi sau mưa, giai đoạn chuyển mùa, khi ruộng có tiền sử bệnh.. Giai đoạn: Toàn bộ vòng đời lúa.. Mức độ bệnh: Không bệnh.
+6                                             Hướng dẫn pha và phối trộn                Không áp dụng. Thử nghiệm trước: Không. Ưu tiên giám sát đồng ruộng, dinh dưỡng cân đối, vệ sinh tàn dư và dùng thuốc khi đủ ngưỡng.
+7                                                             Liều lượng                                                                                                            Không áp dụng. Lượng nước: Không áp dụng
+8                                                                  Nguồn  https://bacsicayxanh.vn/cay-trong/lua-nuoc/benh/benh-bac-la-tren-lua/75/\nhttps://bacsicayxanh.vn/cay-trong/lua-nuoc/benh/benh-kho-van-tren-lua/74
+--------------------------------------------------
+
+=== Sheet: PhuLuc ===
+Columns:
+  - Loại
+  - Tương tác
+  - Ghi nhận
+  - Nguồn
+
+Shape: (8, 4)
+
+Null counts:
+Series([], dtype: int64)
+
+No nulls found!
+
+Data preview:
+          Loại                                                  Tương tác                                                                                   Ghi nhận                                                                                                                                                                                   Nguồn
+0  Tương thích                                    BONNY 4SL + AVISO 350SC               Nông Dược HAI nêu rõ có thể hỗn hợp để tăng hiệu quả phòng trừ bệnh hại lúa.  https://nongduochai.vn/cay-lua/thuoc-tru-benh-bonny-4sl---con-chi-vi-khuan-n70.html\nhttps://nongduochai.vn/cay-lua/aviso-350sc-%E2%80%93-an-tam-phong-tri-dao-on-lem-lep-hat-n57.html
+1  Tương thích                                   BONNY 4SL + NEWBEM 750WP    Nông Dược HAI nêu rõ có thể hỗn hợp để tăng hiệu quả phòng trừ nấm và vi khuẩn hại lúa.                     https://nongduochai.vn/cay-lua/thuoc-tru-benh-bonny-4sl---con-chi-vi-khuan-n70.html\nhttps://nongduochai.vn/cay-lua/giai-phap-thuoc-tru-benh-newbem-750wp-n182.html
+2  Tương thích                                 AVISO 350SC + NEWBEM 750WP         Nông Dược HAI nêu rõ hỗn hợp rất tốt để tăng hiệu quả phòng trừ nấm bệnh trên lúa.                                                   https://nongduochai.vn/ttru-benh-aviso-350sc-p68.html\nhttps://nongduochai.vn/cay-lua/giai-phap-thuoc-tru-benh-newbem-750wp-n182.html
+3  Tương thích                                     Kasugamycin + Polyoxin                                                       Cùng hiện diện trong STARSUPER 10SC.                                                                                                                                    https://dongthapsenhong.com/san-pham/starsuper-10sc/
+4  Tương thích                               Oxolinic acid + Tricyclazole                                                          Cùng hiện diện trong TRYXO 750WP.                                                                                                                                       https://dongthapsenhong.com/san-pham/tryxo-750wp/
+5  Tương thích                               Tricyclazole + Propiconazole                                                          Cùng hiện diện trong Filia 525SE.                                                                                                                                                https://www.syngenta.com.vn/filiar-525se
+6  Tương thích                                Hexaconazole + Tricyclazole                                        Syngenta mô tả là tương hỗ mạnh trong NewTec 300SC.                                                                                                                                               https://www.syngenta.com.vn/newtecr-300sc
+7     Xung đột  Chế phẩm sinh học chứa Bacillus subtilis x thuốc gốc đồng  Ion đồng có thể ức chế hoặc tiêu diệt vi khuẩn sống, làm giảm hiệu lực chế phẩm sinh học.                              https://ag.fmc.com/in/en/bio-solutions/entazia-biofungicide\nhttps://www.canr.msu.edu/news/how_to_get_the_most_out_of_your_fungicide_sprays_on_fruit_crops
+--------------------------------------------------
+
+=== Sheet: WeatherThresholds_v8_1 ===
+Columns:
+  - Disease code DB
+  - Tên bệnh
+  - Tên tiếng Anh
+  - Có seed DB?
+  - Condition group
+  - Weather factor
+  - Operator
+  - Min value
+  - Max value
+  - Unit
+  - Risk level
+  - Priority
+  - Ngưỡng định lượng từ nguồn
+  - Nguồn
+  - URL
+  - Mức tin cậy
+  - Ghi chú chống mơ hồ
+
+Shape: (13, 17)
+
+Null counts:
+Condition group    3
+Weather factor     3
+Operator           4
+Min value          4
+Max value          7
+Unit               3
+Risk level         3
+Priority           3
+Nguồn              1
+URL                1
+dtype: int64
+
+Sample rows with nulls:
+   Disease code DB      Tên bệnh          Tên tiếng Anh Có seed DB?    Condition group Weather factor      Operator  Min value  Max value Unit Risk level  Priority                                                                Ngưỡng định lượng từ nguồn                              Nguồn                                                                                                                                                                                                                                                        URL  Mức tin cậy                                          Ghi chú chống mơ hồ
+1         BLB_RICE        Bạc lá   Bacteria Leaf Blight         YES         BLB_HIGH_1       HUMIDITY  GREATER_THAN       70.0        NaN    %       HIGH      80.0                                                                  Độ ẩm tương đối trên 70%  Plantix-derived Vietnamese source                                                                                                                                                                                     https://dientrangmart.vn/benh-bac-la-lua-bacterial-leaf-blight-disease  MEDIUM_HIGH                               Có số rõ cho độ ẩm; seed được.
+3         BLS_RICE  Sọc vi khuẩn  Bacterial Leaf Streak          NO         BLS_HIGH_1       HUMIDITY           NaN        NaN        NaN    %       HIGH      70.0                                    Nguồn chỉ nói nóng ẩm, mưa to kèm gió, không có %RH rõ              PPD; Tam Nông Phú Thọ  https://www.ppd.gov.vn/tin-sxtt-amp%3B-bvtv-dia-phuong/vi%CC%83nh-phu%CC%81cx3a%3B-quan-ly-benh-dom-soc-vi-khuan.html\nhttps://tamnong.phutho.gov.vn/tin-tuc-su-kien/thong-bao/thong-bao-tuyen-truyen-benh-dom-soc-vi-khuan-tren-lua-bien-phap-phong-tru/       MEDIUM                             Không được tự bịa HUMIDITY >80%.
+5          BS_RICE       Đốm nâu             Brown Spot         YES  BROWN_SPOT_HIGH_1       HUMIDITY  GREATER_THAN       80.0        NaN    %       HIGH      60.0                                                               Relative humidity above 80%                       eAgri / TNAU                                                                                                                                                                                                   https://www.eagri.org/eagri50/PATH272/lecture01/002.html  MEDIUM_HIGH                     Nguồn ngoài nước có số rõ, bổ sung v8.1.
+6          HEALTHY     Khỏe mạnh                Healthy          NO                NaN            NaN           NaN        NaN        NaN  NaN        NaN       NaN                                     Không phải bệnh nên không có threshold cảnh báo bệnh.                                NaN                                                                                                                                                                                                                                                        NaN         HIGH                Đối chứng khỏe mạnh; không seed weather rule.
+8       BLAST_RICE        Đạo ôn             Leaf Blast         YES       BLAST_HIGH_1       HUMIDITY  GREATER_THAN       90.0        NaN    %       HIGH     100.0                            Ẩm độ không khí khoảng/trên 90%; UC IPM nêu high humidity >90%                       VAAS; UC IPM                                                                                                                                                   https://vaas.vn/kienthuc/Caylua/10/069_benhdaoon.htm\nhttps://ipm.ucanr.edu/agriculture/rice/rice-blast/         HIGH                               Có số rõ cho độ ẩm; seed được.
+9       SCALD_RICE   Cháy bìa lá             Leaf Scald          NO                NaN            NaN           NaN        NaN        NaN  NaN        NaN       NaN  Nguồn hiện dùng chỉ nêu ẩm ướt/liên quan lá già/cuối vụ, không có ngưỡng số đáng tin cậy                               VAAS                                                                                                                                                                                                       https://vaas.vn/kienthuc/Caylua/06/25_benhchayla.htm       MEDIUM                                         Không seed vì mơ hồ.
+12          TUNGRO        Tungro      Rice Tungro Virus          NO                NaN            NaN           NaN        NaN        NaN  NaN        NaN       NaN     Nguồn nhấn mạnh rầy xanh môi giới và nguồn cây nhiễm, không có threshold thời tiết số                      QCVN; Plantix                                                                                   https://vanbanphapluat.co/qcvn-01-140-2013-bnnptnt-dieu-tra-thu-thap-xu-ly-bao-quan-mau-benh-virus-hai-lua\nhttps://plantix.net/vi/library/plant-diseases/200033/tungro/         HIGH  Không seed weather rule cho bệnh virus khi thiếu ngưỡng số.
+
+Data preview:
+   Disease code DB      Tên bệnh          Tên tiếng Anh  Có seed DB?       Condition group Weather factor      Operator  Min value  Max value Unit Risk level  Priority                                                                Ngưỡng định lượng từ nguồn                                                   Nguồn                                                                                                                                                                                                                                                        URL  Mức tin cậy                                                                Ghi chú chống mơ hồ
+0         BLB_RICE        Bạc lá   Bacteria Leaf Blight          YES            BLB_HIGH_1    TEMPERATURE       BETWEEN       25.0       34.0   °C       HIGH      80.0                                     Bệnh ưa nhiệt độ 25-34°C; vi khuẩn thích nghi 26-30°C  Plantix-derived Vietnamese source; Chi cục TT&BVTV HCM                                                                                                                   https://dientrangmart.vn/benh-bac-la-lua-bacterial-leaf-blight-disease\nhttps://chicucttbvtvhcm.gov.vn/cay-lua/benh-chay-bia-la-433.html  MEDIUM_HIGH                        Có số rõ; mưa gió chỉ giữ làm ghi chú, không seed rainfall.
+1         BLB_RICE        Bạc lá   Bacteria Leaf Blight          YES            BLB_HIGH_1       HUMIDITY  GREATER_THAN       70.0        NaN    %       HIGH      80.0                                                                  Độ ẩm tương đối trên 70%                       Plantix-derived Vietnamese source                                                                                                                                                                                     https://dientrangmart.vn/benh-bac-la-lua-bacterial-leaf-blight-disease  MEDIUM_HIGH                                                     Có số rõ cho độ ẩm; seed được.
+2         BLS_RICE  Sọc vi khuẩn  Bacterial Leaf Streak  YES_PARTIAL            BLS_HIGH_1    TEMPERATURE       BETWEEN       27.0       35.0   °C       HIGH      70.0                  PPD ghi nhận bệnh phát sinh mạnh trong đợt nóng ẩm 27-35°C tại Vĩnh Phúc                                            PPD Việt Nam                                                                                                                                      https://www.ppd.gov.vn/tin-sxtt-amp%3B-bvtv-dia-phuong/vi%CC%83nh-phu%CC%81cx3a%3B-quan-ly-benh-dom-soc-vi-khuan.html       MEDIUM  Chỉ seed nhiệt độ. Không seed độ ẩm vì nguồn chỉ nói nóng ẩm/mưa gió, không có %.
+3         BLS_RICE  Sọc vi khuẩn  Bacterial Leaf Streak           NO            BLS_HIGH_1       HUMIDITY           NaN        NaN        NaN    %       HIGH      70.0                                    Nguồn chỉ nói nóng ẩm, mưa to kèm gió, không có %RH rõ                                   PPD; Tam Nông Phú Thọ  https://www.ppd.gov.vn/tin-sxtt-amp%3B-bvtv-dia-phuong/vi%CC%83nh-phu%CC%81cx3a%3B-quan-ly-benh-dom-soc-vi-khuan.html\nhttps://tamnong.phutho.gov.vn/tin-tuc-su-kien/thong-bao/thong-bao-tuyen-truyen-benh-dom-soc-vi-khuan-tren-lua-bien-phap-phong-tru/       MEDIUM                                                   Không được tự bịa HUMIDITY >80%.
+4          BS_RICE       Đốm nâu             Brown Spot          YES     BROWN_SPOT_HIGH_1    TEMPERATURE       BETWEEN       25.0       30.0   °C       HIGH      60.0                               Temperature 25-30°C with RH above 80% are highly favourable                                            eAgri / TNAU                                                                                                                                                                                                   https://www.eagri.org/eagri50/PATH272/lecture01/002.html  MEDIUM_HIGH                                           Nguồn ngoài nước có số rõ, bổ sung v8.1.
+5          BS_RICE       Đốm nâu             Brown Spot          YES     BROWN_SPOT_HIGH_1       HUMIDITY  GREATER_THAN       80.0        NaN    %       HIGH      60.0                                                               Relative humidity above 80%                                            eAgri / TNAU                                                                                                                                                                                                   https://www.eagri.org/eagri50/PATH272/lecture01/002.html  MEDIUM_HIGH                                           Nguồn ngoài nước có số rõ, bổ sung v8.1.
+6          HEALTHY     Khỏe mạnh                Healthy           NO                   NaN            NaN           NaN        NaN        NaN  NaN        NaN       NaN                                     Không phải bệnh nên không có threshold cảnh báo bệnh.                                                     NaN                                                                                                                                                                                                                                                        NaN         HIGH                                      Đối chứng khỏe mạnh; không seed weather rule.
+7       BLAST_RICE        Đạo ôn             Leaf Blast          YES          BLAST_HIGH_1    TEMPERATURE       BETWEEN       20.0       28.0   °C       HIGH     100.0                                                           20-28°C; thuận lợi nhất 24-28°C                                            VAAS; UC IPM                                                                                                                                                   https://vaas.vn/kienthuc/Caylua/10/069_benhdaoon.htm\nhttps://ipm.ucanr.edu/agriculture/rice/rice-blast/         HIGH                                                  Có số rõ cho nhiệt độ; seed được.
+8       BLAST_RICE        Đạo ôn             Leaf Blast          YES          BLAST_HIGH_1       HUMIDITY  GREATER_THAN       90.0        NaN    %       HIGH     100.0                            Ẩm độ không khí khoảng/trên 90%; UC IPM nêu high humidity >90%                                            VAAS; UC IPM                                                                                                                                                   https://vaas.vn/kienthuc/Caylua/10/069_benhdaoon.htm\nhttps://ipm.ucanr.edu/agriculture/rice/rice-blast/         HIGH                                                     Có số rõ cho độ ẩm; seed được.
+9       SCALD_RICE   Cháy bìa lá             Leaf Scald           NO                   NaN            NaN           NaN        NaN        NaN  NaN        NaN       NaN  Nguồn hiện dùng chỉ nêu ẩm ướt/liên quan lá già/cuối vụ, không có ngưỡng số đáng tin cậy                                                    VAAS                                                                                                                                                                                                       https://vaas.vn/kienthuc/Caylua/06/25_benhchayla.htm       MEDIUM                                                               Không seed vì mơ hồ.
+10   SHEATH_BLIGHT       Khô vằn          Sheath Blight          YES  SHEATH_BLIGHT_HIGH_1    TEMPERATURE       BETWEEN       28.0       32.0   °C       HIGH      90.0                                                               Nhiệt độ cao khoảng 28-32°C                                              VAAS; IRRI                                                                                                     https://vaas.vn/kienthuc/Caylua/10/070_khovan.htm\nhttps://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/sheath-blight         HIGH                                                  Có số rõ cho nhiệt độ; seed được.
+11   SHEATH_BLIGHT       Khô vằn          Sheath Blight          YES  SHEATH_BLIGHT_HIGH_1       HUMIDITY       BETWEEN       85.0      100.0    %       HIGH      90.0                                                          Ẩm độ tán lá/crop canopy 85-100%                                              VAAS; IRRI                                                                                                     https://vaas.vn/kienthuc/Caylua/10/070_khovan.htm\nhttps://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/sheath-blight         HIGH                                                     Có số rõ cho độ ẩm; seed được.
+12          TUNGRO        Tungro      Rice Tungro Virus           NO                   NaN            NaN           NaN        NaN        NaN  NaN        NaN       NaN     Nguồn nhấn mạnh rầy xanh môi giới và nguồn cây nhiễm, không có threshold thời tiết số                                           QCVN; Plantix                                                                                   https://vanbanphapluat.co/qcvn-01-140-2013-bnnptnt-dieu-tra-thu-thap-xu-ly-bao-quan-mau-benh-virus-hai-lua\nhttps://plantix.net/vi/library/plant-diseases/200033/tungro/         HIGH                        Không seed weather rule cho bệnh virus khi thiếu ngưỡng số.
+--------------------------------------------------
+
+=== Sheet: WeatherSeedSQL_v8_1 ===
+Columns:
+  - SQL VALUES row
+  - Disease code
+  - Tên bệnh
+  - Condition group
+  - Weather factor
+  - Ghi chú
+
+Shape: (9, 6)
+
+Null counts:
+Series([], dtype: int64)
+
+No nulls found!
+
+Data preview:
+                                                                                                                                               SQL VALUES row   Disease code      Tên bệnh       Condition group Weather factor                                                                            Ghi chú
+0                     ('BLB_RICE', 'BLB_HIGH_1', 'TEMPERATURE', 'BETWEEN', 25, 34, '°C', 'HIGH', 'Bệnh ưa nhiệt độ 25-34°C; vi khuẩn thích nghi 26-30°C', 80)       BLB_RICE        Bạc lá            BLB_HIGH_1    TEMPERATURE                        Có số rõ; mưa gió chỉ giữ làm ghi chú, không seed rainfall.
+1                                               ('BLB_RICE', 'BLB_HIGH_1', 'HUMIDITY', 'GREATER_THAN', 70, NULL, '%', 'HIGH', 'Độ ẩm tương đối trên 70%', 80)       BLB_RICE        Bạc lá            BLB_HIGH_1       HUMIDITY                                                     Có số rõ cho độ ẩm; seed được.
+2  ('BLS_RICE', 'BLS_HIGH_1', 'TEMPERATURE', 'BETWEEN', 27, 35, '°C', 'HIGH', 'PPD ghi nhận bệnh phát sinh mạnh trong đợt nóng ẩm 27-35°C tại Vĩnh Phúc', 70)       BLS_RICE  Sọc vi khuẩn            BLS_HIGH_1    TEMPERATURE  Chỉ seed nhiệt độ. Không seed độ ẩm vì nguồn chỉ nói nóng ẩm/mưa gió, không có %.
+3         ('BS_RICE', 'BROWN_SPOT_HIGH_1', 'TEMPERATURE', 'BETWEEN', 25, 30, '°C', 'HIGH', 'Temperature 25-30°C with RH above 80% are highly favourable', 60)        BS_RICE       Đốm nâu     BROWN_SPOT_HIGH_1    TEMPERATURE                                           Nguồn ngoài nước có số rõ, bổ sung v8.1.
+4                                      ('BS_RICE', 'BROWN_SPOT_HIGH_1', 'HUMIDITY', 'GREATER_THAN', 80, NULL, '%', 'HIGH', 'Relative humidity above 80%', 60)        BS_RICE       Đốm nâu     BROWN_SPOT_HIGH_1       HUMIDITY                                           Nguồn ngoài nước có số rõ, bổ sung v8.1.
+5                                      ('BLAST_RICE', 'BLAST_HIGH_1', 'TEMPERATURE', 'BETWEEN', 20, 28, '°C', 'HIGH', '20-28°C; thuận lợi nhất 24-28°C', 100)     BLAST_RICE        Đạo ôn          BLAST_HIGH_1    TEMPERATURE                                                  Có số rõ cho nhiệt độ; seed được.
+6    ('BLAST_RICE', 'BLAST_HIGH_1', 'HUMIDITY', 'GREATER_THAN', 90, NULL, '%', 'HIGH', 'Ẩm độ không khí khoảng/trên 90%; UC IPM nêu high humidity >90%', 100)     BLAST_RICE        Đạo ôn          BLAST_HIGH_1       HUMIDITY                                                     Có số rõ cho độ ẩm; seed được.
+7                                ('SHEATH_BLIGHT', 'SHEATH_BLIGHT_HIGH_1', 'TEMPERATURE', 'BETWEEN', 28, 32, '°C', 'HIGH', 'Nhiệt độ cao khoảng 28-32°C', 90)  SHEATH_BLIGHT       Khô vằn  SHEATH_BLIGHT_HIGH_1    TEMPERATURE                                                  Có số rõ cho nhiệt độ; seed được.
+8                              ('SHEATH_BLIGHT', 'SHEATH_BLIGHT_HIGH_1', 'HUMIDITY', 'BETWEEN', 85, 100, '%', 'HIGH', 'Ẩm độ tán lá/crop canopy 85-100%', 90)  SHEATH_BLIGHT       Khô vằn  SHEATH_BLIGHT_HIGH_1       HUMIDITY                                                     Có số rõ cho độ ẩm; seed được.
+--------------------------------------------------
+
+=== Sheet: CrawlLog_v8_1 ===
+Columns:
+  - Tên bệnh
+  - Tên tiếng Anh
+  - Nguồn
+  - URL
+  - Kết quả crawl v8.1
+
+Shape: (8, 5)
+
+Null counts:
+Nguồn    1
+URL      1
+dtype: int64
+
+Sample rows with nulls:
+    Tên bệnh Tên tiếng Anh Nguồn  URL                                     Kết quả crawl v8.1
+3  Khỏe mạnh       Healthy   NaN  NaN  Không phải bệnh; không crawl threshold và không seed.
+
+Data preview:
+       Tên bệnh          Tên tiếng Anh                                                   Nguồn                                                                                                                                                                                                                                                        URL                                          Kết quả crawl v8.1
+0        Bạc lá   Bacteria Leaf Blight  Plantix-derived Vietnamese source; Chi cục TT&BVTV HCM                                                                                                                   https://dientrangmart.vn/benh-bac-la-lua-bacterial-leaf-blight-disease\nhttps://chicucttbvtvhcm.gov.vn/cay-lua/benh-chay-bia-la-433.html                       Có nhiệt độ 25-34°C và RH >70%; seed.
+1  Sọc vi khuẩn  Bacterial Leaf Streak                          PPD Việt Nam; Tam Nông Phú Thọ  https://www.ppd.gov.vn/tin-sxtt-amp%3B-bvtv-dia-phuong/vi%CC%83nh-phu%CC%81cx3a%3B-quan-ly-benh-dom-soc-vi-khuan.html\nhttps://tamnong.phutho.gov.vn/tin-tuc-su-kien/thong-bao/thong-bao-tuyen-truyen-benh-dom-soc-vi-khuan-tren-lua-bien-phap-phong-tru/  Có nhiệt độ 27-35°C; không có %RH nên không seed humidity.
+2       Đốm nâu             Brown Spot                                        VAAS; eAgri/TNAU                                                                                                                                             https://vaas.vn/kienthuc/Caylua/06/23_benhdomnau.htm\nhttps://www.eagri.org/eagri50/PATH272/lecture01/002.html                                Có 25-30°C và RH >80%; seed.
+3     Khỏe mạnh                Healthy                                                     NaN                                                                                                                                                                                                                                                        NaN       Không phải bệnh; không crawl threshold và không seed.
+4        Đạo ôn             Leaf Blast                                            VAAS; UC IPM                                                                                                                                                   https://vaas.vn/kienthuc/Caylua/10/069_benhdaoon.htm\nhttps://ipm.ucanr.edu/agriculture/rice/rice-blast/                                Có 20-28°C và RH >90%; seed.
+5   Cháy bìa lá             Leaf Scald                                                    VAAS                                                                                                                                                                                                       https://vaas.vn/kienthuc/Caylua/06/25_benhchayla.htm                       Không có threshold số rõ; không seed.
+6       Khô vằn          Sheath Blight                                              VAAS; IRRI                                                                                                     https://vaas.vn/kienthuc/Caylua/10/070_khovan.htm\nhttps://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/sheath-blight                   Có 28-32°C và ẩm độ tán lá 85-100%; seed.
+7        Tungro      Rice Tungro Virus                                           QCVN; Plantix                                                                                   https://vanbanphapluat.co/qcvn-01-140-2013-bnnptnt-dieu-tra-thu-thap-xu-ly-bao-quan-mau-benh-virus-hai-lua\nhttps://plantix.net/vi/library/plant-diseases/200033/tungro/             Không có threshold thời tiết số rõ; không seed.
+--------------------------------------------------
+

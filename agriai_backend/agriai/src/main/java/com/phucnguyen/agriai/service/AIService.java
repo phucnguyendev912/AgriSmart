@@ -107,12 +107,10 @@ public class AIService implements GuidancePort {
         if (treatments != null && !treatments.isEmpty()) {
             sb.append("\n=== THUỐC ĐỀ XUẤT ===\n");
             for (TreatmentDTO t : treatments) {
-                sb.append("- ").append(t.getDrugName() != null ? t.getDrugName() : t.getTreatmentName());
-                if (t.getIngredientName() != null) {
-                    sb.append(" (Hoạt chất: ").append(t.getIngredientName()).append(")");
-                }
-                if (t.getDosage() != null) {
-                    sb.append(" | Liều: ").append(t.getDosage());
+                sb.append("- ").append(t.getDrugName() != null ? t.getDrugName() : "Phác đồ điều trị");
+
+                if (t.getDisplayDosage() != null) {
+                    sb.append(" | Liều: ").append(t.getDisplayDosage());
                 }
                 if (t.getApplicationMethod() != null) {
                     sb.append(" | Cách dùng: ").append(t.getApplicationMethod());
