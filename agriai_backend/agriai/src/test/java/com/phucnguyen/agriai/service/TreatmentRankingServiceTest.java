@@ -13,9 +13,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.phucnguyen.agriai.mapper.TreatmentMapper;
+
 class TreatmentRankingServiceTest {
 
-    private final TreatmentRankingService service = new TreatmentRankingService();
+    private final TreatmentRankingService service = new TreatmentRankingService(new TreatmentMapper());
 
     @Test
     void rankPlans_prefersPlanWithDrugIngredient() {

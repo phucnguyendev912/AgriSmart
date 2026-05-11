@@ -32,6 +32,7 @@ import com.phucnguyen.agriai.dto.WeatherDTO;
 import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
 import com.phucnguyen.agriai.entity.DiagnoseTreatmentRecommendation;
 import com.phucnguyen.agriai.repository.DiagnoseTreatmentRecommendationRepository;
+import com.phucnguyen.agriai.mapper.TreatmentMapper;
 import java.util.Comparator;
 
 @Service
@@ -51,6 +52,9 @@ public class DiagnoseHistoryService {
 
     @Autowired
     private DiagnoseTreatmentRecommendationRepository recommendationRepository;
+
+    @Autowired
+    private TreatmentMapper treatmentMapper;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -287,7 +291,7 @@ public class DiagnoseHistoryService {
         if (recommendation.getTreatmentPlan() == null) {
             return null;
         }
-        TreatmentDTO dto = TreatmentDTO.fromEntity(recommendation.getTreatmentPlan());
+        TreatmentDTO dto = treatmentMapper.toDTO(recommendation.getTreatmentPlan());
         dto.setRank(recommendation.getRankScore());
         dto.setRecommended(recommendation.getRankScore() != null && recommendation.getRankScore() == 1);
         return dto;

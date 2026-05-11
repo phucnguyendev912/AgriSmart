@@ -150,20 +150,17 @@ public class DrugInteractionChecker {
                 return new InteractionResult(warnings, true, buildSummary(warnings));
         }
 
-        // Ưu tiên drug.ingredients (mới), fallback plan.ingredient (cũ)
-        private List<Integer> extractIngredientIds(TreatmentPlan plan) {
-                if (plan.getDrug() != null && plan.getDrug().getIngredients() != null
-                                && !plan.getDrug().getIngredients().isEmpty()) {
-                        return plan.getDrug().getIngredients().stream()
-                                        .filter(di -> di.getIngredient() != null)
-                                        .map(di -> di.getIngredient().getId())
-                                        .toList();
-                }
-                if (plan.getIngredient() != null) {
-                        return List.of(plan.getIngredient().getId());
-                }
-                return List.of();
-        }
+    // Ưu tiên drug.ingredients (mới)
+    private List<Integer> extractIngredientIds(TreatmentPlan plan) {
+            if (plan.getDrug() != null && plan.getDrug().getIngredients() != null
+                            && !plan.getDrug().getIngredients().isEmpty()) {
+                    return plan.getDrug().getIngredients().stream()
+                                    .filter(di -> di.getIngredient() != null)
+                                    .map(di -> di.getIngredient().getId())
+                                    .toList();
+            }
+            return List.of();
+    }
 
         private String buildSummary(List<InteractionWarningDTO> warnings) {
                 long blockingCount = warnings.stream()
