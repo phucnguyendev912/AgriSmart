@@ -44,7 +44,6 @@ public class GeocodingService {
                         .longitude(lon)
                         .address(result.shortAddress())
                         .province(result.province())
-                        .confirmed(false)
                         .build());
 
         // 4. Push WebSocket thông báo cho user
