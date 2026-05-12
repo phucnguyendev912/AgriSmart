@@ -24,7 +24,7 @@ public class TreatmentMapper {
                 switch(plan.getDosageType()) {
                     case PER_TANK: generatedDosage += "/bình"; break;
                     case PER_HA: generatedDosage += "/ha"; break;
-                    case PER_AREA: generatedDosage += "/công"; break;
+                    case PER_AREA: generatedDosage += "/1000m²"; break;
                 }
             }
         }

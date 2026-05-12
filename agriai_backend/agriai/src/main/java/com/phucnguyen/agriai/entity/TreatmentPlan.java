@@ -4,14 +4,11 @@ import com.phucnguyen.agriai.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.RelationTargetAuditMode;
 import com.phucnguyen.agriai.entity.enums.DosageType;
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "TreatmentPlan")
-@Audited
 @Getter
 @Setter
 @NoArgsConstructor
@@ -70,7 +67,7 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "spray_times")
     private Short sprayTimes;
 
-    @Column(name = "spray_interval", length = 50)
+    @Column(name = "spray_interval", length = 100)
     private String sprayInterval;
 
     // ── Fields giữ nguyên ────────────────────────────────────────────────────
@@ -90,6 +87,4 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "is_active")
-    private Boolean isActive;
 }

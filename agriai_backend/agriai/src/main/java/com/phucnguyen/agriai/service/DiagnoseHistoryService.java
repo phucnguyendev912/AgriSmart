@@ -34,29 +34,26 @@ import com.phucnguyen.agriai.entity.DiagnoseTreatmentRecommendation;
 import com.phucnguyen.agriai.repository.DiagnoseTreatmentRecommendationRepository;
 import com.phucnguyen.agriai.mapper.TreatmentMapper;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 @Transactional
 public class DiagnoseHistoryService {
-    @Autowired
-    private DiagnoseHistoryRepository diagnoseHistoryRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final DiagnoseHistoryRepository diagnoseHistoryRepository;
 
-    @Autowired
-    private DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private DiagnoseReviewRepository diagnoseReviewRepository;
+    private final DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
 
-    @Autowired
-    private DiagnoseTreatmentRecommendationRepository recommendationRepository;
+    private final DiagnoseReviewRepository diagnoseReviewRepository;
 
-    @Autowired
-    private TreatmentMapper treatmentMapper;
+    private final DiagnoseTreatmentRecommendationRepository recommendationRepository;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final TreatmentMapper treatmentMapper;
+
+    private final ObjectMapper objectMapper;
 
     // get diagnose history by user email
     public Page<com.phucnguyen.agriai.dto.response.DiagnoseHistoryResponse> getHistory(String email,
@@ -152,10 +149,11 @@ public class DiagnoseHistoryService {
 
         for (DiagnoseHistoryDetail detail : details) {
             if (detail.getDisease() != null) {
+                String diseaseDisplayName = buildDiseaseDisplayName(detail.getDisease());
                 diseases.add(DiseaseResultDTO.builder()
                         .diseaseId(detail.getDisease().getId())
                         .diseaseCode(detail.getDisease().getDiseaseCode())
-                        .diseaseName(detail.getDisease().getDiseaseName())
+                        .diseaseName(diseaseDisplayName)
                         .confidence(
                                 detail.getConfidenceScore() != null ? detail.getConfidenceScore().doubleValue() : null)
                         .severity(detail.getSeverity() != null ? detail.getSeverity().name() : null)
@@ -219,12 +217,14 @@ public class DiagnoseHistoryService {
                 .values().stream().toList();
 
         return DiagnoseResponse.builder()
+                .id(history.getId())
                 .originalImageUrl(history.getOriginalImageUrl())
                 .weather(parseWeatherJson(history.getWeatherData()))
                 .diseases(diseases)
                 .treatments(treatments)
                 .sprayPrograms(distinctPrograms)
                 .interactionWarnings(distinctInteractionWarnings)
+                .hasInteractionWarning(!distinctInteractionWarnings.isEmpty())
                 .weatherAlerts(distinctWeatherAlerts)
                 .diseaseWeatherRisks(distinctDiseaseWeatherRisks)
                 .warnings(distinctWarnings)
@@ -243,6 +243,15 @@ public class DiagnoseHistoryService {
         } catch (Exception exception) {
             return null;
         }
+    }
+
+    private String buildDiseaseDisplayName(com.phucnguyen.agriai.entity.Disease disease) {
+        String nameEn = disease.getDiseaseNameEn();
+        String nameVi = disease.getDiseaseName();
+        if (nameEn != null && !nameEn.isBlank()) {
+            return nameEn + " (" + nameVi + ")";
+        }
+        return nameVi;
     }
 
     private String interactionWarningKey(InteractionWarningDTO warning) {
