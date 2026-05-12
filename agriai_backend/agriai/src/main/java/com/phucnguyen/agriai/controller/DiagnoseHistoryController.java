@@ -11,19 +11,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/diagnosis")
 public class DiagnoseHistoryController {
 
-    @Autowired
-    private DiagnoseHistoryService diagnoseHistoryService;
+    private final DiagnoseHistoryService diagnoseHistoryService;
 
     /**
      * GET /api/diagnosis/history — Lịch sử chẩn đoán của user
      */
     @GetMapping("/history")
     public ResponseEntity<Page<DiagnoseHistoryResponse>> getHistory(
-            Principal principal,        
+            Principal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         String email = principal != null ? principal.getName() : null;

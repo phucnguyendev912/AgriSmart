@@ -41,6 +41,9 @@ public class DiagnoseResponseBuilder {
                                 .sprayPrograms(ruleResult.sprayPrograms())
                                 .interactionWarnings(ruleResult.interactionWarnings())
                                 .weatherAlerts(ruleResult.weatherAlerts())
+                                .diseaseWeatherRisks(ruleResult.diseaseWeatherRisks())
+                                .hasInteractionWarning(ruleResult.hasInteractionWarning())
+                                .interactionSummary(ruleResult.interactionSummary())
                                 .isHealthy(analysis.isHealthy())
                                 .diagnosisType(diagnosisType)
                                 .build();
@@ -75,7 +78,7 @@ public class DiagnoseResponseBuilder {
                         }
                 }
 
-                // Fallback nếu không có confidence
+                // Fallback if doesn't have confidence
                 if (match.visionResult().getSeverity() != null && !match.visionResult().getSeverity().isBlank()) {
                         return match.visionResult().getSeverity();
                 }

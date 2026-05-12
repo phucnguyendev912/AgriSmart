@@ -12,6 +12,7 @@ import com.phucnguyen.agriai.port.GuidancePort;
 import com.phucnguyen.agriai.port.ImageStoragePort;
 import com.phucnguyen.agriai.port.VisionDetectionPort;
 import com.phucnguyen.agriai.port.WeatherPort;
+import com.phucnguyen.agriai.dto.DiseaseContextDTO;
 import com.phucnguyen.agriai.repository.DiagnoseHistoryRepository;
 import java.util.List;
 import java.util.Locale;
@@ -77,7 +78,10 @@ public class DiagnoseService {
                     ? RuleEngineService.RuleEngineResult.empty()
                     : ruleEngineService.process(
                             analysis.detectedDiseases().stream()
-                                    .map(match -> match.disease().getId())
+                                    .map(match -> new DiseaseContextDTO(
+                                            match.disease().getId(),
+                                            match.disease().getDiseaseName(),
+                                            match.visionResult() != null ? match.visionResult().getSeverity() : null))
                                     .toList(),
                             weather);
 

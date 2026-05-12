@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import FarmerStories from '../features/landing/components/FarmerReviews';
+import WeatherDiseaseSection from '../features/landing/components/WeatherDiseaseSection';
 
 const HomePage = () => {
   return (
@@ -126,6 +127,8 @@ const HomePage = () => {
             </div>
           </div>
         </section>
+
+        <WeatherDiseaseSection />
 
         <FarmerStories />
         {/* Final CTA */}
