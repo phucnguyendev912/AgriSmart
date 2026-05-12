@@ -7,6 +7,8 @@ import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
 import com.phucnguyen.agriai.port.GuidancePort;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
+import com.phucnguyen.agriai.entity.TreatmentPlan;
+import com.phucnguyen.agriai.dto.WeatherDTO;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,8 +114,14 @@ public class AIService implements GuidancePort {
                 if (t.getDisplayDosage() != null) {
                     sb.append(" | Liều: ").append(t.getDisplayDosage());
                 }
+                if (t.getDisplayWaterVolume() != null) {
+                    sb.append(" | Nước: ").append(t.getDisplayWaterVolume());
+                }
                 if (t.getApplicationMethod() != null) {
                     sb.append(" | Cách dùng: ").append(t.getApplicationMethod());
+                }
+                if (t.getSprayInterval() != null) {
+                    sb.append(" | Tần suất: ").append(t.getSprayInterval());
                 }
                 sb.append("\n");
             }
@@ -167,5 +175,88 @@ public class AIService implements GuidancePort {
         }
 
         return sb.toString();
+    }
+
+    public record RecommendResult(Integer recommendedPlanId, String reasoning) {}
+
+    public RecommendResult recommendTreatment(String diseaseName, String severity, WeatherDTO weather, List<TreatmentPlan> candidatePlans) {
+        if (chatModel == null || candidatePlans == null || candidatePlans.isEmpty()) {
+            return null; // Fallback to ranking logic
+        }
+        
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[VAI TRÒ]\n");
+            sb.append("Bạn là chuyên gia Nông nghiệp. Dựa vào thông tin bệnh, thời tiết và danh sách các phác đồ ứng viên, hãy chọn ra 1 phác đồ TỐT NHẤT.\n\n");
+            
+            sb.append("[YÊU CẦU ĐẦU RA]\n");
+            sb.append("Chỉ trả về ĐÚNG MỘT chuỗi JSON hợp lệ với định dạng sau (không markdown, không bọc trong ```json):\n");
+            sb.append("{\"recommendedPlanId\": <ID_PHAC_DO_DUOC_CHON>, \"reasoning\": \"<GIẢI THÍCH NGẮN GỌN BẰNG TIẾNG VIỆT>\"}\n\n");
+
+            sb.append("[THÔNG TIN BỆNH]\n");
+            sb.append("- Tên bệnh: ").append(diseaseName).append("\n");
+            sb.append("- Mức độ: ").append(severity != null ? severity : "Chưa xác định").append("\n\n");
+
+            if (weather != null) {
+                sb.append("[THỜI TIẾT HIỆN TẠI]\n");
+                if (weather.getTemperature() != null) sb.append("- Nhiệt độ: ").append(weather.getTemperature()).append("°C\n");
+                if (weather.getHumidity() != null) sb.append("- Độ ẩm: ").append(weather.getHumidity()).append("%\n");
+                if (weather.getRainfall() != null) sb.append("- Lượng mưa: ").append(weather.getRainfall()).append("mm\n");
+                sb.append("\n");
+            }
+
+            sb.append("[DANH SÁCH PHÁC ĐỒ ỨNG VIÊN]\n");
+            for (TreatmentPlan p : candidatePlans) {
+                sb.append("- Phác đồ ID: ").append(p.getId()).append("\n");
+                if (p.getDrug() != null) {
+                    sb.append("  + Tên thuốc: ").append(p.getDrug().getDrugName()).append("\n");
+                    if (p.getDrug().getIngredients() != null) {
+                        sb.append("  + Hoạt chất: ").append(p.getDrug().getIngredients().stream()
+                            .filter(di -> di.getIngredient() != null)
+                            .map(di -> di.getIngredient().getIngredientName())
+                            .collect(Collectors.joining(", "))).append("\n");
+                    }
+                }
+                if (p.getDosageValueMin() != null) {
+                    sb.append("  + Liều lượng: ").append(p.getDosageValueMin()).append(" - ").append(p.getDosageValueMax() != null ? p.getDosageValueMax() : p.getDosageValueMin()).append(" ").append(p.getDosageUnit()).append("\n");
+                }
+                if (p.getApplicationMethod() != null) sb.append("  + Cách dùng: ").append(p.getApplicationMethod()).append("\n");
+            }
+
+            String response = chatModel.chat(sb.toString());
+            System.out.println("[AI-Recommend] Raw AI response: " + response);
+            
+            // Trích xuất JSON từ response (xử lý cả markdown block lẫn text thừa)
+            String cleaned = response.trim();
+            // Xử lý markdown code block
+            int jsonBlockStart = cleaned.indexOf("```json");
+            if (jsonBlockStart >= 0) {
+                cleaned = cleaned.substring(jsonBlockStart + 7);
+                int jsonBlockEnd = cleaned.indexOf("```");
+                if (jsonBlockEnd >= 0) {
+                    cleaned = cleaned.substring(0, jsonBlockEnd);
+                }
+            } else if (cleaned.indexOf("```") >= 0) {
+                cleaned = cleaned.replaceAll("```", "");
+            }
+            
+            // Tìm JSON object trong chuỗi
+            int braceStart = cleaned.indexOf("{");
+            int braceEnd = cleaned.lastIndexOf("}");
+            if (braceStart >= 0 && braceEnd > braceStart) {
+                cleaned = cleaned.substring(braceStart, braceEnd + 1);
+            }
+            cleaned = cleaned.trim();
+            System.out.println("[AI-Recommend] Cleaned JSON: " + cleaned);
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            RecommendResult result = mapper.readValue(cleaned, RecommendResult.class);
+            System.out.println("[AI-Recommend] Parsed result: planId=" + result.recommendedPlanId() + ", reason=" + result.reasoning());
+            return result;
+        } catch (Exception e) {
+            System.err.println("[AI-Recommend] FAILED: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            e.printStackTrace();
+            return null; // Fallback
+        }
     }
 }

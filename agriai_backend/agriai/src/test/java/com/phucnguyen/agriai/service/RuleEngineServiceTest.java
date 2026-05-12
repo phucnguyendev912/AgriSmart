@@ -4,6 +4,7 @@ import com.phucnguyen.agriai.dto.DiseaseWeatherRiskDTO;
 import com.phucnguyen.agriai.dto.InteractionWarningDTO;
 import com.phucnguyen.agriai.dto.TreatmentDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
+import com.phucnguyen.agriai.dto.DiseaseContextDTO;
 import com.phucnguyen.agriai.entity.TreatmentPlan;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -37,6 +37,7 @@ class RuleEngineServiceTest {
 
     @Test
     void process_returnsRankedTreatmentsAndNewContractFields() {
+        List<DiseaseContextDTO> diseases = List.of(new DiseaseContextDTO(1, "Dao on", null), new DiseaseContextDTO(2, "Bac la", null));
         List<Integer> diseaseIds = List.of(1, 2);
         WeatherDTO weather = WeatherDTO.builder().temperature(25.0).humidity(90.0).build();
         TreatmentPlan planA = TreatmentPlan.builder().id(10).build();
@@ -53,7 +54,7 @@ class RuleEngineServiceTest {
         plansByDisease.put(2, List.of(planB));
 
         when(treatmentLookupService.findByDiseaseIds(diseaseIds)).thenReturn(plansByDisease);
-        when(treatmentRankingService.rankPlans(plansByDisease)).thenReturn(rankedTreatments);
+        when(treatmentRankingService.rankPlans(plansByDisease, diseases, weather)).thenReturn(rankedTreatments);
         when(drugInteractionChecker.checkRecommendedPlans(rankedTreatments, List.of(planA, planB)))
                 .thenReturn(new DrugInteractionChecker.InteractionResult(interactionWarnings, true, "Co canh bao"));
         when(diseaseWeatherRiskEvaluator.evaluate(diseaseIds, weather)).thenReturn(weatherRisks);
@@ -64,7 +65,7 @@ class RuleEngineServiceTest {
                 drugInteractionChecker,
                 diseaseWeatherRiskEvaluator);
 
-        RuleEngineService.RuleEngineResult result = service.process(diseaseIds, weather);
+        RuleEngineService.RuleEngineResult result = service.process(diseases, weather);
 
         assertEquals(rankedTreatments, result.treatments());
         assertEquals(interactionWarnings, result.interactionWarnings());
@@ -77,6 +78,7 @@ class RuleEngineServiceTest {
 
     @Test
     void process_whenNoPlans_stillEvaluatesDiseaseWeatherRisk() {
+        List<DiseaseContextDTO> diseases = List.of(new DiseaseContextDTO(1, "Dao on", null));
         List<Integer> diseaseIds = List.of(1);
         WeatherDTO weather = WeatherDTO.builder().temperature(25.0).build();
         List<DiseaseWeatherRiskDTO> weatherRisks = List.of(
@@ -91,7 +93,7 @@ class RuleEngineServiceTest {
                 drugInteractionChecker,
                 diseaseWeatherRiskEvaluator);
 
-        RuleEngineService.RuleEngineResult result = service.process(diseaseIds, weather);
+        RuleEngineService.RuleEngineResult result = service.process(diseases, weather);
 
         assertTrue(result.treatments().isEmpty());
         assertEquals(weatherRisks, result.diseaseWeatherRisks());

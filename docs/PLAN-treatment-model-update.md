@@ -9,24 +9,24 @@ Tái cấu trúc model `TreatmentPlan` bằng cách xóa các trường UI dư t
 3. **Tiêu thụ dữ liệu:** Lịch sử, AI, và Frontend tự động nhận chuỗi đẹp mắt từ DTO mà không cần sửa code.
 
 ## Các Task
-- [ ] Task 1: Tạo `DosageType` Enum (`PER_HA`, `PER_TANK`, `PER_AREA`) trong package `com.phucnguyen.agriai.entity.enums`.
-- [ ] Task 2: Cập nhật entity `TreatmentPlan`. Xóa `@Column` của `display_dosage`, `display_water_volume`, `frequency`. Đổi kiểu của `dosageType` sang `@Enumerated(EnumType.STRING) DosageType`.
-- [ ] Task 3: Cập nhật `TreatmentDTO.java`:
+- [x] Task 1: Tạo `DosageType` Enum (`PER_HA`, `PER_TANK`, `PER_AREA`) trong package `com.phucnguyen.agriai.entity.enums`.
+- [x] Task 2: Cập nhật entity `TreatmentPlan`. Xóa `@Column` của `display_dosage`, `display_water_volume`, `frequency`. Đổi kiểu của `dosageType` sang `@Enumerated(EnumType.STRING) DosageType`.
+- [x] Task 3: Cập nhật `TreatmentDTO.java`:
   - Thêm `@JsonIgnoreProperties(ignoreUnknown = true)`.
   - Khôi phục `treatmentName`, `dosage`, `frequency`, `ingredientName` để làm thùng rác hứng JSON cũ (Fix bug lịch sử).
   - Giữ nguyên các property hiển thị trong DTO để response ra frontend.
   - Cập nhật hàm `fromEntity` để tự động tính toán và nối chuỗi cho `displayDosage` và `displayWaterVolume` từ các dữ liệu thô.
   - Xóa mapping trường `frequency`, chuyển sang map bằng `sprayTimes` / `sprayInterval`.
-- [ ] Task 4: Sửa `ScoringCriteria.java` do file này đang gọi `plan.getDisplayDosage()`. Chuyển sang check `plan.getDosageValueMin() != null`.
-- [ ] Task 5: Cập nhật `AIService.java` (nếu cần thiết) để đảm bảo Prompt cho LLM sử dụng đúng các chuỗi hiển thị đã được DTO tự động generate.
-- [ ] Task 6: Cập nhật các mock tests (`TreatmentRankingServiceTest`, `LLMServiceTest`, `DrugInteractionCheckerTest`) để fix mọi lỗi compiler do xóa trường.
-- [ ] Task 7: Tạo file SQL `docker/seed/phase8_cleanup.sql` để chạy lệnh `ALTER TABLE treatment_plan DROP COLUMN display_dosage, display_water_volume, frequency`.
-- [ ] Task 8: Chạy lệnh `mvn clean test` để kiểm thử toàn bộ. → Verify: Build thành công.
+- [x] Task 4: Sửa `ScoringCriteria.java` do file này đang gọi `plan.getDisplayDosage()`. Chuyển sang check `plan.getDosageValueMin() != null`.
+- [x] Task 5: Cập nhật `AIService.java` (nếu cần thiết) để đảm bảo Prompt cho LLM sử dụng đúng các chuỗi hiển thị đã được DTO tự động generate.
+- [x] Task 6: Cập nhật các mock tests (`TreatmentRankingServiceTest`, `LLMServiceTest`, `DrugInteractionCheckerTest`) để fix mọi lỗi compiler do xóa trường.
+- [x] Task 7: Tạo file SQL `docker/seed/phase8_cleanup.sql` để chạy lệnh `ALTER TABLE treatment_plan DROP COLUMN display_dosage, display_water_volume, frequency`.
+- [x] Task 8: Chạy lệnh `mvn clean test` để kiểm thử toàn bộ. → Verify: Build thành công.
 
 ## Tiêu chí hoàn thành (Done When)
-- [ ] Không lỗi compile.
-- [ ] `TreatmentPlan` entity đã dọn dẹp xong.
-- [ ] `DosageType` sử dụng Java Enum.
-- [ ] Logic nối chuỗi hoạt động đúng đắn ở `TreatmentDTO`.
-- [ ] `ScoringCriteria.java` chạy tốt.
-- [ ] Có sẵn file SQL `phase8_cleanup.sql` để deploy.
+- [x] Không lỗi compile.
+- [x] `TreatmentPlan` entity đã dọn dẹp xong.
+- [x] `DosageType` sử dụng Java Enum.
+- [x] Logic nối chuỗi hoạt động đúng đắn ở `TreatmentDTO`.
+- [x] `ScoringCriteria.java` chạy tốt.
+- [x] Có sẵn file SQL `phase8_cleanup.sql` để deploy.

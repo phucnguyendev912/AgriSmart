@@ -2,13 +2,10 @@ package com.phucnguyen.agriai.service;
 
 import com.phucnguyen.agriai.dto.TreatmentDTO;
 import com.phucnguyen.agriai.entity.TreatmentPlan;
-import com.phucnguyen.agriai.enums.ScoringCriteria;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import com.phucnguyen.agriai.dto.DiseaseContextDTO;
+import com.phucnguyen.agriai.dto.WeatherDTO;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import com.phucnguyen.agriai.mapper.TreatmentMapper;
@@ -18,53 +15,58 @@ import com.phucnguyen.agriai.mapper.TreatmentMapper;
 public class TreatmentRankingService {
 
     private final TreatmentMapper treatmentMapper;
+    private final AIService aiService;
 
-    // Rank tất cả plans, trả về flat list với recommended + rank đã fill
-    public List<TreatmentDTO> rankPlans(Map<Integer, List<TreatmentPlan>> plansByDisease) {
-        return plansByDisease.values().stream()
-                .filter(plans -> !plans.isEmpty())
-                .flatMap(plans -> rankSingleDisease(plans).stream())
-                .toList();
-    }
-
-    // Rank plans của 1 bệnh: sort theo score → plan top 1 là recommended
-    private List<TreatmentDTO> rankSingleDisease(List<TreatmentPlan> plans) {
-        record ScoredPlan(TreatmentPlan plan, int score) {}
-
-        List<TreatmentPlan> sorted = plans.stream()
-                .map(p -> new ScoredPlan(p, calculateScore(p)))
-                .sorted(Comparator.comparingInt(ScoredPlan::score).reversed()
-                        .thenComparingInt(sp -> sp.plan().getId()))
-                .map(ScoredPlan::plan)
-                .toList();
-
-        return IntStream.range(0, sorted.size())
-                .mapToObj(i -> {
-                    TreatmentPlan plan = sorted.get(i);
-                    TreatmentDTO dto = treatmentMapper.toDTO(plan);
-                    dto.setRank(i + 1);
-                    dto.setRecommended(i == 0);
-                    dto.setRecommendationReason(i == 0 ? buildReason(plan) : null);
-                    return dto;
+    // Hiển thị tất cả phác đồ, gửi toàn bộ cho AI chọn phác đồ tốt nhất
+    public List<TreatmentDTO> rankPlans(Map<Integer, List<TreatmentPlan>> plansByDisease, List<DiseaseContextDTO> diseases, WeatherDTO weather) {
+        return plansByDisease.entrySet().stream()
+                .filter(entry -> !entry.getValue().isEmpty())
+                .flatMap(entry -> {
+                    Integer diseaseId = entry.getKey();
+                    List<TreatmentPlan> plans = entry.getValue();
+                    DiseaseContextDTO context = diseases.stream()
+                            .filter(d -> d.diseaseId().equals(diseaseId))
+                            .findFirst()
+                            .orElse(new DiseaseContextDTO(diseaseId, "Chưa rõ", "Chưa rõ"));
+                    return processDiseasePlans(plans, context, weather).stream();
                 })
                 .toList();
     }
 
-    // Tổng điểm = cộng dồn từ ScoringCriteria enum
-    private int calculateScore(TreatmentPlan plan) {
-        return Arrays.stream(ScoringCriteria.values())
-                .filter(c -> c.matches(plan))
-                .mapToInt(c -> c.point)
-                .sum();
-    }
+    // Gửi tất cả phác đồ cho AI, AI tự chọn recommended
+    private List<TreatmentDTO> processDiseasePlans(List<TreatmentPlan> plans, DiseaseContextDTO context, WeatherDTO weather) {
+        // Gửi toàn bộ phác đồ cho AI đánh giá
+        AIService.RecommendResult aiResult = aiService.recommendTreatment(
+                context.diseaseName(), context.severity(), weather, plans);
 
-    // Gom lý do từ các tiêu chí match (chỉ lấy tiêu chí có reason)
-    private String buildReason(TreatmentPlan plan) {
-        String reasons = Arrays.stream(ScoringCriteria.values())
-                .filter(c -> c.reason != null && c.matches(plan))
-                .map(c -> c.reason)
-                .collect(Collectors.joining(", "));
+        Integer recommendedPlanId = null;
+        String recommendationReason = null;
 
-        return reasons.isBlank() ? "Phác đồ phù hợp nhất" : reasons;
-    }
+        if (aiResult != null && aiResult.recommendedPlanId() != null) {
+            boolean isValidId = plans.stream().anyMatch(p -> p.getId().equals(aiResult.recommendedPlanId()));
+            if (isValidId) {
+                recommendedPlanId = aiResult.recommendedPlanId();
+                recommendationReason = aiResult.reasoning() != null ? aiResult.reasoning() : "AI khuyên dùng";
+            }
+        }
+
+        // Fallback: nếu AI lỗi, chọn phác đồ đầu tiên
+        if (recommendedPlanId == null && !plans.isEmpty()) {
+            recommendedPlanId = plans.get(0).getId();
+            recommendationReason = "Phác đồ phù hợp nhất";
+        }
+
+        final Integer finalRecommendedId = recommendedPlanId;
+        final String finalReason = recommendationReason;
+
+        return plans.stream()
+                .map(plan -> {
+                    TreatmentDTO dto = treatmentMapper.toDTO(plan);
+                    boolean isRecommended = plan.getId().equals(finalRecommendedId);
+                    dto.setRecommended(isRecommended);
+                    dto.setRecommendationReason(isRecommended ? finalReason : null);
+                    return dto;
+                })
+                .toList();
+     }
 }

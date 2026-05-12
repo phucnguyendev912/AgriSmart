@@ -109,7 +109,7 @@ public class DiagnoseHistoryPersistenceService {
             recommendations.add(DiagnoseTreatmentRecommendation.builder()
                     .diagnoseHistoryDetail(detail)
                     .treatmentPlan(planRef)
-                    .rankScore(treatment.getRank() != null ? treatment.getRank() : 0)
+                    .rankScore(Boolean.TRUE.equals(treatment.getRecommended()) ? 1 : 0)
                     .build());
         }
 

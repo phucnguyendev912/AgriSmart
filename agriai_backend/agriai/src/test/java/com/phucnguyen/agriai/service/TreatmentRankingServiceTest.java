@@ -12,12 +12,15 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 import com.phucnguyen.agriai.mapper.TreatmentMapper;
+import com.phucnguyen.agriai.dto.DiseaseContextDTO;
 
 class TreatmentRankingServiceTest {
 
-    private final TreatmentRankingService service = new TreatmentRankingService(new TreatmentMapper());
+    private final AIService aiService = mock(AIService.class);
+    private final TreatmentRankingService service = new TreatmentRankingService(new TreatmentMapper(), aiService);
 
     @Test
     void rankPlans_prefersPlanWithDrugIngredient() {
@@ -40,7 +43,8 @@ class TreatmentRankingServiceTest {
                         .build())
                 .build();
 
-        List<TreatmentDTO> result = service.rankPlans(Map.of(1, List.of(planWithoutIngredient, planWithIngredient)));
+        when(aiService.recommendTreatment(any(), any(), any(), any())).thenReturn(null);
+        List<TreatmentDTO> result = service.rankPlans(Map.of(1, List.of(planWithoutIngredient, planWithIngredient)), List.of(new DiseaseContextDTO(1, "Dao on", null)), null);
 
         assertEquals(2, result.size());
         assertEquals(2, result.get(0).getTreatmentPlanId());
@@ -55,7 +59,8 @@ class TreatmentRankingServiceTest {
         TreatmentPlan higherId = TreatmentPlan.builder().id(2).disease(disease).build();
         TreatmentPlan lowerId = TreatmentPlan.builder().id(1).disease(disease).build();
 
-        List<TreatmentDTO> result = service.rankPlans(Map.of(1, List.of(higherId, lowerId)));
+        when(aiService.recommendTreatment(any(), any(), any(), any())).thenReturn(null);
+        List<TreatmentDTO> result = service.rankPlans(Map.of(1, List.of(higherId, lowerId)), List.of(new DiseaseContextDTO(1, "Dao on", null)), null);
 
         assertEquals(1, result.get(0).getTreatmentPlanId());
         assertTrue(result.get(0).getRecommended());
