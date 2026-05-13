@@ -21,6 +21,8 @@ public class ChatSessionService {
 
     private static final String DEFAULT_TITLE = "Phiên tư vấn mới";
 
+    private static final int MAX_GENERATED_TITLE_LENGTH = 60;
+
     private final ChatSessionRepository chatSessionRepository;
     private final UserRepository userRepository;
 
@@ -77,6 +79,16 @@ public class ChatSessionService {
         return chatSessionRepository.save(session);
     }
 
+    // update session title from the first user message — only when title is still default
+    public ChatSession updateTitleFromFirstMessage(ChatSession session, String firstMessage) {
+        if (!DEFAULT_TITLE.equals(session.getSessionTitle())) {
+            return session; // custom title already set — do not overwrite
+        }
+        session.setSessionTitle(generateTitle(firstMessage));
+        return chatSessionRepository.save(session);
+    }
+
+
     // get user by email
     private User getUserByEmail(String email) {
         if (email == null || email.isBlank()) {
@@ -98,5 +110,23 @@ public class ChatSessionService {
             return DEFAULT_TITLE;
         }
         return request.getSessionTitle().trim();
+    }
+
+    // create a short, stable title without making an extra AI call
+    private String generateTitle(String message) {
+        if (message == null || message.isBlank()) {
+            return DEFAULT_TITLE;
+        }
+
+        String normalized = message.trim().replaceAll("\\s+", " ");
+        if (normalized.length() <= MAX_GENERATED_TITLE_LENGTH) {
+            return normalized;
+        }
+
+        int cutIndex = normalized.lastIndexOf(' ', MAX_GENERATED_TITLE_LENGTH - 3);
+        if (cutIndex < 20) {
+            cutIndex = MAX_GENERATED_TITLE_LENGTH - 3;
+        }
+        return normalized.substring(0, cutIndex).trim() + "...";
     }
 }

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+
+
 import AddFarmingAreaModal from '../features/farmingArea/components/AddFarmingAreaModal';
 import EditFarmingAreaModal from '../features/farmingArea/components/EditFarmingAreaModal';
 
 const FarmingAreaPage = () => {
-    const { user } = useAuth(); // useAuth: check authentication
     const [areas, setAreas] = useState([]); // useState: lưu danh sách khu vực canh tác tải về từ API.
     const [loading, setLoading] = useState(true); // useState: trạng thái đang tải dữ liệu khu vực canh tác.
     const [isAddModalOpen, setIsAddModalOpen] = useState(false); // useState: kiểm soát hiển thị modal thêm khu vực canh tác mới.
@@ -40,6 +40,18 @@ const FarmingAreaPage = () => {
     const handleEditSuccess = (updatedArea) => {
         setAreas((prev) => prev.map((a) => (a.id === updatedArea.id ? updatedArea : a)));
     };
+    const handleDelete = async (areaId) => {
+    if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
+    try {
+        await axios.delete(`http://localhost:8080/api/areas/${areaId}`, {
+            withCredentials: true
+        });
+        setAreas((prev) => prev.filter((a) => a.id !== areaId));
+    } catch (err) {
+        console.error('Lỗi khi xóa:', err);
+    }
+};
+
 
     return (
         <div className="pt-20 min-h-screen bg-background relative">
@@ -113,7 +125,11 @@ const FarmingAreaPage = () => {
                                                         >
                                                             <span className="material-symbols-outlined text-[18px]">edit</span>
                                                         </button>
-                                                        <button className="w-8 h-8 rounded-lg bg-error-container/50 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all" title="Xóa">
+                                                        <button
+                                                            className="w-8 h-8 rounded-lg bg-error-container/50 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all"
+                                                            title="Xóa"
+                                                            onClick={() => handleDelete(area.id)}
+                                                        >
                                                             <span className="material-symbols-outlined text-[18px]">delete</span>
                                                         </button>
                                                     </div>

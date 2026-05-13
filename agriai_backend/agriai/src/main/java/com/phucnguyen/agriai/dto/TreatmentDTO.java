@@ -1,6 +1,7 @@
 package com.phucnguyen.agriai.dto;
 
-import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.phucnguyen.agriai.entity.TreatmentPlan;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,26 +14,32 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TreatmentDTO {
+    // ── Thông tin cơ bản ─────────────────────────────────────────────────────
     private Integer treatmentPlanId;
     private Integer diseaseId;
-    private String treatmentName;
     private String diseaseName;
-    private Integer ingredientId;
-    private String ingredientName;
-    private String ingredientDescription;
+
+    // ── Thông tin thuốc ──────────────────────────────────────────────────────
+    private Integer drugId;
     private String drugName;
-    private List<String> activeIngredients;
-    private String dosage;
-    private BigDecimal dosagePerHaValue;
-    private String dosagePerHaUnit;
-    private String waterVolumePerHa;
+
+    // ── Xếp hạng phác đồ ─────────────────────────────────────────────────────
+    private Boolean recommended;
+    private Integer rank;
+    private String recommendationReason;
+
+    // ── Hướng dẫn hiển thị UI ────────────────────────────────────────────────
+    private String displayDosage;
+    private String mixingInstruction;
+    private String displayWaterVolume;
+
+    // ── Chi tiết phun xịt ────────────────────────────────────────────────────
     private String applicationMethod;
     private String applicationTime;
-    private String frequency;
+    private Short sprayTimes;
+    private String sprayInterval;
     private String safetyNotes;
-    private String spraySchedule;
-    private Boolean required;
-    private Boolean weatherBlocked;
-    private List<String> weatherWarnings;
+
 }

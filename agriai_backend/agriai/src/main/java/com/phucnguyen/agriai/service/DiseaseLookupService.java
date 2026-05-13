@@ -5,18 +5,16 @@ import com.phucnguyen.agriai.entity.Disease;
 import com.phucnguyen.agriai.repository.DiseaseRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class DiseaseLookupService {
 
     private final DiseaseRepository diseaseRepository;
-
-    public DiseaseLookupService(DiseaseRepository diseaseRepository) {
-        this.diseaseRepository = diseaseRepository;
-    }
 
     // resolve explicit disease
     public Optional<Disease> resolveExplicitDisease(String diseaseName, CropType cropType) {

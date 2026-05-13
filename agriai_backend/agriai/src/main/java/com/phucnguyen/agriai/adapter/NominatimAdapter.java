@@ -25,7 +25,7 @@ import org.springframework.web.client.RestTemplate;
 public class NominatimAdapter implements NominatimPort {
 
     private static final String NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json&accept-language=vi";
-
+    
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 

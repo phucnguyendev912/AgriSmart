@@ -5,27 +5,44 @@ const getSeverityClasses = (severity) => {
     if (severity === 'TRUNG_BINH') return "bg-secondary-container text-on-secondary-container";
     return "bg-primary-container text-on-primary-container";
 };
+
 const getSeverityLabel = (severity) => {
     if (severity === 'NANG') return 'Nặng';
     if (severity === 'TRUNG_BINH') return 'Trung bình';
     if (severity === 'NHE') return 'Nhẹ';
     return severity || 'N/A';
 };
-const getSeverityColor = (sev) => {
-    if (sev === 'HIGH') return 'text-red-600 bg-red-50 border-red-200';
-    if (sev === 'MEDIUM') return 'text-orange-600 bg-orange-50 border-orange-200';
-    return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+
+const getWeatherRiskMessage = (diseases, diseaseWeatherRisks) => {
+    const diseaseIds = new Set(
+        diseases
+            .map((disease) => disease.diseaseId)
+            .filter((id) => id !== null && id !== undefined)
+            .map(String)
+    );
+
+    const diseaseNames = diseaseWeatherRisks
+        .filter((risk) => risk.diseaseId !== null && risk.diseaseId !== undefined)
+        .filter((risk) => diseaseIds.has(String(risk.diseaseId)))
+        .map((risk) => risk.diseaseName)
+        .filter(Boolean)
+        .filter((name, index, names) => names.indexOf(name) === index);
+
+    if (diseaseNames.length === 0) return '';
+
+    return `Thời tiết thuận lợi cho bệnh ${diseaseNames.join(', ')} phát triển. Hãy thăm đồng thường xuyên.`;
 };
 
 /**
- * Hiển thị danh sách bệnh phát hiện được cùng các cảnh báo thời tiết và warnings nhanh.
+ * Hiển thị danh sách bệnh phát hiện được cùng cảnh báo nhanh.
  */
 const DiagnoseResultPanel = ({ result }) => {
     if (!result) return null;
 
     const diseases = result.diseases || [];
-    const weatherAlerts = result.weatherAlerts || [];
+    const diseaseWeatherRisks = result.diseaseWeatherRisks || [];
     const warnings = result.warnings || [];
+    const weatherRiskMessage = getWeatherRiskMessage(diseases, diseaseWeatherRisks);
 
     return (
         <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-surface-container-highest flex-grow">
@@ -45,8 +62,8 @@ const DiagnoseResultPanel = ({ result }) => {
                 ) : (
                     <div className="text-center py-8">
                         <span className="material-symbols-outlined text-5xl text-slate-400 mb-2 block">search_off</span>
-                        <p className="text-lg font-bold text-slate-600">Không phát hiện bệnh</p>
-                        <p className="text-sm text-on-surface-variant mt-1">Vui lòng thử lại với một bức ảnh rõ nét hơn.</p>
+                        <p className="text-lg font-bold text-slate-600">Không xác định được bệnh</p>
+                        <p className="text-sm text-on-surface-variant mt-1">Vui lòng thử lại với ảnh rõ hơn.</p>
                     </div>
                 )
             ) : (
@@ -74,29 +91,20 @@ const DiagnoseResultPanel = ({ result }) => {
                         ))}
                     </div>
 
-                    {/* Unified Weather Alerts */}
-                    {weatherAlerts.filter(a => a.violated).length > 0 && (
-                        <div className="mt-4 space-y-3">
-                            {weatherAlerts.filter(a => a.violated).map((alert, aIdx) => {
-                                const text = alert.recommendationNote || `${alert.weatherFactor} hiện tại (${alert.actualValue}${alert.unit || ''}) không thích hợp.`;
-                                const colonIdx = text.indexOf(':');
-                                const hasColon = colonIdx > 0 && colonIdx < 80;
-                                const title = hasColon ? text.substring(0, colonIdx) : "Cảnh báo thời tiết";
-                                const desc = hasColon ? text.substring(colonIdx + 1).trim() : text;
-                                return (
-                                    <div key={aIdx} className="p-4 bg-error/5 border border-error/20 rounded-xl flex items-start gap-3">
-                                        <span className="material-symbols-outlined text-error mt-0.5">warning</span>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-error break-words leading-tight">{title}</span>
-                                            <span className="text-xs text-on-surface-variant mt-1 leading-relaxed">{desc}</span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                    {weatherRiskMessage && (
+                        <div className="mt-4 p-4 bg-error/5 border border-error/20 rounded-xl flex items-start gap-3">
+                            <span className="material-symbols-outlined text-error mt-0.5">warning</span>
+                            <div className="flex flex-col">
+                                <span className="text-sm font-bold text-error break-words leading-tight">
+                                    Nguy cơ cao: Bệnh có thể lây lan nhanh chóng
+                                </span>
+                                <span className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                                    {weatherRiskMessage}
+                                </span>
+                            </div>
                         </div>
                     )}
 
-                    {/* General Warnings */}
                     {warnings.length > 0 && (
                         <div className="mt-4 space-y-3">
                             {warnings.map((warning, wIdx) => {
