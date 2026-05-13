@@ -56,7 +56,6 @@ public class ChatbotService {
     // subject
     private static final int SHORT_QUERY_THRESHOLD = 25;
 
-
     // handle chat for session — multi-turn with conversation history
     // DB connection is NOT held during the AI call (expensive network call).
     // Steps: (1) read+save in TX → (2) call AI with no TX → (3) save AI reply in TX

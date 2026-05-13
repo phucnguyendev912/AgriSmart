@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:18-alpine
     container_name: agriai-db
     restart: unless-stopped
     environment:
@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - agriai_postgres_data:/var/lib/postgresql
+      - agriai_postgres18_data:/var/lib/postgresql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -62,4 +62,4 @@ services:
       - "3000:80"
 
 volumes:
-  agriai_postgres_data:
+  agriai_postgres18_data:
