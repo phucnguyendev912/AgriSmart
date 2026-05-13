@@ -15,13 +15,16 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class DiagnosisValidationService {
 
+    private static final String INVALID_IMAGE_MESSAGE = "Ảnh không hợp lệ, vui lòng thử lại";
+    private static final String MISSING_CROP_MESSAGE = "Vui lòng chọn loại cây trồng trước khi chẩn đoán";
+
     private final UserRepository userRepository;
     private final CropTypeRepository cropTypeRepository;
 
     public DiagnosisContext validate(String email, DiagnoseRequest request) {
         validateImage(request.getImage());
         if (request.getCropTypeId() == null) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "cropTypeId la bat buoc.");
+            throw new AppException(HttpStatus.BAD_REQUEST, MISSING_CROP_MESSAGE);
         }
 
         CropType cropType = cropTypeRepository.findById(request.getCropTypeId())
@@ -40,11 +43,11 @@ public class DiagnosisValidationService {
 
     private void validateImage(MultipartFile image) {
         if (image == null || image.isEmpty()) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Anh chan doan la bat buoc.");
+            throw new AppException(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
         }
         String contentType = image.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Dinh dang anh khong hop le.");
+            throw new AppException(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
         }
     }
 
