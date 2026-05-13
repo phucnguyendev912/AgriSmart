@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict ThoGlCUjXyc7N4ZVagqZJ1ZnN4tdttPcsdSsf2p7m0AkUx8id9QZN9jZAXcA4EH
+\restrict HphkL72FPpqFJWaM03Y24QDHhsbWZMPG8JdmBRiacUWqF8oLGs7zlEJPQnR1GRD
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -1322,8 +1322,6 @@ COPY public.disease_weather_condition (id, disease_id, condition_group, weather_
 7	2	BLS_HIGH_1	TEMPERATURE	BETWEEN	27.00	35.00	°C	Sọc vi khuẩn phát sinh mạnh trong điều kiện nóng ẩm 27-35°C.	t	2026-05-10 00:21:03.904608	\N	2026-05-10 00:21:03.904608	\N	\N	\N	f
 8	3	BROWN_SPOT_HIGH_1	TEMPERATURE	BETWEEN	25.00	30.00	°C	Đốm nâu phát triển thuận lợi ở nhiệt độ 25-30°C.	t	2026-05-10 00:21:03.904608	\N	2026-05-10 00:21:03.904608	\N	\N	\N	f
 9	3	BROWN_SPOT_HIGH_1	HUMIDITY	GREATER_THAN	80.00	\N	%	Đốm nâu có nguy cơ cao khi độ ẩm tương đối trên 80%.	t	2026-05-10 00:21:03.904608	\N	2026-05-10 00:21:03.904608	\N	\N	\N	f
-10	6	LEAF_SCALD_HIGH_1	TEMPERATURE	BETWEEN	25.00	30.00	°C	Cháy bìa lá phát triển thuận lợi khi nhiệt độ khoảng 25-30°C.	t	2026-05-13 00:00:00	\N	2026-05-13 00:00:00	\N	\N	\N	f
-11	6	LEAF_SCALD_HIGH_1	HUMIDITY	GREATER_THAN	80.00	\N	%	Cháy bìa lá có mức độ nặng cao khi độ ẩm tương đối trên 80%.	t	2026-05-13 00:00:00	\N	2026-05-13 00:00:00	\N	\N	\N	f
 \.
 
 
@@ -1603,7 +1601,7 @@ SELECT pg_catalog.setval('public.disease_id_seq', 8, true);
 -- Name: disease_weather_condition_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.disease_weather_condition_id_seq', 11, true);
+SELECT pg_catalog.setval('public.disease_weather_condition_id_seq', 9, true);
 
 
 --
@@ -2080,5 +2078,5 @@ ALTER TABLE ONLY public.diagnose_history
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ThoGlCUjXyc7N4ZVagqZJ1ZnN4tdttPcsdSsf2p7m0AkUx8id9QZN9jZAXcA4EH
+\unrestrict HphkL72FPpqFJWaM03Y24QDHhsbWZMPG8JdmBRiacUWqF8oLGs7zlEJPQnR1GRD
 
