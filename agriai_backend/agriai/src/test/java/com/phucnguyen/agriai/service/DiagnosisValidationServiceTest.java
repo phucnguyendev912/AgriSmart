@@ -40,7 +40,7 @@ class DiagnosisValidationServiceTest {
         request.setCropTypeId(1);
 
         AppException exception = assertThrows(AppException.class, () -> validationService.validate(null, request));
-        assertTrue(exception.getMessage().contains("Anh chan doan"));
+        assertTrue(exception.getMessage().contains("Ảnh không hợp lệ"));
     }
 
     @Test
@@ -50,7 +50,7 @@ class DiagnosisValidationServiceTest {
         request.setImage(new MockMultipartFile("image", "leaf.jpg", "image/jpeg", new byte[] {1, 2, 3}));
 
         AppException exception = assertThrows(AppException.class, () -> validationService.validate(null, request));
-        assertTrue(exception.getMessage().contains("cropTypeId"));
+        assertTrue(exception.getMessage().contains("Vui lòng chọn loại cây trồng"));
     }
 
     @Test

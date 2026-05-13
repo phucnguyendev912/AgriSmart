@@ -57,7 +57,6 @@ const DiagnosisPage = () => {
                     withCredentials: true
                 });
                 setCropTypes(res.data);
-                if (res.data.length > 0) setSelectedCropTypeId(res.data[0].id);
             } catch (err) {
                 console.error('Lỗi tải danh sách cây trồng:', err);
             }
@@ -96,7 +95,7 @@ const DiagnosisPage = () => {
     // === HANDLE DIAGNOSE ===
     const handleDiagnose = async () => {
         if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
-        if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng.'); return; }
+        if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
 
         setLoading(true);
         setError('');
@@ -120,7 +119,8 @@ const DiagnosisPage = () => {
                 toast.info('Vui lòng đăng nhập để có thể xem lại kết quả chẩn đoán sau khi chẩn đoán.');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Đã xảy ra lỗi khi chẩn đoán.');
+            const message = err.response?.data?.message;
+            setError(err.response?.status >= 500 ? 'Có lỗi xảy ra, vui lòng thử lại sau' : (message || 'Có lỗi xảy ra, vui lòng thử lại sau'));
         } finally {
             setLoading(false);
         }
@@ -163,8 +163,9 @@ const DiagnosisPage = () => {
                             <select
                                 className="bg-transparent border-none focus:ring-0 text-primary font-bold pr-8 w-full md:w-auto"
                                 value={selectedCropTypeId}
-                                onChange={(e) => setSelectedCropTypeId(Number(e.target.value))}
+                                onChange={(e) => setSelectedCropTypeId(e.target.value ? Number(e.target.value) : '')}
                             >
+                                <option value="" disabled hidden></option>
                                 {cropTypes.map(ct => (
                                     <option key={ct.id} value={ct.id}>{ct.cropName}</option>
                                 ))}
