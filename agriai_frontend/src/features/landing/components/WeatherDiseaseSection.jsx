@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { fetchWeather, reverseGeocode } from '../../../services/weatherApi';
-import { evaluateDiseaseRisks } from '../../../utils/diseaseRiskRules';
+import { fetchWeatherDiseaseRisks, reverseGeocode } from '../../../services/weatherApi';
 import {
   DEFAULT_PROVINCE,
   VIETNAM_PROVINCES,
@@ -18,6 +17,23 @@ const formatMetric = (value, suffix) => {
 };
 
 const STORAGE_KEY = 'agriai_selected_province_id';
+const GPS_STORAGE_KEY = 'agriai_last_gps_location';
+
+const isMediumRisk = (risk) => {
+  const group = risk?.conditionGroup || '';
+  return group.toUpperCase().includes('MEDIUM');
+};
+
+const mapRiskToDisease = (risk) => ({
+  id: risk.diseaseId || risk.conditionGroup || risk.diseaseName,
+  name: risk.diseaseName || 'Bệnh cây trồng',
+  nameEn: risk.diseaseCode,
+  icon: 'bug_report',
+  risk: isMediumRisk(risk) ? 'MEDIUM' : 'HIGH',
+  description: risk.recommendationNotes
+    || (risk.matchedConditions || []).join(', ')
+    || 'Thời tiết hiện tại thuận lợi cho bệnh phát triển.',
+});
 
 const WeatherDiseaseSection = () => {
   const [selectedProvince, setSelectedProvince] = useState(null);
@@ -32,9 +48,9 @@ const WeatherDiseaseSection = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const w = await fetchWeather(province.lat, province.lon);
-      setWeather(w);
-      setDiseases(evaluateDiseaseRisks(w));
+      const data = await fetchWeatherDiseaseRisks(province.lat, province.lon);
+      setWeather(data.weather || null);
+      setDiseases((data.diseaseWeatherRisks || []).map(mapRiskToDisease));
     } catch {
       setError('Không thể tải dữ liệu thời tiết.');
       setWeather(null);
@@ -46,6 +62,24 @@ const WeatherDiseaseSection = () => {
 
   // Mount: đọc localStorage trước, chỉ geolocate nếu chưa có
   useEffect(() => {
+    const savedGps = localStorage.getItem(GPS_STORAGE_KEY);
+    if (savedGps) {
+      try {
+        const parsed = JSON.parse(savedGps);
+        const savedProvince = VIETNAM_PROVINCES.find((p) => p.id === Number(parsed.provinceId));
+        if (savedProvince && parsed.latitude && parsed.longitude) {
+          setSelectedProvince({
+            ...savedProvince,
+            lat: parsed.latitude,
+            lon: parsed.longitude,
+          });
+          return;
+        }
+      } catch {
+        localStorage.removeItem(GPS_STORAGE_KEY);
+      }
+    }
+
     const savedId = localStorage.getItem(STORAGE_KEY);
     if (savedId) {
       const saved = VIETNAM_PROVINCES.find((p) => p.id === Number(savedId));
@@ -67,7 +101,12 @@ const WeatherDiseaseSection = () => {
           const name = await reverseGeocode(latitude, longitude).catch(() => '');
           const province = findProvinceByName(name) || findNearestProvince(latitude, longitude);
           localStorage.setItem(STORAGE_KEY, province.id);
-          setSelectedProvince(province);
+          localStorage.setItem(GPS_STORAGE_KEY, JSON.stringify({
+            latitude,
+            longitude,
+            provinceId: province.id,
+          }));
+          setSelectedProvince({ ...province, lat: latitude, lon: longitude });
         } catch {
           setSelectedProvince(DEFAULT_PROVINCE);
         } finally {
@@ -105,7 +144,7 @@ const WeatherDiseaseSection = () => {
     },
     {
       icon: 'rainy',
-      value: formatMetric(weather.precipitation, 'mm'),
+      value: formatMetric(weather.rainfall ?? weather.precipitation, 'mm'),
       label: 'Lượng mưa',
       colorText: 'text-emerald-700',
       colorBg: 'bg-emerald-50',
@@ -259,6 +298,7 @@ const WeatherDiseaseSection = () => {
               const p = VIETNAM_PROVINCES.find((province) => province.id === Number(e.target.value));
               if (p) {
                 localStorage.setItem(STORAGE_KEY, p.id);
+                localStorage.removeItem(GPS_STORAGE_KEY);
                 setSelectedProvince(p);
               }
             }}
