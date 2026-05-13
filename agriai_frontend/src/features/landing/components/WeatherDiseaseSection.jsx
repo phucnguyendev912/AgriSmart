@@ -13,7 +13,7 @@ const Skeleton = ({ className }) => (
 
 const formatMetric = (value, suffix) => {
   if (value === null || value === undefined || value === '') return '--';
-  return `${value}${suffix}`;
+  return `${Math.round(Number(value))}${suffix}`;
 };
 
 const STORAGE_KEY = 'agriai_selected_province_id';

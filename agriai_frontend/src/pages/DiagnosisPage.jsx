@@ -11,7 +11,6 @@ import DiagnoseWeatherCards from '../features/diagnosis/components/DiagnoseWeath
 import DiagnoseResultPanel from '../features/diagnosis/components/DiagnoseResultPanel';
 import DiagnoseSprayProgramsPanel from '../features/diagnosis/components/DiagnoseSprayProgramsPanel';
 import DiagnoseInteractionWarnings from '../features/diagnosis/components/DiagnoseInteractionWarnings';
-import DiagnoseWeatherAlertsPanel from '../features/diagnosis/components/DiagnoseWeatherAlertsPanel';
 import DiagnoseCultivationMeasures from '../features/diagnosis/components/DiagnoseCultivationMeasures';
 import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuidance';
 import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
@@ -223,7 +222,6 @@ const DiagnosisPage = () => {
                         <div className="lg:col-span-8 space-y-6">
                             <DiagnoseSprayProgramsPanel sprayPrograms={result.sprayPrograms} treatments={result.treatments} />
                             <DiagnoseInteractionWarnings interactionWarnings={result.interactionWarnings} />
-                            <DiagnoseWeatherAlertsPanel weatherAlerts={result.weatherAlerts} diseaseWeatherRisks={result.diseaseWeatherRisks} />
                             <DiagnoseCultivationMeasures measures={getDiagnosisCultivationMeasures(result)} />
 
                             {/* Rating Button */}

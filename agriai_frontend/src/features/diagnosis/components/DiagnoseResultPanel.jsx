@@ -5,6 +5,7 @@ const getSeverityClasses = (severity) => {
     if (severity === 'TRUNG_BINH') return "bg-secondary-container text-on-secondary-container";
     return "bg-primary-container text-on-primary-container";
 };
+
 const getSeverityLabel = (severity) => {
     if (severity === 'NANG') return 'Nặng';
     if (severity === 'TRUNG_BINH') return 'Trung bình';
@@ -12,18 +13,36 @@ const getSeverityLabel = (severity) => {
     return severity || 'N/A';
 };
 
+const getWeatherRiskMessage = (diseases, diseaseWeatherRisks) => {
+    const diseaseIds = new Set(
+        diseases
+            .map((disease) => disease.diseaseId)
+            .filter((id) => id !== null && id !== undefined)
+            .map(String)
+    );
 
+    const diseaseNames = diseaseWeatherRisks
+        .filter((risk) => risk.diseaseId !== null && risk.diseaseId !== undefined)
+        .filter((risk) => diseaseIds.has(String(risk.diseaseId)))
+        .map((risk) => risk.diseaseName)
+        .filter(Boolean)
+        .filter((name, index, names) => names.indexOf(name) === index);
+
+    if (diseaseNames.length === 0) return '';
+
+    return `Thời tiết thuận lợi cho bệnh ${diseaseNames.join(', ')} phát triển. Hãy thăm đồng thường xuyên.`;
+};
 
 /**
- * Hiển thị danh sách bệnh phát hiện được cùng các cảnh báo thời tiết và warnings nhanh.
+ * Hiển thị danh sách bệnh phát hiện được cùng cảnh báo nhanh.
  */
 const DiagnoseResultPanel = ({ result }) => {
     if (!result) return null;
 
     const diseases = result.diseases || [];
     const diseaseWeatherRisks = result.diseaseWeatherRisks || [];
-    const weatherAlerts = result.weatherAlerts || [];
     const warnings = result.warnings || [];
+    const weatherRiskMessage = getWeatherRiskMessage(diseases, diseaseWeatherRisks);
 
     return (
         <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-surface-container-highest flex-grow">
@@ -72,46 +91,20 @@ const DiagnoseResultPanel = ({ result }) => {
                         ))}
                     </div>
 
-                    {/* Disease weather risks from Phase 3 contract */}
-                    {diseaseWeatherRisks.length > 0 && (
-                        <div className="mt-4 space-y-3">
-                            {diseaseWeatherRisks.map((risk, rIdx) => (
-                                <div key={rIdx} className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-                                    <span className="material-symbols-outlined text-amber-600 mt-0.5">cloud_alert</span>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-amber-700 break-words leading-tight">{risk.diseaseName || 'Nguy cơ thời tiết'}</span>
-                                        <span className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                                            {risk.recommendationNotes || 'Điều kiện thời tiết hiện tại thuận lợi cho bệnh phát triển.'}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
+                    {weatherRiskMessage && (
+                        <div className="mt-4 p-4 bg-error/5 border border-error/20 rounded-xl flex items-start gap-3">
+                            <span className="material-symbols-outlined text-error mt-0.5">warning</span>
+                            <div className="flex flex-col">
+                                <span className="text-sm font-bold text-error break-words leading-tight">
+                                    Nguy cơ cao: Bệnh có thể lây lan nhanh chóng
+                                </span>
+                                <span className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                                    {weatherRiskMessage}
+                                </span>
+                            </div>
                         </div>
                     )}
 
-                    {/* Legacy weather alerts */}
-                    {diseaseWeatherRisks.length === 0 && weatherAlerts.filter(a => a.violated).length > 0 && (
-                        <div className="mt-4 space-y-3">
-                            {weatherAlerts.filter(a => a.violated).map((alert, aIdx) => {
-                                const text = alert.recommendationNote || `${alert.weatherFactor} hiện tại (${alert.actualValue}${alert.unit || ''}) không thích hợp.`;
-                                const colonIdx = text.indexOf(':');
-                                const hasColon = colonIdx > 0 && colonIdx < 80;
-                                const title = hasColon ? text.substring(0, colonIdx) : "Cảnh báo thời tiết";
-                                const desc = hasColon ? text.substring(colonIdx + 1).trim() : text;
-                                return (
-                                    <div key={aIdx} className="p-4 bg-error/5 border border-error/20 rounded-xl flex items-start gap-3">
-                                        <span className="material-symbols-outlined text-error mt-0.5">warning</span>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-error break-words leading-tight">{title}</span>
-                                            <span className="text-xs text-on-surface-variant mt-1 leading-relaxed">{desc}</span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    {/* General Warnings */}
                     {warnings.length > 0 && (
                         <div className="mt-4 space-y-3">
                             {warnings.map((warning, wIdx) => {
