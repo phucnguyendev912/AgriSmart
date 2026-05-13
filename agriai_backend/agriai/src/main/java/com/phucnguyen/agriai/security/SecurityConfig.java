@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/crop-types").permitAll()
                         .requestMatchers("/api/diagnosis").permitAll()
+                        .requestMatchers("/api/weather/**").permitAll()
                         .requestMatchers("/api/map/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/reviews/all").permitAll()
