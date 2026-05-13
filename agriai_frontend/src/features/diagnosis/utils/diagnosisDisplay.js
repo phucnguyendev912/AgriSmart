@@ -41,7 +41,7 @@ export const getCultivationMeasures = (result) => {
     }
 
     if (diagnosisType === 'UNKNOWN') {
-        return ['Ảnh chưa đủ rõ để xác định bệnh. Nên chụp gần vùng tổn thương và chụp rõ nét hơn.'];
+        return ['Không xác định được bệnh. Vui lòng thử lại với ảnh rõ hơn.'];
     }
 
     const measures = [];
@@ -64,4 +64,3 @@ export const getCultivationMeasures = (result) => {
 
     return measures;
 };
-

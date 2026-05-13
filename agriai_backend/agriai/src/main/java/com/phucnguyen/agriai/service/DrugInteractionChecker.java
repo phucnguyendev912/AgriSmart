@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component;
 public class DrugInteractionChecker {
         private static final Logger log = LoggerFactory.getLogger(DrugInteractionChecker.class);
 
-        // TODO: Nếu dữ liệu DB không được kiểm soát, đổi actionRule sang enum để tránh false positive
         private static final List<String> BLOCKING_ACTION_RULE_KEYWORDS = List.of("SEPARATE", "DO_NOT", "AVOID");
 
         private final DrugInteractionRepository drugInteractionRepository;
@@ -62,7 +61,7 @@ public class DrugInteractionChecker {
                 for (TreatmentPlan plan : plans) {
                         ingredientIdsSet.addAll(extractIngredientIds(plan));
                 }
-                
+
                 List<Integer> ingredientIds = new ArrayList<>(ingredientIdsSet);
                 if (ingredientIds.size() < 2) {
                         return List.of();
@@ -99,7 +98,6 @@ public class DrugInteractionChecker {
                                                 && ingredientIds.contains(warning.getIngredientBId()));
         }
 
-        // Kiểm tra tương tác giữa recommended plans (lấy ingredients từ drug mới, fallback legacy)
         public InteractionResult checkRecommendedPlans(
                         List<TreatmentDTO> rankedTreatments,
                         List<TreatmentPlan> allPlans) {
@@ -109,7 +107,8 @@ public class DrugInteractionChecker {
                                 .map(TreatmentDTO::getTreatmentPlanId)
                                 .toList();
 
-                if (recommendedPlanIds.size() < 2) return InteractionResult.empty();
+                if (recommendedPlanIds.size() < 2)
+                        return InteractionResult.empty();
 
                 List<TreatmentPlan> recommendedPlans = allPlans.stream()
                                 .filter(p -> recommendedPlanIds.contains(p.getId()))
@@ -134,7 +133,8 @@ public class DrugInteractionChecker {
 
                 List<Integer> allIngredientIds = new ArrayList<>(allIngredientIdsSet);
 
-                if (allIngredientIds.size() < 2) return InteractionResult.empty();
+                if (allIngredientIds.size() < 2)
+                        return InteractionResult.empty();
 
                 List<InteractionWarningDTO> warnings = drugInteractionRepository
                                 .findInteractionsBetweenIngredients(allIngredientIds).stream()
@@ -145,22 +145,23 @@ public class DrugInteractionChecker {
                                 .filter(w -> !isSamePlanInteraction(w, ingredientsByPlan))
                                 .toList();
 
-                if (warnings.isEmpty()) return InteractionResult.empty();
+                if (warnings.isEmpty())
+                        return InteractionResult.empty();
 
                 return new InteractionResult(warnings, true, buildSummary(warnings));
         }
 
-    // Ưu tiên drug.ingredients (mới)
-    private List<Integer> extractIngredientIds(TreatmentPlan plan) {
-            if (plan.getDrug() != null && plan.getDrug().getIngredients() != null
-                            && !plan.getDrug().getIngredients().isEmpty()) {
-                    return plan.getDrug().getIngredients().stream()
-                                    .filter(di -> di.getIngredient() != null)
-                                    .map(di -> di.getIngredient().getId())
-                                    .toList();
-            }
-            return List.of();
-    }
+        // Ưu tiên drug.ingredients
+        private List<Integer> extractIngredientIds(TreatmentPlan plan) {
+                if (plan.getDrug() != null && plan.getDrug().getIngredients() != null
+                                && !plan.getDrug().getIngredients().isEmpty()) {
+                        return plan.getDrug().getIngredients().stream()
+                                        .filter(di -> di.getIngredient() != null)
+                                        .map(di -> di.getIngredient().getId())
+                                        .toList();
+                }
+                return List.of();
+        }
 
         private String buildSummary(List<InteractionWarningDTO> warnings) {
                 long blockingCount = warnings.stream()
@@ -177,7 +178,8 @@ public class DrugInteractionChecker {
                 return messageSource.getMessage(
                                 "drug.interaction.summary.warning",
                                 new Object[] { warnings.size() },
-                                "C\u00f3 " + warnings.size() + " c\u1eb7p ho\u1ea1t ch\u1ea5t c\u1ea7n l\u01b0u \u00fd khi tr\u1ed9n chung.",
+                                "C\u00f3 " + warnings.size()
+                                                + " c\u1eb7p ho\u1ea1t ch\u1ea5t c\u1ea7n l\u01b0u \u00fd khi tr\u1ed9n chung.",
                                 LocaleContextHolder.getLocale());
         }
 
@@ -229,7 +231,8 @@ public class DrugInteractionChecker {
         // Kiểm tra cặp ingredient có khớp với warning không (chiều xuôi hoặc ngược)
         private boolean hasOverlap(List<Integer> idsA, List<Integer> idsB, InteractionWarningDTO warning) {
                 return (idsA.contains(warning.getIngredientAId()) && idsB.contains(warning.getIngredientBId()))
-                                || (idsA.contains(warning.getIngredientBId()) && idsB.contains(warning.getIngredientAId()));
+                                || (idsA.contains(warning.getIngredientBId())
+                                                && idsB.contains(warning.getIngredientAId()));
         }
 
         // Trả về true nếu cả 2 hoạt chất trong warning đều thuộc cùng 1 plan (bỏ qua)
