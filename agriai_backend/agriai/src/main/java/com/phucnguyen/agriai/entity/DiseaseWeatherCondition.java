@@ -3,11 +3,21 @@ package com.phucnguyen.agriai.entity;
 import com.phucnguyen.agriai.common.BaseEntity;
 import com.phucnguyen.agriai.enums.Operator;
 import com.phucnguyen.agriai.enums.WeatherFactor;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "disease_weather_condition")
@@ -23,7 +33,7 @@ public class DiseaseWeatherCondition extends BaseEntity {
     @JoinColumn(name = "disease_id", nullable = false)
     private Disease disease;
 
-    // nhóm điều kiện AND — tất cả row cùng group phải match
+    // Nhom dieu kien canh bao; evaluator hien match OR trong cung group.
     @Column(name = "condition_group", length = 50, nullable = false)
     private String conditionGroup;
 
@@ -42,10 +52,10 @@ public class DiseaseWeatherCondition extends BaseEntity {
     private BigDecimal maxValue;
 
     @Column(name = "recommendation_note", length = 255)
-    private String recommendationNote;  
+    private String recommendationNote;
 
     @Column(name = "unit", length = 20)
-    private String unit; // °C, %, mm, m/s
+    private String unit;
 
     @Column(name = "is_active")
     private Boolean isActive;
