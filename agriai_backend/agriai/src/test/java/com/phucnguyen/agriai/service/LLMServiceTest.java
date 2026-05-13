@@ -45,7 +45,7 @@ class LLMServiceTest {
                 .treatments(List.of(
                         TreatmentDTO.builder()
                                 .drugName("Filia 525SE")
-                                .displayDosage("25ml/binh")
+                                .dosage("25ml/binh")
                                 .build()))
                 .build();
 

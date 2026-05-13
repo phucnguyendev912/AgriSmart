@@ -5,19 +5,15 @@ import com.phucnguyen.agriai.enums.SeverityLevel;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.RelationTargetAuditMode;
 
 @Entity
 @Table(name = "Disease")
-@Audited
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public class Disease extends BaseEntity {
-    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "croptypeId")
     private CropType cropType;

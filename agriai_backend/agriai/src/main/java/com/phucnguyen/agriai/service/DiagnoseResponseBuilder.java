@@ -19,7 +19,7 @@ public class DiagnoseResponseBuilder {
                         String imageUrl,
                         WeatherDTO weather,
                         boolean gpsUsed,
-                        DiagnoseService.DiagnosisAnalysis analysis,
+                        DiagnosisAnalysis analysis,
                         RuleEngineService.RuleEngineResult ruleResult) {
 
                 String diagnosisType = analysis.isHealthy()
@@ -41,15 +41,12 @@ public class DiagnoseResponseBuilder {
                                 .sprayPrograms(ruleResult.sprayPrograms())
                                 .interactionWarnings(ruleResult.interactionWarnings())
                                 .weatherAlerts(ruleResult.weatherAlerts())
-                                .diseaseWeatherRisks(ruleResult.diseaseWeatherRisks())
-                                .hasInteractionWarning(ruleResult.hasInteractionWarning())
-                                .interactionSummary(ruleResult.interactionSummary())
                                 .isHealthy(analysis.isHealthy())
                                 .diagnosisType(diagnosisType)
                                 .build();
         }
 
-        DiseaseResultDTO toDiseaseResult(DiagnoseService.DetectedDiseaseMatch match) {
+        DiseaseResultDTO toDiseaseResult(DetectedDiseaseMatch match) {
                 String diseaseName = match.disease().getDiseaseNameEn() != null
                                 && !match.disease().getDiseaseNameEn().isBlank()
                                                 ? match.disease().getDiseaseNameEn() + " ("
@@ -66,7 +63,7 @@ public class DiagnoseResponseBuilder {
         }
 
         // resolve severity based on confidence
-        String resolveSeverity(DiagnoseService.DetectedDiseaseMatch match) {
+        String resolveSeverity(DetectedDiseaseMatch match) {
                 Double confidence = match.visionResult().getConfidence();
                 if (confidence != null) {
                         if (confidence > 0.75) {
@@ -78,7 +75,7 @@ public class DiagnoseResponseBuilder {
                         }
                 }
 
-                // Fallback if doesn't have confidence
+                // Fallback nếu không có confidence
                 if (match.visionResult().getSeverity() != null && !match.visionResult().getSeverity().isBlank()) {
                         return match.visionResult().getSeverity();
                 }

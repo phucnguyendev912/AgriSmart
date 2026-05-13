@@ -11,10 +11,10 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 public class DiagnoseRequest {
 
-    @NotNull(message = "Ảnh không hợp lệ, vui lòng thử lại")
+    @NotNull(message = "Image is required.")
     private MultipartFile image;
 
-    @NotNull(message = "Vui lòng chọn loại cây trồng trước khi chẩn đoán")
+    @NotNull(message = "Crop type ID is required.")
     private Integer cropTypeId;
 
     private Double latitude;

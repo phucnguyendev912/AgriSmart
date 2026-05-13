@@ -5,11 +5,7 @@ import com.phucnguyen.agriai.entity.ChatMessage;
 import com.phucnguyen.agriai.entity.ChatSession;
 import com.phucnguyen.agriai.enums.SenderType;
 import com.phucnguyen.agriai.repository.ChatMessageRepository;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,17 +31,6 @@ public class ChatMessageService {
                 pageable).map(ChatMessageResponse::fromEntity);
     }
 
-    // get N most recent messages for LLM multi-turn history (oldest first)
-    @Transactional(readOnly = true)
-    public List<ChatMessage> getRecentMessages(ChatSession session, int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        List<ChatMessage> messages = new ArrayList<>(
-                chatMessageRepository.findByChatSessionIdAndChatSessionIsDeleteFalseOrderByCreatedAtDesc(
-                        session.getId(), pageable));
-        Collections.reverse(messages);
-        return messages;
-    }
-
     // save user message
     public ChatMessage saveUserMessage(ChatSession session, String content) {
         return saveMessage(session, SenderType.USER, content);
@@ -66,4 +51,3 @@ public class ChatMessageService {
         return chatMessageRepository.save(message);
     }
 }
-

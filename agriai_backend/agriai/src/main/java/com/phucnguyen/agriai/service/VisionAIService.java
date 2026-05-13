@@ -3,25 +3,25 @@ package com.phucnguyen.agriai.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phucnguyen.agriai.dto.VisionResultDTO;
-import com.phucnguyen.agriai.exception.AppException;
 import com.phucnguyen.agriai.port.VisionDetectionPort;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.util.List;
+
+/**
+ * Service gọi local YOLO API (FastAPI) để nhận diện bệnh lá lúa.
+ * Endpoint: POST http://localhost:8000/predict
+ * Request: multipart/form-data { image: file }
+ * Response: "Disease Name" (JSON string)
+ */
 @Service
 public class VisionAIService implements VisionDetectionPort {
 
@@ -30,11 +30,18 @@ public class VisionAIService implements VisionDetectionPort {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Override
+    /**
+     * Download ảnh từ Cloudinary URL, gửi tới YOLO API, trả về kết quả.
+     *
+     * @param imageUrl      URL ảnh đã upload lên Cloudinary
+     * @return Danh sách kết quả nhận diện (1 kết quả cho classification)
+     */
     public List<VisionResultDTO> detect(String imageUrl) {
         try {
+            // 1. Download ảnh từ Cloudinary URL
             byte[] imageBytes = downloadImage(imageUrl);
 
+            // 2. Build multipart request
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -49,43 +56,50 @@ public class VisionAIService implements VisionDetectionPort {
             body.add("image", new HttpEntity<>(imageResource, createFileHeaders()));
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            // 3. Gọi YOLO API
             ResponseEntity<String> response = restTemplate.exchange(
                     predictUrl, HttpMethod.POST, requestEntity, String.class);
 
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Vision AI failed.");
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(response.getBody());
+                JsonNode detections = root.path("detections");
+
+                List<VisionResultDTO> results = new java.util.ArrayList<>();
+                if (detections.isArray()) {
+                    for (JsonNode det : detections) {
+                        String label = det.path("class_name").asText();
+                        double confidence = det.path("confidence").asDouble(0.95);
+
+                        VisionResultDTO result = VisionResultDTO.builder()
+                                .label(label)
+                                .confidence(confidence)
+                                .severity(null)
+                                .build();
+                        results.add(result);
+                    }
+                }
+                return results;
             }
 
-            JsonNode detections = new ObjectMapper()
-                    .readTree(response.getBody())
-                    .path("detections");
-            if (!detections.isArray()) {
-                throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Vision AI response is invalid.");
-            }
-
-            List<VisionResultDTO> results = new ArrayList<>();
-            for (JsonNode detection : detections) {
-                results.add(VisionResultDTO.builder()
-                        .label(detection.path("class_name").asText())
-                        .confidence(detection.path("confidence").asDouble(0.95))
-                        .severity(null)
-                        .build());
-            }
-            return results;
-        } catch (AppException exception) {
-            throw exception;
-        } catch (Exception exception) {
-            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Vision AI failed.");
+            return List.of();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Lỗi khi gọi Vision AI: " + e.getMessage());
+            // Nếu YOLO API không khả dụng, trả danh sách rỗng
+            return List.of();
         }
     }
 
     private byte[] downloadImage(String imageUrl) throws Exception {
         URL url = new URL(imageUrl);
-        try (InputStream inputStream = url.openStream()) {
-            return inputStream.readAllBytes();
+        try (InputStream is = url.openStream()) {
+            return is.readAllBytes();
         }
     }
 
+    // Tạo headers cho file
     private HttpHeaders createFileHeaders() {
         HttpHeaders fileHeaders = new HttpHeaders();
         fileHeaders.setContentType(MediaType.IMAGE_JPEG);

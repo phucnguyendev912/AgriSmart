@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } from "react-leaflet";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -72,7 +72,7 @@ export default function DiseaseMapPage() {
       const params = { days };
       if (diseaseId) params.diseaseId = diseaseId;
       const res = await axios.get(`${API_BASE}/api/map/markers`, { params });
-      setMarkers(Array.isArray(res.data) ? res.data : []);
+      setMarkers(res.data);
     } catch (err) {
       setError("Không thể tải dữ liệu bản đồ. Vui lòng thử lại.");
       console.error(err);

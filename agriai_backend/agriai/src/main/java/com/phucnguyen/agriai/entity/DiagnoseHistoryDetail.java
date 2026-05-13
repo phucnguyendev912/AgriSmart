@@ -5,21 +5,16 @@ import com.phucnguyen.agriai.enums.SeverityLevel;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.RelationTargetAuditMode;
-
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "DiagnoseHistoryDetail")
-@Audited
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public class DiagnoseHistoryDetail extends BaseEntity {
-    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "diagnosehistoryId")
     private DiagnoseHistory diagnoseHistory;
@@ -38,10 +33,6 @@ public class DiagnoseHistoryDetail extends BaseEntity {
     @Column(name = "riskWarning", length = 255)
     private String riskWarning;
 
-    /**
-     * @deprecated Sử dụng bảng trung gian DiagnoseTreatmentRecommendation thay thế
-     */
-    @Deprecated(since = "Phase 1.5", forRemoval = true)
     @Column(name = "treatmentData", columnDefinition = "TEXT")
     private String treatmentData;
 

@@ -3,7 +3,7 @@ package com.phucnguyen.agriai.service;
 import com.phucnguyen.agriai.dto.VisionResultDTO;
 import com.phucnguyen.agriai.entity.Disease;
 import com.phucnguyen.agriai.repository.*;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,10 +12,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class DiseaseMapper {
 
-    private final DiseaseRepository diseaseRepository;
+    @Autowired
+    private DiseaseRepository diseaseRepository;
 
     public Optional<Disease> findDisease(String label) {
         String cleanLabel = label.trim();

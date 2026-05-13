@@ -1,10 +1,14 @@
 package com.phucnguyen.agriai.service;
+
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phucnguyen.agriai.dto.DiagnosisDetailSnapshotDTO;
 import com.phucnguyen.agriai.entity.DiagnoseHistory;
@@ -19,37 +23,29 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import com.phucnguyen.agriai.dto.DiseaseResultDTO;
-import com.phucnguyen.agriai.dto.DiseaseWeatherRiskDTO;
 import com.phucnguyen.agriai.dto.InteractionWarningDTO;
 import com.phucnguyen.agriai.dto.TreatmentDTO;
 import com.phucnguyen.agriai.dto.TreatmentProgramDTO;
 import com.phucnguyen.agriai.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.dto.WeatherDTO;
 import com.phucnguyen.agriai.dto.response.DiagnoseResponse;
-import com.phucnguyen.agriai.entity.DiagnoseTreatmentRecommendation;
-import com.phucnguyen.agriai.repository.DiagnoseTreatmentRecommendationRepository;
-import com.phucnguyen.agriai.mapper.TreatmentMapper;
-import java.util.Comparator;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Service
 @Transactional
 public class DiagnoseHistoryService {
+    @Autowired
+    private DiagnoseHistoryRepository diagnoseHistoryRepository;
 
-    private final DiagnoseHistoryRepository diagnoseHistoryRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    private final UserRepository userRepository;
+    @Autowired
+    private DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
 
-    private final DiagnoseHistoryDetailRepository diagnoseHistoryDetailRepository;
+    @Autowired
+    private DiagnoseReviewRepository diagnoseReviewRepository;
 
-    private final DiagnoseReviewRepository diagnoseReviewRepository;
-
-    private final DiagnoseTreatmentRecommendationRepository recommendationRepository;
-
-    private final TreatmentMapper treatmentMapper;
-
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // get diagnose history by user email
     public Page<com.phucnguyen.agriai.dto.response.DiagnoseHistoryResponse> getHistory(String email,
@@ -138,18 +134,16 @@ public class DiagnoseHistoryService {
         List<TreatmentProgramDTO> sprayPrograms = new ArrayList<>();
         List<InteractionWarningDTO> interactionWarnings = new ArrayList<>();
         List<WeatherAlertDTO> weatherAlerts = new ArrayList<>();
-        List<DiseaseWeatherRiskDTO> diseaseWeatherRisks = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
         String guidance = null;
         String diagnosisType = null;
 
         for (DiagnoseHistoryDetail detail : details) {
             if (detail.getDisease() != null) {
-                String diseaseDisplayName = buildDiseaseDisplayName(detail.getDisease());
                 diseases.add(DiseaseResultDTO.builder()
                         .diseaseId(detail.getDisease().getId())
                         .diseaseCode(detail.getDisease().getDiseaseCode())
-                        .diseaseName(diseaseDisplayName)
+                        .diseaseName(detail.getDisease().getDiseaseName())
                         .confidence(
                                 detail.getConfidenceScore() != null ? detail.getConfidenceScore().doubleValue() : null)
                         .severity(detail.getSeverity() != null ? detail.getSeverity().name() : null)
@@ -171,9 +165,6 @@ public class DiagnoseHistoryService {
                 if (snapshot.getWeatherAlerts() != null) {
                     weatherAlerts.addAll(snapshot.getWeatherAlerts());
                 }
-                if (snapshot.getDiseaseWeatherRisks() != null) {
-                    diseaseWeatherRisks.addAll(snapshot.getDiseaseWeatherRisks());
-                }
                 if (snapshot.getWarnings() != null) {
                     warnings.addAll(snapshot.getWarnings());
                 }
@@ -185,10 +176,6 @@ public class DiagnoseHistoryService {
             if (detail.getRiskWarning() != null && !detail.getRiskWarning().isBlank()) {
                 warnings.add(detail.getRiskWarning());
             }
-        }
-
-        if (treatments.isEmpty()) {
-            treatments.addAll(loadTreatmentsFromRecommendations(details));
         }
 
         List<String> distinctWarnings = warnings.stream().filter(Objects::nonNull).distinct().toList();
@@ -206,23 +193,15 @@ public class DiagnoseHistoryService {
                 .collect(Collectors.toMap(this::weatherAlertKey, alert -> alert,
                         (left, right) -> left, LinkedHashMap::new))
                 .values().stream().toList();
-        List<DiseaseWeatherRiskDTO> distinctDiseaseWeatherRisks = diseaseWeatherRisks.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(this::diseaseWeatherRiskKey, risk -> risk,
-                        (left, right) -> left, LinkedHashMap::new))
-                .values().stream().toList();
 
         return DiagnoseResponse.builder()
-                .id(history.getId())
                 .originalImageUrl(history.getOriginalImageUrl())
                 .weather(parseWeatherJson(history.getWeatherData()))
                 .diseases(diseases)
                 .treatments(treatments)
                 .sprayPrograms(distinctPrograms)
                 .interactionWarnings(distinctInteractionWarnings)
-                .hasInteractionWarning(!distinctInteractionWarnings.isEmpty())
                 .weatherAlerts(distinctWeatherAlerts)
-                .diseaseWeatherRisks(distinctDiseaseWeatherRisks)
                 .warnings(distinctWarnings)
                 .userGuidance(guidance)
                 .diagnosisType(diagnosisType)
@@ -239,15 +218,6 @@ public class DiagnoseHistoryService {
         } catch (Exception exception) {
             return null;
         }
-    }
-
-    private String buildDiseaseDisplayName(com.phucnguyen.agriai.entity.Disease disease) {
-        String nameEn = disease.getDiseaseNameEn();
-        String nameVi = disease.getDiseaseName();
-        if (nameEn != null && !nameEn.isBlank()) {
-            return nameEn + " (" + nameVi + ")";
-        }
-        return nameVi;
     }
 
     private String interactionWarningKey(InteractionWarningDTO warning) {
@@ -267,38 +237,5 @@ public class DiagnoseHistoryService {
         return String.valueOf(alert.getTreatmentPlanId()) + ":"
                 + String.valueOf(alert.getWeatherFactor()) + ":"
                 + String.valueOf(alert.getOperator());
-    }
-
-    private String diseaseWeatherRiskKey(DiseaseWeatherRiskDTO risk) {
-        return String.valueOf(risk.getDiseaseId()) + ":"
-                + String.valueOf(risk.getConditionGroup());
-    }
-
-    private List<TreatmentDTO> loadTreatmentsFromRecommendations(List<DiagnoseHistoryDetail> details) {
-        List<Integer> detailIds = details.stream()
-                .map(DiagnoseHistoryDetail::getId)
-                .filter(Objects::nonNull)
-                .toList();
-        if (detailIds.isEmpty()) {
-            return List.of();
-        }
-
-        return recommendationRepository.findByDiagnoseHistoryDetailIdInAndIsDeleteFalse(detailIds).stream()
-                .sorted(Comparator.comparing(
-                        DiagnoseTreatmentRecommendation::getRankScore,
-                        Comparator.nullsLast(Integer::compareTo)))
-                .map(this::toTreatmentFromRecommendation)
-                .filter(Objects::nonNull)
-                .toList();
-    }
-
-    private TreatmentDTO toTreatmentFromRecommendation(DiagnoseTreatmentRecommendation recommendation) {
-        if (recommendation.getTreatmentPlan() == null) {
-            return null;
-        }
-        TreatmentDTO dto = treatmentMapper.toDTO(recommendation.getTreatmentPlan());
-        dto.setRank(recommendation.getRankScore());
-        dto.setRecommended(recommendation.getRankScore() != null && recommendation.getRankScore() == 1);
-        return dto;
     }
 }

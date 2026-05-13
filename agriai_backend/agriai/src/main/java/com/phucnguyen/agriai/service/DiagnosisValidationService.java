@@ -6,25 +6,27 @@ import com.phucnguyen.agriai.entity.User;
 import com.phucnguyen.agriai.exception.AppException;
 import com.phucnguyen.agriai.repository.CropTypeRepository;
 import com.phucnguyen.agriai.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-@RequiredArgsConstructor
 public class DiagnosisValidationService {
-
-    private static final String INVALID_IMAGE_MESSAGE = "Ảnh không hợp lệ, vui lòng thử lại";
-    private static final String MISSING_CROP_MESSAGE = "Vui lòng chọn loại cây trồng trước khi chẩn đoán";
 
     private final UserRepository userRepository;
     private final CropTypeRepository cropTypeRepository;
 
+    public DiagnosisValidationService(
+            UserRepository userRepository,
+            CropTypeRepository cropTypeRepository) {
+        this.userRepository = userRepository;
+        this.cropTypeRepository = cropTypeRepository;
+    }
+
     public DiagnosisContext validate(String email, DiagnoseRequest request) {
         validateImage(request.getImage());
         if (request.getCropTypeId() == null) {
-            throw new AppException(HttpStatus.BAD_REQUEST, MISSING_CROP_MESSAGE);
+            throw new AppException(HttpStatus.BAD_REQUEST, "cropTypeId la bat buoc.");
         }
 
         CropType cropType = cropTypeRepository.findById(request.getCropTypeId())
@@ -43,11 +45,11 @@ public class DiagnosisValidationService {
 
     private void validateImage(MultipartFile image) {
         if (image == null || image.isEmpty()) {
-            throw new AppException(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
+            throw new AppException(HttpStatus.BAD_REQUEST, "Anh chan doan la bat buoc.");
         }
         String contentType = image.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            throw new AppException(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
+            throw new AppException(HttpStatus.BAD_REQUEST, "Dinh dang anh khong hop le.");
         }
     }
 

@@ -31,3 +31,10 @@ export const sendChatMessage = async (sessionId, payload) => {
   });
   return response.data;
 };
+
+export const sendGuestChatMessage = async (payload) => {
+  const response = await axios.post(`${API_URL}/api/chat/guest/messages`, payload, {
+    withCredentials: true,
+  });
+  return response.data;
+};

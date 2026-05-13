@@ -48,8 +48,6 @@ yarn-error.log*
 # ══════════════════════════════════════════════════════════════
 # FRONTEND (React / Vite / Node)
 # ══════════════════════════════════════════════════════════════
-node_modules/
-outputs/
 agriai_frontend/node_modules/
 agriai_frontend/dist/
 agriai_frontend/build/

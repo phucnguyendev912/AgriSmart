@@ -143,7 +143,7 @@ const LoginPage = () => {
                 className="h-6 w-6 sm:h-5 sm:w-5 rounded border-outline-variant text-primary focus:ring-primary/20"
               />
               <label htmlFor="remember-me" className="ml-3 block text-sm font-medium text-on-surface-variant select-none">
-                Ghi nhớ tôi
+                Ghi nho toi
               </label>
             </div>
 
@@ -151,7 +151,7 @@ const LoginPage = () => {
               type="submit"
               className="w-full min-h-[48px] flex justify-center items-center py-4 px-6 border border-transparent rounded-lg shadow-lg shadow-primary/20 text-base font-bold text-on-primary bg-primary hover:bg-primary-container transition-all active:scale-[0.98]"
             >
-              Đăng nhập
+              Dang nhap
               <span className="material-symbols-outlined ml-2 text-xl" data-icon="arrow_forward">arrow_forward</span>
             </button>
           </form>

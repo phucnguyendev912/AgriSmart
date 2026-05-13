@@ -38,7 +38,7 @@ public class ChatController {
     @PostMapping("/sessions")
     public ResponseEntity<ChatSessionResponse> createSession(
             Principal principal,
-            @Valid @RequestBody(required = false) CreateChatSessionRequest request) {
+            @RequestBody(required = false) CreateChatSessionRequest request) {
         ChatSessionResponse response = chatSessionService.createSession(principal != null ? principal.getName() : null,
                 request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -49,7 +49,7 @@ public class ChatController {
             Principal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = createPageable(page, size);
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(chatSessionService.getSessions(principal != null ? principal.getName() : null, pageable));
     }
 
@@ -59,7 +59,7 @@ public class ChatController {
             @PathVariable Integer id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = createPageable(page, size);
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity
                 .ok(chatMessageService.getMessages(principal != null ? principal.getName() : null, id, pageable));
     }
@@ -77,9 +77,8 @@ public class ChatController {
         return ResponseEntity.ok(chatbotService.chatForSession(principal != null ? principal.getName() : null, id, request));
     }
 
-    private Pageable createPageable(int page, int size) {
-        int safePage = Math.max(page, 0);
-        int safeSize = Math.min(Math.max(size, 1), 50);
-        return PageRequest.of(safePage, safeSize);
+    @PostMapping("/guest/messages")
+    public ResponseEntity<ChatResponse> sendGuestMessage(@Valid @RequestBody SendChatMessageRequest request) {
+        return ResponseEntity.ok(chatbotService.chatAsGuest(request));
     }
 }

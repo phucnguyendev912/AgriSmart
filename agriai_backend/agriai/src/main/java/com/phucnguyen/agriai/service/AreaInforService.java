@@ -10,8 +10,6 @@ import com.phucnguyen.agriai.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,6 +48,10 @@ public class AreaInforService {
                         throw new AppException(HttpStatus.FORBIDDEN, "Khong co quyen truy cap khu vuc nay.");
                 }
 
+                area.setConfirmed(true);
+                if (request != null && request.getAddress() != null) {
+                        area.setAddress(request.getAddress());
+                }
                 return toResponse(areaInforRepository.save(area));
         }
 
@@ -68,21 +70,6 @@ public class AreaInforService {
                 area.setDescription(request.getDescription());
 
                 return toResponse(areaInforRepository.save(area));
-        }
-
-        public void delete(String email, Integer id) {
-                User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND,
-                                                "Khong tim thay nguoi dung."));
-                AreaInfor area = areaInforRepository.findById(id)
-                                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy khu vực."));
-                if (!area.getUser().getEmail().equals(email)) {
-                        throw new AppException(HttpStatus.FORBIDDEN, "Không có quyền xóa khu vực này.");
-                }
-                area.setIsDelete(true);
-                area.setDeletedAt(LocalDateTime.now());
-                area.setDeletedBy(user.getId());
-                areaInforRepository.save(area);
         }
 
         private AreaInforResponse toResponse(AreaInfor a) {
