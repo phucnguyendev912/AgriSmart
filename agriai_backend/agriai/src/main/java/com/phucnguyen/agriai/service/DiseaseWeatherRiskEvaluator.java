@@ -33,7 +33,20 @@ public class DiseaseWeatherRiskEvaluator {
         List<DiseaseWeatherCondition> allConditions = conditionRepository
                 .findByDiseaseIdInAndIsActiveTrueAndIsDeleteFalse(diseaseIds);
 
-        if (allConditions.isEmpty()) return List.of();
+        return evaluateConditions(allConditions, weather);
+    }
+
+    public List<DiseaseWeatherRiskDTO> evaluateAll(WeatherDTO weather) {
+        if (weather == null) {
+            return List.of();
+        }
+
+        return evaluateConditions(conditionRepository.findByIsActiveTrueAndIsDeleteFalse(), weather);
+    }
+
+    private List<DiseaseWeatherRiskDTO> evaluateConditions(
+            List<DiseaseWeatherCondition> allConditions, WeatherDTO weather) {
+        if (allConditions == null || allConditions.isEmpty()) return List.of();
 
         Map<GroupKey, List<DiseaseWeatherCondition>> groups = allConditions.stream()
                 .collect(Collectors.groupingBy(c ->

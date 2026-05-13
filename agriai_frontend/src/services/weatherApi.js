@@ -1,29 +1,21 @@
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 /**
  * Fetch thời tiết hiện tại từ Open-Meteo (miễn phí, không cần API key)
  * @param {number} lat
  * @param {number} lon
  * @returns {{ temperature: number, humidity: number, precipitation: number, weatherCode: number }}
  */
-export async function fetchWeather(lat, lon) {
+export async function fetchWeatherDiseaseRisks(lat, lon) {
   const params = new URLSearchParams({
     latitude: lat,
     longitude: lon,
-    current: 'temperature_2m,relative_humidity_2m,precipitation,weather_code',
-    timezone: 'Asia/Bangkok',
   });
 
-  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  if (!res.ok) throw new Error(`Open-Meteo error: ${res.status}`);
+  const res = await fetch(`${API_URL}/api/weather/disease-risks?${params}`);
+  if (!res.ok) throw new Error(`Weather risk API error: ${res.status}`);
 
-  const data = await res.json();
-  const c = data.current;
-
-  return {
-    temperature:   Math.round(c.temperature_2m),
-    humidity:      c.relative_humidity_2m,
-    precipitation: c.precipitation,
-    weatherCode:   c.weather_code,
-  };
+  return res.json();
 }
 
 /**
