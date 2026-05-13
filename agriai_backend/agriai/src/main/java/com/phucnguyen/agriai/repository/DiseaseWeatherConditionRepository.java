@@ -11,4 +11,6 @@ public interface DiseaseWeatherConditionRepository extends JpaRepository<Disease
     // get disease weather condition by disease ids and isactive true and isdelete
     // false
     List<DiseaseWeatherCondition> findByDiseaseIdInAndIsActiveTrueAndIsDeleteFalse(List<Integer> diseaseIds);
+
+    List<DiseaseWeatherCondition> findByIsActiveTrueAndIsDeleteFalse();
 }
