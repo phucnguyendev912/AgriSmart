@@ -1,4 +1,6 @@
 package com.phucnguyen.agriai.service;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -53,12 +55,16 @@ public class DiagnoseHistoryService {
 
     // get diagnose history by user email
     public Page<com.phucnguyen.agriai.dto.response.DiagnoseHistoryResponse> getHistory(String email,
-            Pageable pageable) {
+            Pageable pageable, LocalDate fromDate, LocalDate toDate) {
+        if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Ngay bat dau khong duoc lon hon ngay ket thuc.");
+        }
+
         Integer userId = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay nguoi dung."))
                 .getId();
 
-        return diagnoseHistoryRepository.findByUserIdAndIsDeleteFalseOrderByCreatedAtDesc(userId, pageable)
+        return findHistoryPage(userId, pageable, fromDate, toDate)
                 .map(history -> {
                     List<DiagnoseHistoryDetail> details = diagnoseHistoryDetailRepository
                             .findByDiagnoseHistoryIdAndIsDeleteFalse(history.getId());
@@ -106,6 +112,30 @@ public class DiagnoseHistoryService {
                             .isReviewed(isReviewed)
                             .build();
                 });
+    }
+
+    private Page<DiagnoseHistory> findHistoryPage(Integer userId, Pageable pageable, LocalDate fromDate,
+            LocalDate toDate) {
+        LocalDateTime startDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
+        LocalDateTime endDateTime = toDate != null ? toDate.plusDays(1).atStartOfDay() : null;
+
+        if (startDateTime != null && endDateTime != null) {
+            return diagnoseHistoryRepository
+                    .findByUserIdAndIsDeleteFalseAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
+                            userId, startDateTime, endDateTime, pageable);
+        }
+        if (startDateTime != null) {
+            return diagnoseHistoryRepository
+                    .findByUserIdAndIsDeleteFalseAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+                            userId, startDateTime, pageable);
+        }
+        if (endDateTime != null) {
+            return diagnoseHistoryRepository
+                    .findByUserIdAndIsDeleteFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+                            userId, endDateTime, pageable);
+        }
+
+        return diagnoseHistoryRepository.findByUserIdAndIsDeleteFalseOrderByCreatedAtDesc(userId, pageable);
     }
 
     private DiagnosisDetailSnapshotDTO parseSnapshot(String json) {
