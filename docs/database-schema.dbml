@@ -1,0 +1,463 @@
+// ==========================================
+// FULL DATABASE SCHEMA: AGRI AI (21 TABLES)
+// Source: init.sql
+//
+// Note:
+// This full schema is useful for database reference.
+// For cleaner ERD diagrams with fewer crossing relationship lines, use:
+// - docs/database-schema-view-diagnosis.dbml
+// - docs/database-schema-view-treatment.dbml
+// - docs/database-schema-view-support.dbml
+// ==========================================
+
+Table aimodel {
+  id integer [primary key]
+  model_name varchar
+  model_version varchar
+  model_description varchar
+  model_file_path varchar
+  croptype_id integer
+  description text
+  is_active boolean
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table area_infor {
+  id integer [primary key]
+  user_id integer
+  area_name varchar
+  area_code varchar
+  area float
+  address varchar
+  province varchar
+  latitude float
+  longitude float
+  description varchar
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table attachment {
+  id integer [primary key]
+  category varchar
+  file_name varchar
+  file_size bigint
+  file_type varchar
+  file_url varchar
+  mime_type varchar
+  reference_id integer
+  reference_type varchar
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table chat_session {
+  id integer [primary key]
+  user_id integer
+  session_title varchar
+  last_message text
+  last_message_at timestamp
+  lastmessage_at timestamp
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table chat_message {
+  id integer [primary key]
+  session_id integer
+  attachment_id integer
+  sender_type varchar [note: "USER or AI"]
+  message_content text
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table crop_type {
+  id integer [primary key]
+  crop_name varchar
+  cropname_en varchar
+  crop_description varchar
+  description varchar
+  iconurl varchar
+  is_active boolean
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table diagnose_history {
+  id integer [primary key]
+  user_id integer
+  areainfo_id integer
+  croptype_id integer
+  status varchar [note: "PENDING, COMPLETED, FAILED"]
+  originalimageurl varchar
+  weather_data text
+  latitude float
+  longitude float
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table diagnose_history_detail {
+  id integer [primary key]
+  diagnosehistory_id integer
+  disease_id integer
+  confidence_score numeric
+  risk_warning varchar
+  severity_level varchar [note: "NHE, TRUNG_BINH, NANG"]
+  cultivation_data text
+  treatment_data text
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table diagnose_review {
+  id integer [primary key]
+  history_id integer [unique, not null]
+  user_id integer
+  rating integer
+  comment varchar
+  feedback text
+  is_accurate boolean
+  reviewed_at timestamp
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table diagnose_treatment_recommendation {
+  id integer [primary key]
+  diagnose_history_detail_id integer [not null]
+  treatment_plan_id integer [not null]
+  rank_score integer
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean [default: false]
+}
+
+Table disease {
+  id integer [primary key]
+  croptype_id integer
+  disease_code varchar
+  disease_name varchar
+  diseasename_en varchar
+  symptoms varchar
+  description varchar
+  severity_level varchar [note: "NHE, TRUNG_BINH, NANG"]
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table disease_weather_condition {
+  id integer [primary key]
+  disease_id integer [not null]
+  condition_group varchar [not null]
+  weather_factor varchar [not null]
+  operator varchar [not null]
+  min_value numeric
+  max_value numeric
+  unit varchar
+  recommendation_note text
+  is_active boolean [default: true]
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_deleted boolean [default: false]
+}
+
+Table drug {
+  id integer [primary key]
+  drug_name varchar [not null]
+  formulation varchar
+  manufacturer varchar
+  is_active boolean [default: true]
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_deleted boolean [default: false]
+}
+
+Table ingredient {
+  id integer [primary key]
+  ingredient_name varchar [not null]
+  description text
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_deleted boolean [default: false]
+}
+
+Table drug_ingredient {
+  id integer [primary key]
+  drug_id integer [not null]
+  ingredient_id integer [not null]
+  concentration_value numeric
+  concentration_unit varchar
+  raw_concentration varchar
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean [default: false]
+
+  indexes {
+    (drug_id, ingredient_id) [unique]
+  }
+}
+
+Table drug_interaction {
+  id integer [primary key]
+  ingredient_a_id integer [not null]
+  ingredient_b_id integer [not null]
+  interaction_type varchar
+  severity varchar
+  warning_message text [not null]
+  action_rule varchar
+  interval_days integer
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean [default: false]
+
+  indexes {
+    (ingredient_a_id, ingredient_b_id) [unique]
+    (ingredient_a_id, ingredient_b_id)
+  }
+}
+
+Table model_performance {
+  id integer [primary key]
+  model_id integer
+  accuracy numeric
+  avg_confidence_score numeric
+  f1_score numeric
+  precision numeric
+  recall numeric
+  low_confidence_count integer
+  total_diagnoses integer
+  metric_date timestamp
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table notification {
+  id integer [primary key]
+  user_id integer
+  title varchar
+  content varchar
+  notification_type varchar [note: "CANH_BAO_BENH, KET_QUA_CHAN_DOAN, HE_THONG"]
+  is_read boolean
+  read_at timestamp
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table roles {
+  id integer [primary key]
+  role_name varchar
+  description varchar
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+Table treatment_plan {
+  id integer [primary key]
+  disease_id integer
+  drug_id integer
+  treatment_name varchar
+  dosage_type varchar
+  dosage_value_min numeric
+  dosage_value_max numeric
+  dosage_unit varchar
+  dosage_area_value numeric
+  dosage_area_unit varchar
+  mixing_instruction text
+  water_volume_min numeric
+  water_volume_max numeric
+  water_volume_unit varchar
+  spray_times smallint
+  spray_interval varchar [not null]
+  application_method text
+  application_time varchar
+  safety_notes text
+  is_required boolean
+  description text
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean [default: false]
+}
+
+Table users {
+  id integer [primary key]
+  role_id integer
+  attachment_id integer
+  email varchar [unique]
+  full_name varchar
+  password_hash varchar
+  phone_number varchar
+  is_active boolean
+  created_at timestamp
+  created_by integer
+  updated_at timestamp
+  updated_by integer
+  deleted_at timestamp
+  deleted_by integer
+  is_delete boolean
+}
+
+// ==========================================
+// TABLE GROUPS
+// ==========================================
+
+TableGroup user_area {
+  users
+  roles
+  attachment
+  area_infor
+}
+
+TableGroup diagnosis {
+  crop_type
+  diagnose_history
+  diagnose_history_detail
+  diagnose_review
+  diagnose_treatment_recommendation
+  disease
+}
+
+TableGroup weather_risk {
+  disease_weather_condition
+}
+
+TableGroup treatment_drug {
+  treatment_plan
+  drug
+  ingredient
+  drug_ingredient
+  drug_interaction
+}
+
+TableGroup ai_chat_notification {
+  aimodel
+  model_performance
+  chat_session
+  chat_message
+  notification
+}
+
+// ==========================================
+// RELATIONSHIPS (FOREIGN KEYS FROM init.sql)
+// ==========================================
+
+Ref: aimodel.croptype_id > crop_type.id
+Ref: area_infor.user_id > users.id
+Ref: chat_session.user_id > users.id
+Ref: chat_message.session_id > chat_session.id
+Ref: chat_message.attachment_id > attachment.id
+Ref: diagnose_history.areainfo_id > area_infor.id
+Ref: diagnose_history.croptype_id > crop_type.id
+Ref: diagnose_history.user_id > users.id
+Ref: diagnose_history_detail.diagnosehistory_id > diagnose_history.id
+Ref: diagnose_history_detail.disease_id > disease.id
+Ref: diagnose_review.history_id > diagnose_history.id
+Ref: diagnose_review.user_id > users.id
+Ref: diagnose_treatment_recommendation.diagnose_history_detail_id > diagnose_history_detail.id
+Ref: disease.croptype_id > crop_type.id
+Ref: disease_weather_condition.disease_id > disease.id
+Ref: drug_ingredient.drug_id > drug.id
+Ref: drug_ingredient.ingredient_id > ingredient.id
+Ref: drug_interaction.ingredient_a_id > ingredient.id
+Ref: drug_interaction.ingredient_b_id > ingredient.id
+Ref: model_performance.model_id > aimodel.id
+Ref: notification.user_id > users.id
+Ref: treatment_plan.disease_id > disease.id
+Ref: treatment_plan.drug_id > drug.id
+Ref: users.attachment_id > attachment.id
+Ref: users.role_id > roles.id
