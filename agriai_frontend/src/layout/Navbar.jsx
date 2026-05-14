@@ -67,11 +67,6 @@ const Navbar = () => {
           <div className="flex items-center gap-2 md:gap-4">
             {user ? (
               <>
-                <Link to="/notifications" className="relative p-2.5 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-primary">
-                  <span className="material-symbols-outlined text-[24px]">notifications</span>
-                  <span className="absolute top-2 right-2 w-4 h-4 bg-error text-[10px] text-white flex items-center justify-center rounded-full font-bold border-2 border-white">3</span>
-                </Link>
-
                 <div className="relative">
                   <button onClick={() => setDesktopMenuOpen(!desktopMenuOpen)} className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200 hover:bg-slate-50 transition-colors py-2 px-3 rounded-lg group cursor-pointer" title="Tuỳ chọn tài khoản">
                     <div className="flex flex-col items-end">
@@ -79,7 +74,7 @@ const Navbar = () => {
                         <span className="text-sm font-bold text-slate-900 leading-none group-hover:text-primary transition-colors">{user.fullName || 'Người dùng'}</span>
                         <span className="material-symbols-outlined text-slate-400 text-sm group-hover:text-primary transition-colors" style={{ transform: desktopMenuOpen ? 'rotate(180deg)' : 'rotate(0)' }}>expand_more</span>
                       </div>
-                      <span className="text-[11px] text-slate-500 font-medium">{user.roleName === 'ADMIN' ? 'Quản trị viên' : 'Nông dân tiêu biểu'}</span>
+                      <span className="text-[11px] text-slate-500 font-medium">{user.roleName === 'ADMIN' ? 'Quản trị viên' : user.roleName || 'Nông dân'}</span>
                     </div>
                     <div className="w-10 h-10 rounded-full bg-emerald-100 p-0.5 border border-emerald-200 overflow-hidden">
                       <img
