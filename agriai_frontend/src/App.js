@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Navbar from "./layout/Navbar";
 import Footer from "./layout/Footer";
@@ -18,6 +18,17 @@ import ChatBotWidget from "./features/chat/components/ChatBotWidget";
 import GlobalNotificationListener from "./layout/GlobalNotificationListener";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "./context/AuthContext";
+
+const RequireAuth = ({ children }) => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
 
 function App() {
   return (
@@ -31,7 +42,14 @@ function App() {
           <div className="flex-1">
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/home" element={<HomePage />} />
+              <Route
+                path="/home"
+                element={
+                  <RequireAuth>
+                    <HomePage />
+                  </RequireAuth>
+                }
+              />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/farming-areas" element={<FarmingAreaPage />} />
