@@ -16,6 +16,7 @@ import DiseaseMapPage from "./pages/DiseaseMapPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChatBotWidget from "./features/chat/components/ChatBotWidget";
 import GlobalNotificationListener from "./layout/GlobalNotificationListener";
+import InitialLocationPrompt from "./layout/InitialLocationPrompt";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "./context/AuthContext";
@@ -34,6 +35,7 @@ function App() {
   return (
     <HelmetProvider>
       <Router>
+        <InitialLocationPrompt />
         <GlobalNotificationListener />
         {/* Nơi chứa toàn bộ nội dung của ứng dụng */}
         <div className="bg-surface text-on-surface font-sans min-h-screen flex flex-col">

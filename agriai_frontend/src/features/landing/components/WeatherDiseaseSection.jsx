@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { fetchWeatherDiseaseRisks, reverseGeocode } from '../../../services/weatherApi';
+import LocationPermissionModal from '../../../components/common/LocationPermissionModal';
+import { useLocationPermission } from '../../../context/LocationPermissionContext';
 import {
   DEFAULT_PROVINCE,
   VIETNAM_PROVINCES,
@@ -36,6 +38,7 @@ const mapRiskToDisease = (risk) => ({
 });
 
 const WeatherDiseaseSection = () => {
+  const { coords, gpsStatus, hasCoords, requestLocation } = useLocationPermission();
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [weather, setWeather] = useState(null);
   const [diseases, setDiseases] = useState([]);
@@ -43,6 +46,7 @@ const WeatherDiseaseSection = () => {
   const [isLocating, setIsLocating] = useState(false); // false vì sẽ check localStorage trước
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   const loadWeather = useCallback(async (province) => {
     setIsLoading(true);
@@ -60,7 +64,19 @@ const WeatherDiseaseSection = () => {
     }
   }, []);
 
-  // Mount: đọc localStorage trước, chỉ geolocate nếu chưa có
+  const applyCurrentLocation = useCallback(async (latitude, longitude) => {
+    const name = await reverseGeocode(latitude, longitude).catch(() => '');
+    const province = findProvinceByName(name) || findNearestProvince(latitude, longitude);
+    localStorage.setItem(STORAGE_KEY, province.id);
+    localStorage.setItem(GPS_STORAGE_KEY, JSON.stringify({
+      latitude,
+      longitude,
+      provinceId: province.id,
+    }));
+    setSelectedProvince({ ...province, lat: latitude, lon: longitude });
+  }, []);
+
+  // Mount: đọc localStorage trước, sau đó dùng tọa độ đã có hoặc tỉnh mặc định
   useEffect(() => {
     const savedGps = localStorage.getItem(GPS_STORAGE_KEY);
     if (savedGps) {
@@ -80,50 +96,48 @@ const WeatherDiseaseSection = () => {
       }
     }
 
+    if (hasCoords) {
+      applyCurrentLocation(coords.latitude, coords.longitude)
+        .catch(() => setSelectedProvince(DEFAULT_PROVINCE));
+      return;
+    }
+
     const savedId = localStorage.getItem(STORAGE_KEY);
     if (savedId) {
       const saved = VIETNAM_PROVINCES.find((p) => p.id === Number(savedId));
       if (saved) {
         setSelectedProvince(saved);
-        return; // bỏ qua geolocate
+        return;
       }
     }
 
-    // Chưa có → geolocate lần đầu
-    if (!navigator.geolocation) {
-      setSelectedProvince(DEFAULT_PROVINCE);
-      return;
-    }
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords: { latitude, longitude } }) => {
-        try {
-          const name = await reverseGeocode(latitude, longitude).catch(() => '');
-          const province = findProvinceByName(name) || findNearestProvince(latitude, longitude);
-          localStorage.setItem(STORAGE_KEY, province.id);
-          localStorage.setItem(GPS_STORAGE_KEY, JSON.stringify({
-            latitude,
-            longitude,
-            provinceId: province.id,
-          }));
-          setSelectedProvince({ ...province, lat: latitude, lon: longitude });
-        } catch {
-          setSelectedProvince(DEFAULT_PROVINCE);
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      () => {
-        setSelectedProvince(DEFAULT_PROVINCE);
-        setIsLocating(false);
-      },
-      { timeout: 8000 }
-    );
-  }, []);
+    setSelectedProvince(DEFAULT_PROVINCE);
+  }, [applyCurrentLocation, coords.latitude, coords.longitude, hasCoords]);
 
   useEffect(() => {
     if (selectedProvince) loadWeather(selectedProvince);
   }, [selectedProvince, loadWeather]);
+
+  const handleAllowLocation = async () => {
+    setIsLocating(true);
+    const result = await requestLocation();
+
+    if (result.ok) {
+      await applyCurrentLocation(result.coords.latitude, result.coords.longitude);
+    } else if (!selectedProvince) {
+      setSelectedProvince(DEFAULT_PROVINCE);
+    }
+
+    setIsLocating(false);
+    setShowLocationModal(false);
+  };
+
+  const handleContinueWithoutLocation = () => {
+    if (!selectedProvince) {
+      setSelectedProvince(DEFAULT_PROVINCE);
+    }
+    setShowLocationModal(false);
+  };
 
   const metrics = weather ? [
     {
@@ -313,6 +327,18 @@ const WeatherDiseaseSection = () => {
             ))}
           </select>
 
+          <button
+            type="button"
+            onClick={() => setShowLocationModal(true)}
+            disabled={isLocating || isLoading}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-base">
+              {isLocating ? 'progress_activity' : 'my_location'}
+            </span>
+            Dùng vị trí
+          </button>
+
           {highCount > 0 && !isLoading && (
             <span className="ml-auto text-xs font-bold px-3 py-1 bg-red-50 text-red-600 border border-red-100 rounded-full shrink-0">
               {highCount} nguy cơ cao
@@ -438,6 +464,17 @@ const WeatherDiseaseSection = () => {
           </div>
         </div>
       )}
+
+      <LocationPermissionModal
+        open={showLocationModal}
+        loading={isLocating || gpsStatus === 'requesting'}
+        blocked={gpsStatus === 'unsupported'}
+        title="Dùng vị trí hiện tại?"
+        description="Vị trí hiện tại giúp hệ thống tải thời tiết và cảnh báo bệnh theo đúng khu vực của bạn."
+        onAllow={handleAllowLocation}
+        onContinue={handleContinueWithoutLocation}
+        onClose={handleContinueWithoutLocation}
+      />
     </section>
   );
 };

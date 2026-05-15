@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import SEO from '../components/common/SEO';
+import LocationPermissionModal from '../components/common/LocationPermissionModal';
+import { useLocationPermission } from '../context/LocationPermissionContext';
 
 // Diagnosis sub-components
 import DiagnoseUploadPanel from '../features/diagnosis/components/DiagnoseUploadPanel';
@@ -33,6 +35,7 @@ const getCultivationMeasures = (result) => {
 const DiagnosisPage = () => {
     // === STATE ===
     const { user } = useAuth(); // useAuth: lấy thông tin xác thực của người dùng từ Context toàn cục.
+    const { coords, gpsStatus, hasCoords, requestLocation } = useLocationPermission();
     const [cropTypes, setCropTypes] = useState([]); // useState: lưu danh sách loại cây trồng tải về từ API.
     const [selectedCropTypeId, setSelectedCropTypeId] = useState(''); // useState: lưu ID loại cây người dùng đang chọn.
     const [selectedFile, setSelectedFile] = useState(null); // useState: lưu file ảnh người dùng đã chọn để chẩn đoán.
@@ -40,8 +43,9 @@ const DiagnosisPage = () => {
     const [loading, setLoading] = useState(false); // useState: trạng thái đang gọi API chẩn đoán.
     const [result, setResult] = useState(null); // useState: lưu kết quả chẩn đoán trả về từ backend.
     const [error, setError] = useState(''); // useState: lưu thông báo lỗi nếu chẩn đoán thất bại.
-    const [gpsStatus, setGpsStatus] = useState('pending'); // useState: trạng thái quyền GPS (pending/granted/denied).
-    const [coords, setCoords] = useState({ latitude: null, longitude: null }); // useState: lưu tọa độ GPS của người dùng.
+    const [showLocationModal, setShowLocationModal] = useState(false);
+    const [locationDoubleChecked, setLocationDoubleChecked] = useState(false);
+    const [diagnoseAfterLocationCheck, setDiagnoseAfterLocationCheck] = useState(false);
 
     // Rating modal state
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false); // useState: kiểm soát hiển thị modal đánh giá kết quả.
@@ -63,22 +67,11 @@ const DiagnosisPage = () => {
         fetchCropTypes();
     }, []);
 
-    // === REQUEST GPS ===
-    // useEffect: yêu cầu quyền truy cập GPS một lần khi component mount.
     useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    setCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-                    setGpsStatus('granted');
-                },
-                () => setGpsStatus('denied'),
-                { timeout: 10000 }
-            );
-        } else {
-            setGpsStatus('denied');
+        if (!hasCoords && !locationDoubleChecked && (gpsStatus === 'denied' || gpsStatus === 'unsupported')) {
+            setShowLocationModal(true);
         }
-    }, []);
+    }, [gpsStatus, hasCoords, locationDoubleChecked]);
 
     // === HANDLE FILE SELECT ===
     const handleFileChange = (e) => {
@@ -91,8 +84,7 @@ const DiagnosisPage = () => {
         }
     };
 
-    // === HANDLE DIAGNOSE ===
-    const handleDiagnose = async () => {
+    const submitDiagnose = async () => {
         if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
         if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
 
@@ -103,8 +95,8 @@ const DiagnosisPage = () => {
         const formData = new FormData();
         formData.append('image', selectedFile);
         formData.append('cropTypeId', selectedCropTypeId);
-        if (coords.latitude) formData.append('latitude', coords.latitude);
-        if (coords.longitude) formData.append('longitude', coords.longitude);
+        if (coords.latitude !== null && coords.latitude !== undefined) formData.append('latitude', coords.latitude);
+        if (coords.longitude !== null && coords.longitude !== undefined) formData.append('longitude', coords.longitude);
 
         try {
             const res = await axios.post(`${API_URL}/api/diagnosis`, formData, {
@@ -122,6 +114,45 @@ const DiagnosisPage = () => {
             setError(err.response?.status >= 500 ? 'Có lỗi xảy ra, vui lòng thử lại sau' : (message || 'Có lỗi xảy ra, vui lòng thử lại sau'));
         } finally {
             setLoading(false);
+        }
+    };
+
+    // === HANDLE DIAGNOSE ===
+    const handleDiagnose = async () => {
+        if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
+        if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
+
+        if (!hasCoords && !locationDoubleChecked) {
+            setDiagnoseAfterLocationCheck(true);
+            setShowLocationModal(true);
+            return;
+        }
+
+        await submitDiagnose();
+    };
+
+    const handleAllowLocation = async () => {
+        const result = await requestLocation();
+        setLocationDoubleChecked(true);
+        setShowLocationModal(false);
+
+        if (!result.ok) {
+            toast.info('Bạn có thể tiếp tục chẩn đoán mà không cần vị trí.');
+        }
+
+        if (diagnoseAfterLocationCheck) {
+            setDiagnoseAfterLocationCheck(false);
+            setTimeout(() => submitDiagnose(), 0);
+        }
+    };
+
+    const handleContinueWithoutLocation = () => {
+        setLocationDoubleChecked(true);
+        setShowLocationModal(false);
+
+        if (diagnoseAfterLocationCheck) {
+            setDiagnoseAfterLocationCheck(false);
+            setTimeout(() => submitDiagnose(), 0);
         }
     };
 
@@ -175,7 +206,7 @@ const DiagnosisPage = () => {
                                 <span className="material-symbols-outlined text-sm">location_on</span> GPS bật
                             </div>
                         )}
-                        {gpsStatus === 'denied' && (
+                        {(gpsStatus === 'denied' || gpsStatus === 'unsupported') && (
                             <div className="hidden md:flex items-center gap-1 text-xs text-on-surface-variant font-bold">
                                 <span className="material-symbols-outlined text-sm">location_off</span> GPS tắt
                             </div>
@@ -263,6 +294,17 @@ const DiagnosisPage = () => {
                     <span className="text-[10px] font-medium">Cá nhân</span>
                 </Link>
             </div>
+
+            <LocationPermissionModal
+                open={showLocationModal}
+                loading={gpsStatus === 'requesting'}
+                blocked={gpsStatus === 'unsupported'}
+                title="Cho phép dùng vị trí khi chẩn đoán?"
+                description="Vị trí giúp hệ thống lấy thời tiết và gợi ý cảnh báo theo khu vực chính xác hơn. Bạn vẫn có thể chẩn đoán nếu không cung cấp vị trí."
+                onAllow={handleAllowLocation}
+                onContinue={handleContinueWithoutLocation}
+                onClose={handleContinueWithoutLocation}
+            />
 
             {/* Rating Modal */}
             {isRatingModalOpen && result && (
