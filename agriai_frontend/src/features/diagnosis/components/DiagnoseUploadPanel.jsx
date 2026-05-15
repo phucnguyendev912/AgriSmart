@@ -80,7 +80,7 @@ const DiagnoseUploadPanel = ({
                     )}
                 </button>
 
-                {gpsStatus === 'denied' && (
+                {(gpsStatus === 'denied' || gpsStatus === 'unsupported') && (
                     <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm font-medium flex items-start gap-2">
                         <span className="material-symbols-outlined text-base mt-0.5">location_off</span>
                         <span>Không có dữ liệu vị trí. Một số cảnh báo thời tiết có thể không chính xác</span>
