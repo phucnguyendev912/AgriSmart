@@ -124,12 +124,10 @@ const WeatherDiseaseSection = () => {
 
     if (result.ok) {
       await applyCurrentLocation(result.coords.latitude, result.coords.longitude);
-    } else if (!selectedProvince) {
-      setSelectedProvince(DEFAULT_PROVINCE);
+      setShowLocationModal(false);
     }
 
     setIsLocating(false);
-    setShowLocationModal(false);
   };
 
   const handleContinueWithoutLocation = () => {
@@ -469,6 +467,7 @@ const WeatherDiseaseSection = () => {
         open={showLocationModal}
         loading={isLocating || gpsStatus === 'requesting'}
         blocked={gpsStatus === 'unsupported'}
+        denied={gpsStatus === 'denied'}
         title="Dùng vị trí hiện tại?"
         description="Vị trí hiện tại giúp hệ thống tải thời tiết và cảnh báo bệnh theo đúng khu vực của bạn."
         onAllow={handleAllowLocation}

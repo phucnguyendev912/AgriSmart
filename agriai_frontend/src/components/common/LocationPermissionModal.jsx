@@ -4,6 +4,7 @@ export default function LocationPermissionModal({
   open,
   loading,
   blocked,
+  denied,
   title = 'Cho phép truy cập vị trí?',
   description = 'Hệ thống có thể sử dụng vị trí của bạn để hiển thị cảnh báo thời tiết và gợi ý theo khu vực chính xác hơn.',
   onAllow,
@@ -35,8 +36,10 @@ export default function LocationPermissionModal({
             </h3>
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
               {blocked
-                ? 'Trình duyệt đang chặn quyền vị trí. Bạn có thể bật lại quyền vị trí trong cài đặt của trình duyệt, hoặc tiếp tục sử dụng không có vị trí.'
-                : description}
+                ? 'Trình duyệt đang chặn quyền vị trí. Hãy bật lại quyền vị trí trong cài đặt của trình duyệt rồi thử lại, hoặc tiếp tục sử dụng không có vị trí.'
+                : denied
+                  ? 'Bạn đã từ chối quyền vị trí trước đó. Hệ thống sẽ thử xin lại quyền vị trí; nếu trình duyệt vẫn chặn, bạn cần bật lại quyền trong cài đặt trình duyệt.'
+                  : description}
             </p>
           </div>
         </div>
@@ -61,7 +64,7 @@ export default function LocationPermissionModal({
                 progress_activity
               </span>
             )}
-            Cho phép vị trí
+            {blocked ? 'Vị trí đang bị chặn' : 'Cho phép vị trí'}
           </button>
         </div>
       </div>
