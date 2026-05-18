@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
     // =========================================================================
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex) {
-        return buildError(HttpStatus.UNAUTHORIZED, "Tai khoan hoac mat khau khong chinh xac.");
+        return buildError(HttpStatus.UNAUTHORIZED, "Tài khoản hoặc mật khẩu không chính xác.");
     }
 
     // =========================================================================
@@ -52,17 +52,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(
             org.springframework.security.access.AccessDeniedException ex) {
-        return buildError(HttpStatus.FORBIDDEN, "Ban khong co quyen thuc hien hanh dong nay.");
+        return buildError(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này.");
     }
 
     // =========================================================================
     // MODULE: Auth / User – vi phạm ràng buộc unique của DB
-    // Ví dụ: đăng ký email đã tồn tại (dù AuthService đã check trước, DB là lớp cuối)
+    // Ví dụ: đăng ký email đã tồn tại (dù AuthService đã check trước, DB là lớp
+    // cuối)
     // =========================================================================
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
         log.warn("[DataIntegrityViolation] {}", ex.getMostSpecificCause().getMessage());
-        return buildError(HttpStatus.CONFLICT, "Du lieu bi trung lap hoac vi pham rang buoc cua he thong.");
+        return buildError(HttpStatus.CONFLICT, "Dữ liệu bị trùng lặp hoặc vi phạm ràng buộc của hệ thống.");
     }
 
     // =========================================================================
@@ -75,7 +76,8 @@ public class GlobalExceptionHandler {
     }
 
     // =========================================================================
-    // MODULE: Diagnose – lỗi multipart request (ảnh bị lỗi khi parse, content-type sai)
+    // MODULE: Diagnose – lỗi multipart request (ảnh bị lỗi khi parse, content-type
+    // sai)
     // Xảy ra khi gọi POST /api/diagnosis mà thiếu file hoặc sai content-type
     // =========================================================================
     @ExceptionHandler(MultipartException.class)
@@ -89,7 +91,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleNotReadable(
             org.springframework.http.converter.HttpMessageNotReadableException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "Du lieu gui len khong doc duoc hoac sai dinh dang JSON.");
+        return buildError(HttpStatus.BAD_REQUEST, "Dữ liệu gửi lên không đọc được hoặc sai định dạng JSON.");
     }
 
     // =========================================================================
@@ -98,7 +100,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, Object>> handleMissingParam(
             org.springframework.web.bind.MissingServletRequestParameterException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "Thieu tham so bat buoc: " + ex.getParameterName());
+        return buildError(HttpStatus.BAD_REQUEST, "Thiếu tham số bắt buộc: " + ex.getParameterName());
     }
 
     // =========================================================================
@@ -130,11 +132,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoResource(
             org.springframework.web.servlet.resource.NoResourceFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, "Khong tim thay tai nguyen yeu cau.");
+        return buildError(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên yêu cầu.");
     }
 
     // =========================================================================
-    // MODULE: Cloudinary – upload ảnh thất bại (CloudinaryService throw RuntimeException)
+    // MODULE: Cloudinary – upload ảnh thất bại (CloudinaryService throw
+    // RuntimeException)
     // Cũng bắt các RuntimeException không mong đợi từ bất kỳ service nào khác
     // =========================================================================
     @ExceptionHandler(RuntimeException.class)

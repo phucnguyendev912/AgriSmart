@@ -1,27 +1,42 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AdminAuthProvider } from './context/AdminAuthContext';
+import PrivateRoute from './components/common/PrivateRoute';
 import AdminLayout from './layout/AdminLayout';
+import AdminLoginPage from './pages/AdminLoginPage';
 import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AdminLayout />}>
-          <Route index element={<DashboardPage />} />
-          {/* Add other routes here as they are developed */}
-          <Route path="users" element={<div className="p-8">Quản lý người dùng</div>} />
-          <Route path="diseases" element={<div className="p-8">Quản lý bệnh cây trồng</div>} />
-          <Route path="crop-types" element={<div className="p-8">Quản lý loại cây</div>} />
-          <Route path="treatment-plans" element={<div className="p-8">Quản lý phác đồ</div>} />
-          <Route path="ingredients" element={<div className="p-8">Quản lý thành phần</div>} />
-          <Route path="drugs" element={<div className="p-8">Quản lý thuốc</div>} />
-          <Route path="drug-interactions" element={<div className="p-8">Quản lý tương tác thuốc</div>} />
-          <Route path="ai-performance" element={<div className="p-8">Quản lý hiệu suất AI</div>} />
-          <Route path="diagnosis-reviews" element={<div className="p-8">Quản lý đánh giá chẩn đoán</div>} />
-          <Route path="attachments" element={<div className="p-8">Quản lý tệp đính kèm</div>} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AdminAuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Trang login — public */}
+          <Route path="/login" element={<AdminLoginPage />} />
+
+          {/* Các trang admin — yêu cầu đăng nhập */}
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <AdminLayout />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="users" element={<div className="p-8">Quản lý người dùng</div>} />
+            <Route path="diseases" element={<div className="p-8">Quản lý bệnh cây trồng</div>} />
+            <Route path="crop-types" element={<div className="p-8">Quản lý loại cây</div>} />
+            <Route path="treatment-plans" element={<div className="p-8">Quản lý phác đồ</div>} />
+            <Route path="ingredients" element={<div className="p-8">Quản lý thành phần</div>} />
+            <Route path="drugs" element={<div className="p-8">Quản lý thuốc</div>} />
+            <Route path="drug-interactions" element={<div className="p-8">Quản lý tương tác thuốc</div>} />
+            <Route path="ai-performance" element={<div className="p-8">Quản lý hiệu suất AI</div>} />
+            <Route path="diagnosis-reviews" element={<div className="p-8">Quản lý đánh giá chẩn đoán</div>} />
+            <Route path="attachments" element={<div className="p-8">Quản lý tệp đính kèm</div>} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AdminAuthProvider>
   );
 }
 
