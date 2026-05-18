@@ -4,6 +4,7 @@ import PrivateRoute from './components/common/PrivateRoute';
 import AdminLayout from './layout/AdminLayout';
 import AdminLoginPage from './pages/AdminLoginPage';
 import DashboardPage from './pages/DashboardPage';
+import UserManagementPage from './pages/UserManagementPage';
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="users" element={<div className="p-8">Quản lý người dùng</div>} />
+            <Route path="users" element={<UserManagementPage />} />
             <Route path="diseases" element={<div className="p-8">Quản lý bệnh cây trồng</div>} />
             <Route path="crop-types" element={<div className="p-8">Quản lý loại cây</div>} />
             <Route path="treatment-plans" element={<div className="p-8">Quản lý phác đồ</div>} />
@@ -41,3 +42,4 @@ function App() {
 }
 
 export default App;
+
