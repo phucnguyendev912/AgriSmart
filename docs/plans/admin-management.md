@@ -213,6 +213,7 @@ GET    /api/admin/users/{id}
 POST   /api/admin/users
 PUT    /api/admin/users/{id}
 PATCH  /api/admin/users/{id}/delete
+
 ```
 
 Behavior:
@@ -220,8 +221,11 @@ Behavior:
 - CRUD user.
 - Update `isActive`.
 - Update role.
+- Lock user account by setting `isActive = false`.
+- Unlock user account by setting `isActive = true`.
 - Do not return `passwordHash`.
 - Do not allow an admin to soft delete their own account.
+- Do not allow an admin to lock their own account.
 
 ### Disease Admin
 
