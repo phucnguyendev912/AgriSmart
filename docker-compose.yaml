@@ -61,5 +61,17 @@ services:
     ports:
       - "3000:80"
 
+  admin-frontend:
+    build:
+      context: ./agriai_admin_frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    container_name: agriai-admin-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3001:80"
+
 volumes:
   agriai_postgres18_data:
