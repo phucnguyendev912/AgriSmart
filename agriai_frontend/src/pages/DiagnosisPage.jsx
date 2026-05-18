@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import SEO from '../components/common/SEO';
-import LocationPermissionModal from '../components/common/LocationPermissionModal';
 import { useLocationPermission } from '../context/LocationPermissionContext';
 
 // Diagnosis sub-components
@@ -36,6 +35,7 @@ const DiagnosisPage = () => {
     // === STATE ===
     const { user } = useAuth(); // useAuth: lấy thông tin xác thực của người dùng từ Context toàn cục.
     const { coords, gpsStatus, hasCoords, requestLocation } = useLocationPermission();
+    const hasRetriedDeniedLocation = useRef(false);
     const [cropTypes, setCropTypes] = useState([]); // useState: lưu danh sách loại cây trồng tải về từ API.
     const [selectedCropTypeId, setSelectedCropTypeId] = useState(''); // useState: lưu ID loại cây người dùng đang chọn.
     const [selectedFile, setSelectedFile] = useState(null); // useState: lưu file ảnh người dùng đã chọn để chẩn đoán.
@@ -43,10 +43,6 @@ const DiagnosisPage = () => {
     const [loading, setLoading] = useState(false); // useState: trạng thái đang gọi API chẩn đoán.
     const [result, setResult] = useState(null); // useState: lưu kết quả chẩn đoán trả về từ backend.
     const [error, setError] = useState(''); // useState: lưu thông báo lỗi nếu chẩn đoán thất bại.
-    const [showLocationModal, setShowLocationModal] = useState(false);
-    const [locationDoubleChecked, setLocationDoubleChecked] = useState(false);
-    const [diagnoseAfterLocationCheck, setDiagnoseAfterLocationCheck] = useState(false);
-
     // Rating modal state
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false); // useState: kiểm soát hiển thị modal đánh giá kết quả.
     const [showToast, setShowToast] = useState(false); // useState: điều khiển hiển thị thông báo cảm ơn sau khi đánh giá.
@@ -68,10 +64,11 @@ const DiagnosisPage = () => {
     }, []);
 
     useEffect(() => {
-        if (!hasCoords && !locationDoubleChecked && (gpsStatus === 'denied' || gpsStatus === 'unsupported')) {
-            setShowLocationModal(true);
+        if (!hasCoords && gpsStatus === 'denied' && !hasRetriedDeniedLocation.current) {
+            hasRetriedDeniedLocation.current = true;
+            requestLocation();
         }
-    }, [gpsStatus, hasCoords, locationDoubleChecked]);
+    }, [gpsStatus, hasCoords, requestLocation]);
 
     // === HANDLE FILE SELECT ===
     const handleFileChange = (e) => {
@@ -119,41 +116,7 @@ const DiagnosisPage = () => {
 
     // === HANDLE DIAGNOSE ===
     const handleDiagnose = async () => {
-        if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
-        if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
-
-        if (!hasCoords && !locationDoubleChecked) {
-            setDiagnoseAfterLocationCheck(true);
-            setShowLocationModal(true);
-            return;
-        }
-
         await submitDiagnose();
-    };
-
-    const handleAllowLocation = async () => {
-        const result = await requestLocation();
-        setLocationDoubleChecked(true);
-        setShowLocationModal(false);
-
-        if (!result.ok) {
-            toast.info('Bạn có thể tiếp tục chẩn đoán mà không cần vị trí.');
-        }
-
-        if (diagnoseAfterLocationCheck) {
-            setDiagnoseAfterLocationCheck(false);
-            setTimeout(() => submitDiagnose(), 0);
-        }
-    };
-
-    const handleContinueWithoutLocation = () => {
-        setLocationDoubleChecked(true);
-        setShowLocationModal(false);
-
-        if (diagnoseAfterLocationCheck) {
-            setDiagnoseAfterLocationCheck(false);
-            setTimeout(() => submitDiagnose(), 0);
-        }
     };
 
     // === HANDLE OPEN RATING MODAL ===
@@ -294,17 +257,6 @@ const DiagnosisPage = () => {
                     <span className="text-[10px] font-medium">Cá nhân</span>
                 </Link>
             </div>
-
-            <LocationPermissionModal
-                open={showLocationModal}
-                loading={gpsStatus === 'requesting'}
-                blocked={gpsStatus === 'unsupported'}
-                title="Cho phép dùng vị trí khi chẩn đoán?"
-                description="Vị trí giúp hệ thống lấy thời tiết và gợi ý cảnh báo theo khu vực chính xác hơn. Bạn vẫn có thể chẩn đoán nếu không cung cấp vị trí."
-                onAllow={handleAllowLocation}
-                onContinue={handleContinueWithoutLocation}
-                onClose={handleContinueWithoutLocation}
-            />
 
             {/* Rating Modal */}
             {isRatingModalOpen && result && (
