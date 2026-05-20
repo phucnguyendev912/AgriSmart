@@ -5,6 +5,7 @@ import AdminLayout from './layout/AdminLayout';
 import AdminLoginPage from './pages/AdminLoginPage';
 import DashboardPage from './pages/DashboardPage';
 import UserManagementPage from './pages/UserManagementPage';
+import DiseaseManagementPage from './pages/DiseaseManagementPage';
 
 function App() {
   return (
@@ -25,7 +26,7 @@ function App() {
           >
             <Route index element={<DashboardPage />} />
             <Route path="users" element={<UserManagementPage />} />
-            <Route path="diseases" element={<div className="p-8">Quản lý bệnh cây trồng</div>} />
+            <Route path="diseases" element={<DiseaseManagementPage />} />
             <Route path="crop-types" element={<div className="p-8">Quản lý loại cây</div>} />
             <Route path="treatment-plans" element={<div className="p-8">Quản lý phác đồ</div>} />
             <Route path="ingredients" element={<div className="p-8">Quản lý thành phần</div>} />
