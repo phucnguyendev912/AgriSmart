@@ -73,7 +73,10 @@ const DiagnoseResultPanel = ({ result }) => {
                             <div key={idx} className="p-3.5 rounded-xl border-2 border-primary bg-primary/5 shadow-sm">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
-                                        <h4 className="font-black text-on-surface text-sm">{disease.diseaseName}</h4>
+                                        <h4 className="font-black text-primary text-base md:text-lg leading-tight">
+                                            {disease.diseaseName}
+                                            {disease.diseaseNameEn && <span className="text-on-surface-variant font-semibold text-xs ml-1.5">({disease.diseaseNameEn})</span>}
+                                        </h4>
                                         <span className={`${getSeverityClasses(disease.severity)} text-[8px] px-1.5 py-0.5 rounded font-black uppercase`}>
                                             Mức độ: {getSeverityLabel(disease.severity)}
                                         </span>
