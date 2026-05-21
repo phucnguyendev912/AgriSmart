@@ -61,9 +61,9 @@ const HomePage = () => {
                 <span className="text-emerald-600 font-bold mb-2 text-sm uppercase tracking-wide">CÔNG NGHỆ LÕI</span>
                 <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-4">Chẩn đoán bệnh AI</h3>
                 <p className="text-slate-600 mb-8">Chụp ảnh lá cây bị bệnh, hệ thống AI sẽ phân tích và đưa ra kết quả chính xác sau 3 giây kèm theo phác đồ điều trị chi tiết.</p>
-                <button className="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all">
+                <Link to="/diagnosis" className="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all">
                   Khám phá ngay <span className="material-symbols-outlined">arrow_forward</span>
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -131,31 +131,6 @@ const HomePage = () => {
         <WeatherDiseaseSection />
 
         <FarmerStories />
-        {/* Final CTA */}
-        <section className="px-6 md:px-12 py-16 max-w-7xl mx-auto">
-          <div className="bg-primary rounded-3xl p-8 md:p-16 text-center relative overflow-hidden">
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-5xl font-black text-on-primary mb-6">Sẵn sàng bảo vệ mùa vụ?</h2>
-              <p className="text-primary-fixed-dim text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">
-                Tham gia cùng cộng đồng hàng ngàn nông dân Việt Nam hiện đại, ứng dụng AI để canh tác thông minh và bền vững hơn.
-              </p>
-              <button className="bg-white text-primary hover:bg-surface-bright px-12 py-5 rounded-full font-black text-lg transition-all shadow-xl hover:-translate-y-1 active:translate-y-0">
-                Bắt đầu chẩn đoán miễn phí
-              </button>
-
-              <div className="mt-10 flex flex-wrap justify-center gap-6 md:gap-10 text-on-primary/70 text-sm font-medium">
-                {['Không phí duy trì', 'Cập nhật bệnh mới 24/7', 'Hỗ trợ đa nền tảng'].map((item) => (
-                  <div key={item} className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-sm">check_circle</span>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-primary-container rounded-full opacity-20 blur-3xl"></div>
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary-container rounded-full opacity-20 blur-3xl"></div>
-          </div>
-        </section>
       </main>
 
 
