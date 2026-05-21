@@ -1,4 +1,4 @@
-package com.phucnguyen.agriai.entity.enums;
+package com.phucnguyen.agriai.enums;
 
 public enum DosageType {
     PER_HA,
