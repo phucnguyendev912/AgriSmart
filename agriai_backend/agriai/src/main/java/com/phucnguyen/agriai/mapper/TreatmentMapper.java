@@ -44,6 +44,7 @@ public class TreatmentMapper {
                 .treatmentPlanId(plan.getId())
                 .diseaseId(plan.getDisease() != null ? plan.getDisease().getId() : null)
                 .diseaseName(plan.getDisease() != null ? plan.getDisease().getDiseaseName() : null)
+                .diseaseNameEn(plan.getDisease() != null ? plan.getDisease().getDiseaseNameEn() : null)
                 
                 // Drug mapping
                 .drugId(plan.getDrug() != null ? plan.getDrug().getId() : null)
