@@ -50,16 +50,14 @@ public class DiagnoseResponseBuilder {
         }
 
         DiseaseResultDTO toDiseaseResult(DiagnoseService.DetectedDiseaseMatch match) {
-                String diseaseName = match.disease().getDiseaseNameEn() != null
-                                && !match.disease().getDiseaseNameEn().isBlank()
-                                                ? match.disease().getDiseaseNameEn() + " ("
-                                                                + match.disease().getDiseaseName() + ")"
-                                                : match.disease().getDiseaseName();
+                String diseaseName = match.disease().getDiseaseName();
+                String diseaseNameEn = match.disease().getDiseaseNameEn();
 
                 return DiseaseResultDTO.builder()
                                 .diseaseId(match.disease().getId())
                                 .diseaseCode(match.disease().getDiseaseCode())
                                 .diseaseName(diseaseName)
+                                .diseaseNameEn(diseaseNameEn)
                                 .confidence(match.visionResult().getConfidence())
                                 .severity(resolveSeverity(match))
                                 .build();

@@ -20,6 +20,7 @@ public class TreatmentDTO {
     private Integer treatmentPlanId;
     private Integer diseaseId;
     private String diseaseName;
+    private String diseaseNameEn;
 
     // ── Thông tin thuốc ──────────────────────────────────────────────────────
     private Integer drugId;

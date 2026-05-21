@@ -19,7 +19,7 @@ const DiagnoseAIGuidance = ({ guidance }) => {
             </div>
 
             <div className="prose prose-slate dark:prose-invert max-w-none">
-                <div className="text-[13px] leading-relaxed text-on-surface-variant whitespace-pre-line bg-primary/5 p-4 rounded-xl border border-primary/10">
+                <div className="text-[14px] md:text-[15px] leading-relaxed text-on-surface-variant whitespace-pre-line bg-primary/5 p-4 rounded-xl border border-primary/10">
                     {guidance}
                 </div>
             </div>
