@@ -22,7 +22,7 @@ const HomePage = () => {
           <div className="relative z-10 px-6 md:px-12 max-w-6xl mx-auto text-on-primary w-full text-center md:text-left">
             <span className="tracking-widest text-primary-fixed uppercase font-bold mb-4 block text-sm">CÔNG NGHỆ VÌ NHÀ NÔNG</span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tighter mb-6">
-              AgriAI - AI Chẩn Đoán Bệnh Cây Trồng Và Gợi Ý Giải Pháp Nông Nghiệp Thông Minh
+              Hệ thống AI chẩn đoán bệnh cây trồng-AgriSmart
             </h1>
             <p className="text-lg md:text-xl opacity-90 mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed">
               Giúp nông dân Việt Nam phát hiện bệnh sớm, giảm thiểu thiệt hại, tăng năng suất mùa vụ bằng công nghệ thị giác máy tính tiên tiến nhất.
