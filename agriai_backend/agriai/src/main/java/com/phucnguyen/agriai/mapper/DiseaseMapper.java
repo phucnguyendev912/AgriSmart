@@ -1,17 +1,17 @@
-package com.phucnguyen.agriai.service;
+package com.phucnguyen.agriai.mapper;
 
 import com.phucnguyen.agriai.dto.VisionResultDTO;
 import com.phucnguyen.agriai.entity.Disease;
 import com.phucnguyen.agriai.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class DiseaseMapper {
 

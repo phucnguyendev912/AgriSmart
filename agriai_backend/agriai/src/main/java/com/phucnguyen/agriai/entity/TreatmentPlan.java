@@ -4,7 +4,7 @@ import com.phucnguyen.agriai.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import com.phucnguyen.agriai.entity.enums.DosageType;
+import com.phucnguyen.agriai.enums.DosageType;
 import java.math.BigDecimal;
 
 @Entity
