@@ -10,109 +10,89 @@
 
 ```mermaid
 sequenceDiagram
-    actor User as 👤 Người dùng
-    participant UI as 📱 DiagnosisPage
-    participant Server as 🖥️ Server (Spring Boot)
-    participant DB as 🗄️ CSDL (MySQL)
+    autonumber
+    actor User as Người dùng
+    participant UI as DiagnosisPage (React View)
+    participant API as DiagnoseController / CropTypeController
+    participant Service as DiagnoseService
+    participant Third as Third-party service
+    database DB as Cơ sở dữ liệu
 
-    Note over UI: Trang /diagnosis
+    User->>UI: Mở trang chẩn đoán bệnh
+    UI->>API: GET /api/crop-types
+    API->>Service: getAvailableCropTypes()
+    Service->>DB: findByIsActiveTrueAndIsDeleteFalse()
+    DB-->>Service: Danh sách loại cây
+    Service-->>API: CropTypeResponse[]
+    API-->>UI: Danh sách loại cây
+    UI-->>User: Hiển thị form chẩn đoán và dropdown loại cây
 
-    User->>UI: Mở trang chẩn đoán
-    UI->>Server: GET /api/crop-types
-    Server->>DB: findAll() CropType (is_active=true)
-    DB-->>Server: Danh sách loại cây trồng
-    Server-->>UI: [ {id, cropName}, ... ]
-    UI-->>User: Hiển thị dropdown chọn loại cây
-
-    User->>UI: Cấp quyền GPS (navigator.geolocation)
-    UI-->>User: GPS granted → hiển thị badge "GPS bật"
-
-    User->>UI: Chọn loại cây + upload ảnh lá
-    UI-->>User: Preview ảnh hiển thị
-
-    User->>UI: Nhấn "Chẩn đoán ngay"
-    UI->>UI: Validate: ảnh & cropTypeId required
-
-    UI->>Server: POST /api/diagnosis (multipart/form-data)<br/>{image, cropTypeId, latitude?, longitude?}
-
-    Note over Server: DiagnoseController → DiagnoseService
-
-    Server->>DB: findById(cropTypeId) → CropType
-    DB-->>Server: CropType entity
-    Server->>DB: findByEmail(principal) → User (nếu đã login)
-    DB-->>Server: User entity (hoặc null nếu guest)
-
-    alt Người dùng đã đăng nhập
-        Server->>DB: INSERT diagnose_history (status=PENDING)
-        DB-->>Server: history.id
+    UI->>User: Xin quyền truy cập vị trí
+    alt Người dùng cấp quyền vị trí
+        User-->>UI: Cho phép truy cập vị trí
+        UI->>UI: Lưu tọa độ hiện tại
+    else Người dùng từ chối vị trí
+        User-->>UI: Từ chối truy cập vị trí
+        UI-->>User: Hiển thị trạng thái không có vị trí
     end
 
-    Note over Server: Parallel Async (CompletableFuture)
+    User->>UI: Chọn loại cây và tải ảnh lá
+    UI-->>User: Hiển thị ảnh xem trước
+    User->>UI: Nhấn nút chẩn đoán
 
-    par Upload ảnh song song với fetch thời tiết
-        Server->>Server: imageStoragePort.upload(image) → Cloudinary
-        Server-->>Server: imageUrl
-    and
-        alt GPS có tọa độ
-            Server->>Server: weatherPort.getCurrentWeather(lat, lng) → OpenWeatherMap API
-            Server-->>Server: WeatherDTO {temp, humidity, windSpeed, ...}
-        else Không có GPS
-            Server-->>Server: weather = null
+    alt Thiếu loại cây hoặc ảnh
+        UI-->>User: Hiển thị lỗi nhập liệu
+    else Dữ liệu hợp lệ
+        UI->>API: POST /api/diagnosis (multipart/form-data)
+        API->>Service: diagnose(email, request)
+        Service->>DB: Kiểm tra cropType và user nếu có
+        DB-->>Service: CropType và user hợp lệ
+
+        alt Người dùng đã đăng nhập
+            Service->>DB: Tạo lịch sử chẩn đoán PENDING
+            DB-->>Service: historyId
         end
-    end
 
-    Server->>Server: VisionDetectionPort.detect(imageUrl) → AI Model (Python/YOLO)
-    Server-->>Server: [ {label, confidence, severity}, ... ]
+        Service->>Third: Upload ảnh lên Cloudinary
+        Third-->>Service: imageUrl
 
-    Note over Server: analyzeVisionResults()
+        par Nhận diện bệnh và lấy thời tiết
+            Service->>Third: Gọi Vision AI detect(imageUrl)
+            Third-->>Service: Kết quả nhận diện bệnh
+        and Có vị trí GPS
+            Service->>Third: Gọi OpenWeatherMap current weather
+            Third-->>Service: Dữ liệu thời tiết hiện tại
+        end
 
-    alt confidence >= 0.4 và không phải "healthy"
-        Server->>DB: findByLabel(label) → Disease
-        DB-->>Server: Disease entity
-        Note over Server: DetectedDiseaseMatch list
-    end
+        Service->>Service: Phân tích kết quả AI
+        Service->>DB: Tìm thông tin bệnh theo nhãn AI
+        DB-->>Service: Disease entity nếu khớp
 
-    alt Phát hiện bệnh
-        Server->>DB: findByDiseaseIds() → TreatmentPlan list
-        DB-->>Server: Danh sách phác đồ điều trị
+        alt Phát hiện bệnh
+            Service->>DB: Lấy phác đồ xử lý, thuốc, tương tác thuốc, điều kiện thời tiết
+            DB-->>Service: Dữ liệu điều trị và cảnh báo
+            Service->>Service: Xếp hạng phác đồ và tạo hướng dẫn xử lý
+        else Không phát hiện được bệnh
+            Service->>Service: Tạo kết quả khỏe/không xác định
+        end
 
-        Server->>Server: TreatmentRankingService.rankPlans() → Sắp xếp theo điểm
-        Server->>DB: findInteractions() → DrugInteraction
-        DB-->>Server: Cảnh báo tương tác thuốc
+        Service->>Third: Gọi Gemini tạo hướng dẫn canh tác
+        Third-->>Service: Hướng dẫn AI hoặc fallback nội bộ
 
-        Server->>DB: findWeatherConditions(diseaseIds) → DiseaseWeatherCondition
-        DB-->>Server: Điều kiện thời tiết → evaluate risk
-    end
+        alt Người dùng đã đăng nhập
+            Service->>DB: Cập nhật lịch sử và lưu chi tiết kết quả
+            DB-->>Service: Xác nhận lưu thành công
+            opt Có vị trí GPS
+                Service->>Third: Gọi Nominatim reverse geocode
+                Third-->>Service: Địa danh/khu vực
+                Service->>DB: Lưu/cập nhật thông tin khu vực
+                DB-->>Service: Xác nhận cập nhật khu vực
+            end
+        end
 
-    Server->>Server: GuidancePort.generateGuidance() → AI sinh hướng dẫn canh tác
-
-    alt Người dùng đã đăng nhập
-        Server->>DB: UPDATE diagnose_history (imageUrl, weatherData, status=COMPLETED)
-        Server->>DB: INSERT diagnose_history_detail (disease, confidence, severity, treatmentData)
-        Server->>DB: INSERT diagnose_treatment_recommendation (treatmentPlan, rankScore)
-
-        Note over Server: Async background
-        Server->>Server: GeocodingService.processGeocoding(lat, lng) → Nominatim API
-        Server->>DB: UPDATE area_infor (province, district)
-    end
-
-    Server-->>UI: DiagnoseResponse {<br/>  diagnosisType, weather,<br/>  treatments[], sprayPrograms[],<br/>  interactionWarnings[], diseaseWeatherRisks[],<br/>  userGuidance, warnings[]<br/>}
-
-    UI-->>User: Hiển thị kết quả:<br/>- Loại bệnh + độ tin cậy<br/>- Thẻ thời tiết<br/>- Phác đồ điều trị<br/>- Cảnh báo tương tác thuốc<br/>- Hướng dẫn AI
-
-    alt Guest user
-        UI-->>User: Toast "Đăng nhập để xem lại kết quả"
-    end
-
-    opt Đánh giá kết quả
-        User->>UI: Nhấn "Đánh giá kết quả chẩn đoán"
-        UI-->>User: Mở DiagnosisRatingModal
-        User->>UI: Chọn sao + gửi đánh giá
-        UI->>Server: POST /api/diagnosis-reviews/{historyId}
-        Server->>DB: INSERT diagnose_review
-        DB-->>Server: OK
-        Server-->>UI: 200 OK
-        UI-->>User: Toast "Cảm ơn bạn đã đánh giá!"
+        Service-->>API: DiagnoseResponse
+        API-->>UI: Kết quả chẩn đoán
+        UI-->>User: Hiển thị bệnh, độ tin cậy, thời tiết, phác đồ, cảnh báo và hướng dẫn
     end
 ```
 
