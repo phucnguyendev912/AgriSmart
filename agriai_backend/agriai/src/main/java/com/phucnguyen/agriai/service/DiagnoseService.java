@@ -14,6 +14,7 @@ import com.phucnguyen.agriai.port.ImageStoragePort;
 import com.phucnguyen.agriai.port.VisionDetectionPort;
 import com.phucnguyen.agriai.port.WeatherPort;
 import com.phucnguyen.agriai.repository.DiagnoseHistoryRepository;
+import com.phucnguyen.agriai.mapper.DiseaseMapper;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
