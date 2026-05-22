@@ -50,8 +50,14 @@ public class AIService implements GuidancePort {
 
     // fallback guidance
     private String fallbackGuidance(DiagnoseResponse response) {
+        if ("HEALTHY".equals(response.getDiagnosisType()) || Boolean.TRUE.equals(response.getIsHealthy())) {
+            return "Cây của bạn đang trong tình trạng khỏe mạnh. Tiếp tục chăm sóc như hiện tại, bón phân cân đối và theo dõi ruộng vườn thường xuyên để phòng ngừa sâu bệnh.";
+        }
+        if ("UNKNOWN".equals(response.getDiagnosisType())) {
+            return "Hệ thống chưa thể xác định rõ tình trạng hoặc loại bệnh trên cây qua hình ảnh này. Vui lòng chụp lại ảnh cận cảnh vết bệnh, sắc nét dưới ánh sáng tự nhiên đầy đủ và thử chẩn đoán lại. Không nên tự ý phun thuốc khi chưa rõ nguyên nhân.";
+        }
         if (response.getDiseases() == null || response.getDiseases().isEmpty()) {
-            return "Cây của bạn đang trong tình trạng khỏe mạnh. Tiếp tục chăm sóc như hiện tại.";
+            return "Cây của bạn đang trong tình trạng khỏe mạnh. Tiếp tục chăm sóc như hiện tại, bón phân cân đối và theo dõi ruộng vườn thường xuyên để phòng ngừa sâu bệnh.";
         }
         return "Vui lòng thực hiện theo phác đồ điều trị đề xuất. "
                 + "Kiểm tra lại sau 3-5 ngày. Nếu bệnh không giảm, hãy chẩn đoán lại.";
@@ -59,6 +65,60 @@ public class AIService implements GuidancePort {
 
     // build prompt for LLM
     private String buildPrompt(DiagnoseResponse response) {
+        if ("HEALTHY".equals(response.getDiagnosisType()) || Boolean.TRUE.equals(response.getIsHealthy())) {
+            return buildHealthyPrompt(response);
+        }
+        if ("UNKNOWN".equals(response.getDiagnosisType())) {
+            return buildUnknownPrompt(response);
+        }
+        return buildDiseaseDetectedPrompt(response);
+    }
+
+    private String buildHealthyPrompt(DiagnoseResponse response) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[VAI TRÒ]\n");
+        sb.append("Bạn là chuyên gia nông nghiệp bảo vệ thực vật. Hãy cung cấp lời khuyên chăm sóc và giữ gìn sức khỏe cây trồng cho nông dân.\n\n");
+
+        sb.append("[NHIỆM VỤ]\n");
+        sb.append("Cây lúa hiện tại được chẩn đoán là KHỎE MẠNH (không có dấu hiệu sâu bệnh hại). Hãy đưa ra hướng dẫn chăm sóc phòng ngừa chủ động phù hợp.\n\n");
+
+        sb.append("[YÊU CẦU ĐẦU RA]\n");
+        sb.append("- NGÔN NGỮ: Dùng tiếng Việt có dấu đầy đủ, chuẩn xác.\n");
+        sb.append("- PHONG CÁCH: Đơn giản, gần gũi, nông dân dễ hiểu, mang tính động viên.\n");
+        sb.append("- ĐỘ DÀI: Viết ngắn gọn, súc tích (khoảng 3-4 câu), không dùng markdown.\n");
+        sb.append("- NỘI DUNG: Chúc mừng nông dân, nhắc nhở giữ đồng ruộng thông thoáng, dọn cỏ dại sạch sẽ, bón phân cân đối (tránh bón thừa đạm) và theo dõi định kỳ để phòng ngừa sâu bệnh từ sớm. Nhắc nhở KHÔNG sử dụng các loại thuốc bảo vệ thực vật hóa học khi cây đang khỏe mạnh.\n\n");
+
+        if (response.getWeather() != null) {
+            sb.append("=== THỜI TIẾT HIỆN TẠI ===\n");
+            var w = response.getWeather();
+            if (w.getTemperature() != null)
+                sb.append("Nhiệt độ: ").append(w.getTemperature()).append("°C\n");
+            if (w.getHumidity() != null)
+                sb.append("Độ ẩm: ").append(w.getHumidity()).append("%\n");
+            if (w.getRainfall() != null)
+                sb.append("Lượng mưa: ").append(w.getRainfall()).append("mm\n");
+        }
+        return sb.toString();
+    }
+
+    private String buildUnknownPrompt(DiagnoseResponse response) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[VAI TRÒ]\n");
+        sb.append("Bạn là chuyên gia nông nghiệp bảo vệ thực vật. Hãy phản hồi thân thiện và hướng dẫn nông dân khi hệ thống không thể xác định được bệnh cụ thể từ ảnh chụp.\n\n");
+
+        sb.append("[NHIỆM VỤ]\n");
+        sb.append("Hệ thống hiện tại KHÔNG XÁC ĐỊNH ĐƯỢC bệnh hoặc tình trạng cây trồng qua hình ảnh được tải lên. Hãy hướng dẫn nông dân cách chụp ảnh tốt hơn để chẩn đoán lại và các bước kiểm tra thực tế.\n\n");
+
+        sb.append("[YÊU CẦU ĐẦU RA]\n");
+        sb.append("- NGÔN NGỮ: Dùng tiếng Việt có dấu đầy đủ, chuẩn xác.\n");
+        sb.append("- PHONG CÁCH: Lịch sự, ân cần, hướng dẫn chi tiết nhưng dễ hiểu.\n");
+        sb.append("- ĐỘ DÀI: Viết ngắn gọn, súc tích (khoảng 3-4 câu), không dùng markdown.\n");
+        sb.append("- NỘI DUNG: Giải thích rằng hình ảnh tải lên chưa đủ rõ nét hoặc góc chụp chưa bao quát được vết bệnh để hệ thống nhận diện chính xác. Hướng dẫn nông dân chụp lại ảnh cận cảnh vết bệnh, rõ nét dưới ánh sáng tự nhiên đầy đủ, kiểm tra thêm các bộ phận khác của cây (thân, lá, rễ) xem có triệu chứng bất thường không, và khuyên theo dõi sát sao ruộng vườn. Nhấn mạnh KHÔNG tự ý mua và phun thuốc hóa học khi chưa rõ nguyên nhân gây bệnh.\n\n");
+
+        return sb.toString();
+    }
+
+    private String buildDiseaseDetectedPrompt(DiagnoseResponse response) {
         StringBuilder sb = new StringBuilder();
 
         // ========== SYSTEM ROLE & TASK ==========
@@ -89,9 +149,7 @@ public class AIService implements GuidancePort {
         // Diseases
         sb.append("=== BỆNH PHÁT HIỆN ===\n");
         List<DiseaseResultDTO> diseases = response.getDiseases();
-        if (diseases == null || diseases.isEmpty()) {
-            sb.append("Không phát hiện bệnh. Cây khỏe mạnh.\n");
-        } else {
+        if (diseases != null) {
             for (DiseaseResultDTO d : diseases) {
                 sb.append("- ").append(d.getDiseaseName());
                 if (d.getConfidence() != null) {
