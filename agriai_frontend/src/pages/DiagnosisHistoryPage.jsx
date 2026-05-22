@@ -5,7 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_URL = "";
 
 const DATE_FILTERS = [
     { key: 'today', label: 'Hôm nay' },

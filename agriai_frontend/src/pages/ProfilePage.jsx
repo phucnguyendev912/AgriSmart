@@ -13,7 +13,7 @@ export default function ProfilePage() {
   const [errors, setErrors] = useState({}); // useState: lưu các lỗi validate của form trước khi gửi lên server.
   const [isUpdating, setIsUpdating] = useState(false); // useState: trạng thái đang gửi yêu cầu cập nhật hồ sơ lên API.
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+  const API_URL = "";
 
   const validate = () => {
     const newErrors = {};
