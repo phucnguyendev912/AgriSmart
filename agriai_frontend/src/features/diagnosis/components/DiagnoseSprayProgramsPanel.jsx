@@ -160,6 +160,13 @@ const DiagnoseSprayProgramsPanel = ({ sprayPrograms, treatments }) => {
                     </div>
                 </div>
             ))}
+
+            <div className="mt-2 p-3.5 bg-surface-container-low rounded-xl border border-surface-container-highest flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-on-surface-variant mt-0.5 text-[18px]">info</span>
+                <p className="text-sm text-on-surface-variant italic font-medium">
+                    Thông tin chỉ mang tính chất tham khảo.
+                </p>
+            </div>
         </div>
     );
 };
