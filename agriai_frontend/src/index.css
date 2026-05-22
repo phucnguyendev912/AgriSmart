@@ -60,3 +60,9 @@ body {
 .signature-gradient {
   background: linear-gradient(135deg, #006e2f 0%, #22c55e 100%);
 }
+
+/* Ẩn nút hiện mật khẩu mặc định của Edge/IE */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
