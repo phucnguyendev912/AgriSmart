@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-// loads and caches skill markdown files from disk
+// Service to load and cache skill markdown files from disk.
 @Service
 public class SkillRegistry {
 
@@ -30,7 +30,7 @@ public class SkillRegistry {
         this.basePath = basePath;
     }
 
-    // preload all skills at startup
+    // Preloads all skills into cache at application startup.
     @PostConstruct
     public void preload() {
         for (SkillDefinition skill : SkillDefinition.values()) {
@@ -40,7 +40,7 @@ public class SkillRegistry {
         }
     }
 
-    // return cached markdown content
+    // Returns the cached markdown content for a skill.
     public String getSkillContent(SkillDefinition skill) {
         return contentCache.computeIfAbsent(skill, s -> {
             String content = readFile(s);
@@ -49,19 +49,19 @@ public class SkillRegistry {
         });
     }
 
-    // return cached keywords parsed from ## Keywords section
+    // Returns cached keywords parsed from the "## Keywords" section of the skill file.
     public List<String> getSkillKeywords(SkillDefinition skill) {
         return keywordCache.computeIfAbsent(skill, s -> parseKeywords(getSkillContent(s)));
     }
 
-    // clear cache and reload from disk
+    // Clears the cache and reloads all skill content from disk.
     public void reloadAll() {
         contentCache.clear();
         keywordCache.clear();
         preload();
     }
 
-    // parse "## Keywords" section → list of trimmed keywords
+    // Parses the "## Keywords" section into a list of cleaned keywords.
     List<String> parseKeywords(String markdown) {
         Matcher matcher = KEYWORDS_PATTERN.matcher(markdown);
         if (!matcher.find()) {
@@ -74,7 +74,6 @@ public class SkillRegistry {
                 .toList();
     }
 
-    // read file skill
     private String readFile(SkillDefinition skill) {
         Path filePath = skill.getFilePath(basePath);
         try {

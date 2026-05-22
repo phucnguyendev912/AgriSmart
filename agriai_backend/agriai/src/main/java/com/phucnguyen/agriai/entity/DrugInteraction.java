@@ -36,7 +36,7 @@ public class DrugInteraction extends BaseEntity {
     private String actionRule;
 
     @Column(name = "interval_days")
-    private Integer intervalDays; // Số ngày cần cách nhau khi phun riêng (VD: 3)
+    private Integer intervalDays; // Days interval required when spraying separately (e.g. 3)
 
     @PrePersist
     @PreUpdate

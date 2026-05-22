@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import WeatherDiseaseSection from './WeatherDiseaseSection';
-import { fetchWeatherDiseaseRisks } from '../../../services/weatherApi';
+import { fetchWeatherDiseaseRisks } from '../../../services/weatherService';
 import { LocationProvider } from '../../../context/LocationPermissionContext';
 
-jest.mock('../../../services/weatherApi', () => ({
+jest.mock('../../../services/weatherService', () => ({
   fetchWeatherDiseaseRisks: jest.fn(),
   reverseGeocode: jest.fn(),
 }));

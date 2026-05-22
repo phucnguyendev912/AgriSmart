@@ -1,5 +1,10 @@
 import React from 'react';
 
+/**
+ * Hero Component
+ * Renders the landing page hero section with a background image, key value propositions,
+ * and a primary call-to-action button for quick crop disease diagnosis.
+ */
 const Hero = () => {
   return (
     <header className="relative min-h-screen flex items-center pt-20 overflow-hidden">

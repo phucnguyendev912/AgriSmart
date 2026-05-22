@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Service for evaluating potential weather-related disease risks based on live weather data.
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public class WeatherDiseaseRiskService {
     private final WeatherPort weatherPort;
     private final DiseaseWeatherRiskEvaluator diseaseWeatherRiskEvaluator;
 
+    // Fetches current weather data and evaluates the disease outbreak risks for all tracked crop diseases.
     public WeatherDiseaseRiskResponse getDiseaseRisks(Double latitude, Double longitude) {
         WeatherDTO weather = weatherPort.getCurrentWeather(latitude, longitude);
         if (weather == null) {

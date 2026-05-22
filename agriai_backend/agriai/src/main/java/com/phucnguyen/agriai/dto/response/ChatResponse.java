@@ -8,20 +8,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * ChatResponse — DTO phản hồi trả về cho frontend sau mỗi lần gửi tin nhắn.
- *
- * Chỉ chứa các trường thực sự cần thiết:
- * - sessionId / messageId: Để frontend có thể xác định và cập nhật UI.
- * - senderType: Phân biệt tin nhắn của USER hay AI.
- * - messageContent: Nội dung câu trả lời.
- * - createdAt: Thời gian để hiển thị timestamp.
- *
- * Đã loại bỏ (không còn cần thiết):
- * - responseType: Không còn phân loại AGRI_KNOWLEDGE / OUT_OF_SCOPE.
- * - references: Không còn danh sách nguồn tham khảo.
- * - suggestedAction: Không còn hành động gợi ý.
- */
+// ChatResponse — DTO response returned to the frontend after each message sent.
+// Contains essential fields:
+// - sessionId / messageId: For frontend identification and UI updates.
+// - senderType: Distinguishes between USER and AI messages.
+// - messageContent: Text content of the message.
+// - createdAt: Message timestamp.
 @Getter
 @Setter
 @NoArgsConstructor

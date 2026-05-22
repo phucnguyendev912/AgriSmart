@@ -1,3 +1,11 @@
+/**
+ * Groups and builds structured treatment programs from spray scheduling or direct treatment options.
+ * Falls back to default ranked priority if no explicit spray programs are defined.
+ * 
+ * @param {Array} sprayPrograms - Scheduling options computed from Backend.
+ * @param {Array} treatments - Raw list of possible chemical/biological treatment products.
+ * @returns {Array} Structured treatment program groups ready for rendering.
+ */
 export const buildTreatmentPrograms = (sprayPrograms = [], treatments = []) => {
     if (Array.isArray(sprayPrograms) && sprayPrograms.length > 0) {
         return sprayPrograms;
@@ -28,6 +36,13 @@ export const buildTreatmentPrograms = (sprayPrograms = [], treatments = []) => {
     }];
 };
 
+/**
+ * Builds cultivation measure recommendations based on diagnostic results,
+ * interaction warnings, and weather risk parameters.
+ * 
+ * @param {Object} result - Full diagnosis result payload.
+ * @returns {Array<string>} List of Vietnamese recommendation text lines.
+ */
 export const getCultivationMeasures = (result) => {
     if (!result) return [];
 

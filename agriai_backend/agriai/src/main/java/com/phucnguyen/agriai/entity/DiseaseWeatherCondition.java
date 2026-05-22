@@ -33,7 +33,7 @@ public class DiseaseWeatherCondition extends BaseEntity {
     @JoinColumn(name = "disease_id", nullable = false)
     private Disease disease;
 
-    // Nhom dieu kien canh bao; evaluator hien match OR trong cung group.
+    // Warning condition group; evaluator currently matches OR within the same group.
     @Column(name = "condition_group", length = 50, nullable = false)
     private String conditionGroup;
 

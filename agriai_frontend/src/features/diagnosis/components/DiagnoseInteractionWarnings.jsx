@@ -7,7 +7,11 @@ const getSeverityColor = (sev) => {
 };
 
 /**
- * Hiển thị danh sách xung đột hoạt chất (Interaction Warnings).
+ * DiagnoseInteractionWarnings Component
+ * Renders list of chemical active ingredient interaction warnings.
+ * Alerts the user to critical conflicts and mixing constraints.
+ * @param {Object} props - Component props.
+ * @param {Object[]} props.interactionWarnings - Array of warning details.
  */
 const DiagnoseInteractionWarnings = ({ interactionWarnings }) => {
     if (!interactionWarnings || interactionWarnings.length === 0) return null;

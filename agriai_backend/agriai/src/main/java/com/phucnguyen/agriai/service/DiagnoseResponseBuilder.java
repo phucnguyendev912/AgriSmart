@@ -7,10 +7,8 @@ import com.phucnguyen.agriai.enums.SeverityLevel;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
-/**
- * Xây dựng DiagnoseResponse từ kết quả phân tích Vision và Rule Engine.
- * Không tương tác với database.
- */
+// Builder class to construct DiagnoseResponse from vision analysis and rule engine results.
+// Does not interact with the database.
 @Component
 public class DiagnoseResponseBuilder {
 

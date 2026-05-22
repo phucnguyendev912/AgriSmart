@@ -3,10 +3,15 @@ import { Link } from 'react-router-dom';
 import FarmerStories from '../features/landing/components/FarmerReviews';
 import WeatherDiseaseSection from '../features/landing/components/WeatherDiseaseSection';
 
+/**
+ * HomePage Component
+ * Renders the primary landing experience, including a hero section,
+ * quick access features (AI Diagnosis, Weather, Chatbot, Disease Map),
+ * and links to sub-modules.
+ */
 const HomePage = () => {
   return (
     <>
-      {/* Main Content Canvas */}
       <main className="pt-20 min-h-screen bg-surface">
         {/* Hero Section */}
         <section className="relative h-[550px] flex items-center overflow-hidden">

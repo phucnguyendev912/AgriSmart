@@ -21,6 +21,11 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "./context/AuthContext";
 
+/**
+ * Route guard component that redirects unauthenticated users to the landing page.
+ * @param {Object} props - Component properties.
+ * @param {React.ReactNode} props.children - Guarded component routes.
+ */
 const RequireAuth = ({ children }) => {
   const { user } = useAuth();
 
@@ -31,16 +36,21 @@ const RequireAuth = ({ children }) => {
   return children;
 };
 
+/**
+ * Main Application Component
+ * Sets up routing, providers, navigation layout, global modal listeners,
+ * and toast notification container.
+ */
 function App() {
   return (
     <HelmetProvider>
       <Router>
         <InitialLocationPrompt />
         <GlobalNotificationListener />
-        {/* Nơi chứa toàn bộ nội dung của ứng dụng */}
+        {/* Main application layout wrapper */}
         <div className="bg-surface text-on-surface font-sans min-h-screen flex flex-col">
           <Navbar />
-          {/* Nơi chuyển đổi nội dung giữa các Trang */}
+          {/* Router view container */}
           <div className="flex-1">
             <Routes>
               <Route path="/" element={<LandingPage />} />

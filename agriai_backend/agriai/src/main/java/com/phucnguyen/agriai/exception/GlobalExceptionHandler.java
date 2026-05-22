@@ -26,86 +26,60 @@ public class GlobalExceptionHandler {
     private static final String MISSING_CROP_MESSAGE = "Vui lòng chọn loại cây trồng trước khi chẩn đoán";
     private static final String SYSTEM_ERROR_MESSAGE = "Có lỗi xảy ra, vui lòng thử lại sau";
 
-    // =========================================================================
-    // MODULE: Toàn bộ service (AppException là exception chính của hệ thống)
-    // Bao gồm: Auth, Diagnose, Area, History, Review, Chat, User
-    // =========================================================================
+    // Handle application-specific business exceptions (e.g. Auth, Diagnose, Area, Chat)
     @ExceptionHandler(AppException.class)
     public ResponseEntity<Map<String, Object>> handleAppException(AppException ex) {
         log.warn("[AppException] status={} message={}", ex.getStatus(), ex.getMessage());
         return buildError(ex.getStatus(), ex.getMessage());
     }
 
-    // =========================================================================
-    // MODULE: Auth – đăng nhập sai email/mật khẩu (AuthService.login)
-    // Spring Security ném AuthenticationException trước khi vào service
-    // =========================================================================
+    // Handle authentication errors (e.g. invalid username or password during login)
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex) {
         return buildError(HttpStatus.UNAUTHORIZED, "Tài khoản hoặc mật khẩu không chính xác.");
     }
 
-    // =========================================================================
-    // MODULE: Security – user đã đăng nhập nhưng không có quyền (@PreAuthorize)
-    // Ví dụ: USER cố gắng gọi API chỉ dành cho ADMIN
-    // =========================================================================
+    // Handle access authorization issues (e.g. USER trying to call ADMIN endpoints)
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(
             org.springframework.security.access.AccessDeniedException ex) {
         return buildError(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này.");
     }
 
-    // =========================================================================
-    // MODULE: Auth / User – vi phạm ràng buộc unique của DB
-    // Ví dụ: đăng ký email đã tồn tại (dù AuthService đã check trước, DB là lớp
-    // cuối)
-    // =========================================================================
+    // Handle database integrity violations (e.g. duplicate email address on registration)
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
         log.warn("[DataIntegrityViolation] {}", ex.getMostSpecificCause().getMessage());
         return buildError(HttpStatus.CONFLICT, "Dữ liệu bị trùng lặp hoặc vi phạm ràng buộc của hệ thống.");
     }
 
-    // =========================================================================
-    // MODULE: Diagnose – upload ảnh vượt quá giới hạn kích thước
-    // Cấu hình ở: spring.servlet.multipart.max-file-size
-    // =========================================================================
+    // Handle file upload size limit exceeded errors (configured in spring.servlet.multipart.max-file-size)
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
         return buildError(HttpStatus.PAYLOAD_TOO_LARGE, INVALID_IMAGE_MESSAGE);
     }
 
-    // =========================================================================
-    // MODULE: Diagnose – lỗi multipart request (ảnh bị lỗi khi parse, content-type
-    // sai)
-    // Xảy ra khi gọi POST /api/diagnosis mà thiếu file hoặc sai content-type
-    // =========================================================================
+    // Handle invalid multipart file requests (e.g. missing file or wrong content-type)
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<Map<String, Object>> handleMultipart(MultipartException ex) {
         return buildError(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
     }
 
-    // =========================================================================
-    // MODULE: Tất cả API – body JSON gửi lên sai cú pháp hoặc không parse được
-    // =========================================================================
+    // Handle invalid JSON body formatting errors that cannot be parsed
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleNotReadable(
             org.springframework.http.converter.HttpMessageNotReadableException ex) {
         return buildError(HttpStatus.BAD_REQUEST, "Dữ liệu gửi lên không đọc được hoặc sai định dạng JSON.");
     }
 
-    // =========================================================================
-    // MODULE: Tất cả API – thiếu query param bắt buộc (ví dụ: ?page=)
-    // =========================================================================
+    // Handle missing required HTTP query parameters
     @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, Object>> handleMissingParam(
             org.springframework.web.bind.MissingServletRequestParameterException ex) {
         return buildError(HttpStatus.BAD_REQUEST, "Thiếu tham số bắt buộc: " + ex.getParameterName());
     }
 
-    // =========================================================================
-    // MODULE: Tất cả API – lỗi validate @Valid trên DTO (email rỗng, sdt sai, v.v.)
-    // =========================================================================
+    // Handle validation constraints on DTO parameters marked with @Valid
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
@@ -126,29 +100,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
-    // =========================================================================
-    // MODULE: Routing – gọi endpoint không tồn tại (Spring 6+)
-    // =========================================================================
+    // Handle routing errors for requests to non-existent endpoints
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoResource(
             org.springframework.web.servlet.resource.NoResourceFoundException ex) {
         return buildError(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên yêu cầu.");
     }
 
-    // =========================================================================
-    // MODULE: Cloudinary – upload ảnh thất bại (CloudinaryService throw
-    // RuntimeException)
-    // Cũng bắt các RuntimeException không mong đợi từ bất kỳ service nào khác
-    // =========================================================================
+    // Handle unexpected runtime exceptions and Cloudinary upload errors
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
         log.error("[RuntimeException] {}", ex.getMessage(), ex);
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
     }
 
-    // =========================================================================
-    // FALLBACK – bắt mọi exception còn lại (checked exception, IOException, v.v.)
-    // =========================================================================
+    // Fallback to handle any other unexpected checked exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("[UnhandledException] {}", ex.getMessage(), ex);

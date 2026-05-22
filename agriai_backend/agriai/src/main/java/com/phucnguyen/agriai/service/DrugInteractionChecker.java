@@ -45,7 +45,7 @@ public class DrugInteractionChecker {
                 this(drugInteractionRepository, new StaticMessageSource());
         }
 
-        // Kết quả kiểm tra tương tác giữa các recommended plans
+        // Result of interaction checks between recommended plans
         public record InteractionResult(
                         List<InteractionWarningDTO> warnings,
                         boolean hasWarning,
@@ -55,7 +55,7 @@ public class DrugInteractionChecker {
                 }
         }
 
-        // find all interaction between ingredients warning
+        // Find all interactions between ingredients for warning purposes
         public List<InteractionWarningDTO> buildInteractionWarnings(List<TreatmentPlan> plans) {
                 Set<Integer> ingredientIdsSet = new HashSet<>();
                 for (TreatmentPlan plan : plans) {
@@ -114,14 +114,14 @@ public class DrugInteractionChecker {
                                 .filter(p -> recommendedPlanIds.contains(p.getId()))
                                 .toList();
 
-                // Log nếu caller truyền allPlans thiếu — để dễ debug
+                // Log if caller passes incomplete allPlans list for debugging
                 if (recommendedPlans.size() < recommendedPlanIds.size()) {
                         log.warn("[DrugInteractionChecker] Missing plans in allPlans. Expected IDs: {}, found: {}",
                                         recommendedPlanIds,
                                         recommendedPlans.stream().map(TreatmentPlan::getId).toList());
                 }
 
-                // Build map planId → ingredientIds để lọc same-plan interaction
+                // Build map planId -> ingredientIds to filter same-plan interactions
                 Map<Integer, List<Integer>> ingredientsByPlan = new HashMap<>();
                 Set<Integer> allIngredientIdsSet = new HashSet<>();
 
@@ -139,9 +139,9 @@ public class DrugInteractionChecker {
                 List<InteractionWarningDTO> warnings = drugInteractionRepository
                                 .findInteractionsBetweenIngredients(allIngredientIds).stream()
                                 .map(this::toInteractionWarning)
-                                // Chỉ cảnh báo tương tác KHÁC plan (cross-plan)
-                                // Same-plan = 2 hoạt chất trong cùng 1 drug đã được formulate sẵn
-                                // → nhà sản xuất + cơ quan quản lý đã kiểm soát → bỏ qua
+                                // Only warn for interactions across different plans (cross-plan).
+                                // Same-plan interactions (2 ingredients in the same drug product)
+                                // are already formulated and approved by manufacturers, so they are ignored.
                                 .filter(w -> !isSamePlanInteraction(w, ingredientsByPlan))
                                 .toList();
 
@@ -151,7 +151,7 @@ public class DrugInteractionChecker {
                 return new InteractionResult(warnings, true, buildSummary(warnings));
         }
 
-        // Ưu tiên drug.ingredients
+        // Extract active ingredient IDs, prioritizing drug ingredients list
         private List<Integer> extractIngredientIds(TreatmentPlan plan) {
                 if (plan.getDrug() != null && plan.getDrug().getIngredients() != null
                                 && !plan.getDrug().getIngredients().isEmpty()) {
@@ -228,14 +228,14 @@ public class DrugInteractionChecker {
                                 .anyMatch(warning -> hasOverlap(idsA, idsB, warning));
         }
 
-        // Kiểm tra cặp ingredient có khớp với warning không (chiều xuôi hoặc ngược)
+        // Check if ingredient pair matches warning (both directions)
         private boolean hasOverlap(List<Integer> idsA, List<Integer> idsB, InteractionWarningDTO warning) {
                 return (idsA.contains(warning.getIngredientAId()) && idsB.contains(warning.getIngredientBId()))
                                 || (idsA.contains(warning.getIngredientBId())
                                                 && idsB.contains(warning.getIngredientAId()));
         }
 
-        // Trả về true nếu cả 2 hoạt chất trong warning đều thuộc cùng 1 plan (bỏ qua)
+        // Return true if both ingredients in warning belong to the same plan
         private boolean isSamePlanInteraction(
                         InteractionWarningDTO warning,
                         Map<Integer, List<Integer>> ingredientsByPlan) {

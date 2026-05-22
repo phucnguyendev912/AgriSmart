@@ -8,12 +8,14 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+// Service handling crop type operations
 @Service
 public class CropTypeService {
 
     @Autowired
     private CropTypeRepository cropTypeRepository;
 
+    // Get list of active and non-deleted crop types
     public List<CropTypeResponse> getAvailableCropTypes() {
         return cropTypeRepository.findByIsActiveTrueAndIsDeleteFalse()
                 .stream()
@@ -21,6 +23,7 @@ public class CropTypeService {
                 .collect(Collectors.toList());
     }
 
+    // Map CropType entity to response DTO
     private CropTypeResponse toResponse(CropType cropType) {
         return CropTypeResponse.builder()
                 .id(cropType.getId())
