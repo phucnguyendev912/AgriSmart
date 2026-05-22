@@ -1,0 +1,9 @@
+tunnel: 9e26afd5-c5c6-4f02-bb55-615a7e949c97
+
+credentials-file: /etc/cloudflared/9e26afd5-c5c6-4f02-bb55-615a7e949c97.json
+
+ingress:
+  - hostname: phucblog.indevs.in
+    service: http://frontend:80
+
+  - service: http_status:404
