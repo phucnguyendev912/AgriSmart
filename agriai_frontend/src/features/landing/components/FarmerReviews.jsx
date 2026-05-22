@@ -6,7 +6,7 @@ const FarmerStories = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+        const API_URL = "";
         const response = await fetch(`${API_URL}/api/reviews/all`);
         const data = await response.json();
         if (data && Array.isArray(data)) {

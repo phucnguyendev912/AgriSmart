@@ -16,7 +16,7 @@ const FarmingAreaPage = () => {
     const fetchAreas = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:8080/api/areas', {
+            const response = await axios.get('/api/areas', {
                 withCredentials: true
             });
             setAreas(response.data);
@@ -43,7 +43,7 @@ const FarmingAreaPage = () => {
     const handleDelete = async (areaId) => {
     if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
     try {
-        await axios.delete(`http://localhost:8080/api/areas/${areaId}`, {
+        await axios.delete(`/api/areas/${areaId}`, {
             withCredentials: true
         });
         setAreas((prev) => prev.filter((a) => a.id !== areaId));

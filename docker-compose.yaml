@@ -72,6 +72,17 @@ services:
       - backend
     ports:
       - "3001:80"
+# Cloudflared
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
 
+    command: tunnel run
+
+    volumes:
+      - ./cloudflared:/etc/cloudflared
 volumes:
   agriai_postgres18_data:
+
+

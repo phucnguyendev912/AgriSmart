@@ -81,3 +81,5 @@ agriai_backend/**/application-local.properties
 # ══════════════════════════════════════════════════════════════
 docker/volumes/
 .docker/
+cloudflared/
+
