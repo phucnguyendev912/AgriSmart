@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Service for the local rule engine that evaluates disease contexts, weather conditions,
+// ranks treatment plans, and checks for drug/chemical interactions.
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -25,6 +27,7 @@ public class RuleEngineService {
         private final DrugInteractionChecker drugInteractionChecker;
         private final DiseaseWeatherRiskEvaluator diseaseWeatherRiskEvaluator;
 
+        // Processes disease and weather contexts to recommend, rank, and validate treatment plans.
         public RuleEngineResult process(List<DiseaseContextDTO> diseases, WeatherDTO weather) {
                 if (diseases == null || diseases.isEmpty()) {
                         return RuleEngineResult.empty();

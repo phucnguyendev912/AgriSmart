@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
+// Service implementation to retrieve current weather data from OpenWeatherMap API.
 @Service
 public class WeatherApiService implements WeatherPort {
 
@@ -16,6 +17,7 @@ public class WeatherApiService implements WeatherPort {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    // Fetches current weather data (temperature, humidity, rainfall) for given coordinates.
     public WeatherDTO getCurrentWeather(Double latitude, Double longitude) {
         if (latitude == null || longitude == null)
             return null;
@@ -26,24 +28,27 @@ public class WeatherApiService implements WeatherPort {
             String url = String.format(
                     "https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&appid=%s&units=metric",
                     latitude, longitude, apiKey);
-            // Gọi API
+            
+            // Send request to OpenWeatherMap API.
             @SuppressWarnings("unchecked")
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
             if (response == null)
                 return null;
-            // Lấy dữ liệu
+            
+            // Parse main weather properties (temperature and humidity).
             @SuppressWarnings("unchecked")
             Map<String, Object> main = (Map<String, Object>) response.get("main");
             Double temp = main != null ? toDouble(main.get("temp")) : null;
             Double humidity = main != null ? toDouble(main.get("humidity")) : null;
-            // Lấy lượng mưa
+            
+            // Extract rainfall from the last hour if available.
             Double rainfall = 0.0;
             @SuppressWarnings("unchecked")
             Map<String, Object> rain = (Map<String, Object>) response.get("rain");
             if (rain != null && rain.get("1h") != null) {
                 rainfall = toDouble(rain.get("1h"));
             }
-            // Trả về kết quả
+            
             return WeatherDTO.builder()
                     .temperature(temp)
                     .humidity(humidity)
@@ -54,7 +59,7 @@ public class WeatherApiService implements WeatherPort {
         }
     }
 
-    // Chuyển đổi Object sang Double
+    // Safely converts an object to a Double value.
     private Double toDouble(Object obj) {
         if (obj instanceof Number)
             return ((Number) obj).doubleValue();

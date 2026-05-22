@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import useSupercluster from "use-supercluster";
 
 /**
- * Convert raw API markers → GeoJSON points cho supercluster.
- * Supercluster dùng [longitude, latitude] (GeoJSON standard) — đảo ngược so với Leaflet.
+ * Converts raw API markers to GeoJSON points for supercluster.
+ * Supercluster uses [longitude, latitude] (GeoJSON standard), which is reversed from Leaflet.
  */
 function toGeoJsonPoints(markers) {
   if (!Array.isArray(markers)) return [];
@@ -24,11 +24,11 @@ function toGeoJsonPoints(markers) {
 }
 
 /**
- * Hook tính clusters từ markers + map bounds/zoom hiện tại.
+ * Custom hook to calculate clusters from markers and current map bounds/zoom.
  *
- * @param {Array} markers - Dữ liệu thô từ API
- * @param {Array} bounds  - [west, south, east, north] từ map.getBounds()
- * @param {number} zoom   - Zoom level hiện tại
+ * @param {Array} markers - Raw markers data from the API
+ * @param {Array} bounds  - [west, south, east, north] from map.getBounds()
+ * @param {number} zoom   - Current zoom level
  * @returns {{ clusters, supercluster }}
  */
 export function useMapClusters(markers, bounds, zoom) {
@@ -39,9 +39,9 @@ export function useMapClusters(markers, bounds, zoom) {
     bounds,      // [west, south, east, north]
     zoom,
     options: {
-      radius: 75,   // pixel radius để gom nhóm — tăng → gom rộng hơn
-      maxZoom: 17,  // zoom tối đa trước khi tách hết ra điểm đơn
-      minPoints: 2, // tối thiểu 2 điểm mới tạo cluster
+      radius: 75,   // pixel radius for clustering: increase to make clusters wider
+      maxZoom: 17,  // max zoom level before separating into single markers
+      minPoints: 2, // minimum points to create a cluster
     },
   });
 

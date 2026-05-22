@@ -1,9 +1,14 @@
 import React from 'react';
 
+/**
+ * Features Component
+ * Landing page sections displaying AgriAI solution features, step-by-step guidance,
+ * and user testimonials.
+ */
 const Features = () => {
   return (
     <>
-      {/* Tính năng */}
+      {/* Features List Section */}
       <section className="py-24 bg-white" id="features">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">
@@ -38,7 +43,7 @@ const Features = () => {
         </div>
       </section>
 
-      {/* Cảm nhận & Lợi ích (Rút gọn) */}
+      {/* How It Works Section */}
       <section className="py-24 bg-gray-50 overflow-hidden text-center" id="how-it-works">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-4xl font-black mb-20">Chỉ 3 bước – Xong ngay trong 30 giây</h2>
@@ -64,7 +69,7 @@ const Features = () => {
         </div>
       </section>
       
-      {/* Testimonial Images (Đã convert thẻ đóng <img>) */}
+      {/* Testimonials Section */}
       <section className="py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-4xl font-black text-center mb-16">Niềm tin từ bà con nông dân</h2>

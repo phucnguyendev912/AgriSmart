@@ -1,8 +1,10 @@
 import React from 'react';
 
 /**
- * Hiển thị các biện pháp canh tác bổ sung.
- * Props: measures - string[]
+ * DiagnoseCultivationMeasures Component
+ * Displays additional agricultural cultivation advice for the crop.
+ * @param {Object} props - Component props.
+ * @param {string[]} props.measures - List of cultivation recommendation strings.
  */
 const DiagnoseCultivationMeasures = ({ measures }) => {
     if (!measures || measures.length === 0) return null;

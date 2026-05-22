@@ -1,11 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import { login as loginApi, logout as logoutApi, refreshToken } from "../services/authService";
 
 const AuthContext = createContext();
-const API_URL = "";
-
-// Đặt cấu hình gửi Cookie mặc định cho tất cả các Axios requests
-axios.defaults.withCredentials = true;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -31,14 +27,14 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAuthToken = useCallback(async () => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/refresh-token`);
-      const userData = response.data.user || response.data.data;
+      const data = await refreshToken();
+      const userData = data.user || data.data;
 
       if (userData) {
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
       } else {
-        console.warn("⚠️ response.data thiếu user:", response.data);
+        console.warn("⚠️ response.data thiếu user:", data);
       }
     } catch (error) {
       if (error.response?.status === 401) {
@@ -52,39 +48,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     refreshAuthToken();
-
-    // Axios Interceptor for Response. (Bỏ Request Interceptor vì Cookie tự động gửi)
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-        if (
-          error.response?.status === 401 &&
-          !originalRequest._retry &&
-          !originalRequest.url?.includes("/api/auth/refresh-token")
-        ) {
-          originalRequest._retry = true;
-          try {
-            await axios.post(`${API_URL}/api/auth/refresh-token`);
-            // Sau khi refresh, Cookie httponly mới đã được backend set lại tự động.
-            // Chỉ cần gọi lại đúng request đó là đủ.
-            return axios(originalRequest);
-          } catch (refreshError) {
-            clearAuth(true); // Token hết hạn hoàn toàn -> logout
-            return Promise.reject(refreshError);
-          }
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      axios.interceptors.response.eject(responseInterceptor);
-    };
+    // Response interceptor is now configured in api.js, no longer needed here.
   }, [refreshAuthToken]);
 
   const loginContext = (userData) => {
-    // Token nằm trong HttpOnly cookie, frontend chỉ lưu user để giữ trạng thái UI.
+    // Token is stored in HttpOnly cookie, frontend only saves user to maintain UI state.
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };
@@ -96,7 +64,7 @@ export const AuthProvider = ({ children }) => {
 
   const logoutContext = async () => {
     try {
-      await axios.post(`${API_URL}/api/auth/logout`);
+      await logoutApi();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {

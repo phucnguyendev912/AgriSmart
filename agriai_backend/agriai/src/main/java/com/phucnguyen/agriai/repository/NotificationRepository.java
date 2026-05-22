@@ -11,6 +11,6 @@
 // public interface NotificationRepository extends JpaRepository<Notification,
 // Integer> {
 
-// // Tìm danh sách thông báo của User, xếp theo thời gian mới nhất
+// // Find user notifications, ordered by newest first
 // List<Notification> findByUserIdOrderByCreatedAtDesc(Integer userId);
 // }

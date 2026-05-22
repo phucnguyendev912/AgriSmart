@@ -18,8 +18,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     @Override
-    // @Transactional để tránh lỗi LazyInitializationException khi truy cập
-    // user.getRole() trong SecurityContext
+    // @Transactional to prevent LazyInitializationException when loading
+    // user.getRole() in SecurityContext
     @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)

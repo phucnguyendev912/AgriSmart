@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+// Controller for retrieving dashboard statistics for system administrators
 @RestController
 @RequestMapping("/api/admin/dashboard")
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;
 
+    // Get aggregated statistics (e.g. total users, diagnoses) for the specified period in days
     @GetMapping
     public ResponseEntity<AdminDashboardResponse> getDashboard(
             @RequestParam(defaultValue = "30") int periodDays) {

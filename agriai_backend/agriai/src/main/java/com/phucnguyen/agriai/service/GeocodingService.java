@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+// Service for processing background geocoding requests.
+// It retrieves location names from coordinates and notifies users via WebSockets.
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,20 +24,20 @@ public class GeocodingService {
 
 
     public void processGeocoding(User user, Double lat, Double lon) {
-        // 1. Gọi Nominatim trước để lấy địa chỉ thực tế
+        // 1. Call Nominatim API to get the physical address.
         NominatimResult result = nominatimPort.reverseGeocode(lat, lon);
         if (result == null || result.displayName() == null) {
-            log.warn("Không lấy được địa chỉ từ Nominatim cho tọa độ ({}, {})", lat, lon);
+            log.warn("Cannot get address from Nominatim for coordinates ({}, {})", lat, lon);
             return;
         }
 
-        // 2. Kiểm tra trùng dựa trên địa chỉ (short address)
+        // 2. Check if this address already exists for the user.
         if (areaInforRepository.existsByUserIdAndAddress(user.getId(), result.shortAddress())) {
-            log.debug("Địa chỉ '{}' đã tồn tại cho user {}", result.shortAddress(), user.getId());
+            log.debug("Address '{}' already exists for user {}", result.shortAddress(), user.getId());
             return;
         }
 
-        // 3. Lưu AreaInfor mới (confirmed = false)
+        // 3. Save the new area with an unconfirmed status.
         AreaInfor saved = areaInforRepository.save(
                 AreaInfor.builder()
                         .user(user)
@@ -46,7 +48,7 @@ public class GeocodingService {
                         .province(result.province())
                         .build());
 
-        // 4. Push WebSocket thông báo cho user
+        // 4. Send a WebSocket notification to the user to confirm the location.
         String message = "Địa chỉ khu vực canh tác của bạn ở: " + result.shortAddress()
                 + ". Hãy vào trang Khu vực canh tác để xác nhận!";
 
@@ -59,7 +61,7 @@ public class GeocodingService {
                         message,
                         "/farming-areas"));
 
-        log.info("Đã gợi ý khu vực mới '{}' cho user {}", result.shortAddress(), user.getEmail());
+        log.info("Suggested new area '{}' to user {}", result.shortAddress(), user.getEmail());
 
     }
 }

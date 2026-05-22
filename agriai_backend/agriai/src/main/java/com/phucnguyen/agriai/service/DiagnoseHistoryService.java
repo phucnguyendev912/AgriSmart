@@ -34,6 +34,7 @@ import com.phucnguyen.agriai.mapper.TreatmentMapper;
 import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 
+// Service handling queries and retrieval of diagnosis history details
 @RequiredArgsConstructor
 @Service
 @Transactional
@@ -53,16 +54,16 @@ public class DiagnoseHistoryService {
 
     private final ObjectMapper objectMapper;
 
-    // get diagnose history by user email
+    // Get diagnosis history page with pagination and optional date filters
     public Page<com.phucnguyen.agriai.dto.response.DiagnoseHistoryResponse> getHistory(String email,
             Pageable pageable, LocalDate fromDate, LocalDate toDate) {
         if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Ngay bat dau khong duoc lon hon ngay ket thuc.");
+            throw new AppException(HttpStatus.BAD_REQUEST, "Ngày bắt đầu không được lớn hơn ngày kết thúc.");
         }
 
         Integer userId = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay nguoi dung."))
-                .getId();
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."))
+                .getId();   
 
         return findHistoryPage(userId, pageable, fromDate, toDate)
                 .map(history -> {
@@ -83,8 +84,8 @@ public class DiagnoseHistoryService {
                         if (topDetail.getDisease() != null) {
                             diseaseName = topDetail.getDisease().getDiseaseName();
                             confidence = topDetail.getConfidenceScore() != null
-                                    ? topDetail.getConfidenceScore().doubleValue()
-                                    : null;
+                                     ? topDetail.getConfidenceScore().doubleValue()
+                                     : null;
                             severity = topDetail.getSeverity() != null ? topDetail.getSeverity().name() : null;
                         } else {
                             if ("HEALTHY".equals(diagnosisType)) {
@@ -114,6 +115,7 @@ public class DiagnoseHistoryService {
                 });
     }
 
+    // Find database history entries with date range filters
     private Page<DiagnoseHistory> findHistoryPage(Integer userId, Pageable pageable, LocalDate fromDate,
             LocalDate toDate) {
         LocalDateTime startDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
@@ -138,6 +140,7 @@ public class DiagnoseHistoryService {
         return diagnoseHistoryRepository.findByUserIdAndIsDeleteFalseOrderByCreatedAtDesc(userId, pageable);
     }
 
+    // Parse diagnosis history details snapshot from stored JSON string
     private DiagnosisDetailSnapshotDTO parseSnapshot(String json) {
         if (json == null || json.isBlank()) {
             return null;
@@ -149,13 +152,14 @@ public class DiagnoseHistoryService {
         }
     }
 
+    // Get detailed diagnosis response details by history ID
     @Transactional(readOnly = true)
     public DiagnoseResponse getDetail(String email, Integer id) {
         if (email == null || email.isBlank()) {
-            throw new AppException(HttpStatus.NOT_FOUND, "Khong tim thay lich su chan doan.");
+            throw new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy lịch sử chẩn đoán.");
         }
         Integer userId = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay lich su chan doan."))
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy lịch sử chẩn đoán."))
                 .getId();
 
         DiagnoseHistory history = diagnoseHistoryRepository.findByIdAndUserIdAndIsDeleteFalse(id, userId)
@@ -260,6 +264,7 @@ public class DiagnoseHistoryService {
                 .build();
     }
 
+    // Parse weather details from database JSON string
     private WeatherDTO parseWeatherJson(String json) {
         if (json == null || json.isBlank()) {
             return null;
@@ -271,6 +276,7 @@ public class DiagnoseHistoryService {
         }
     }
 
+    // Build disease display name containing English name followed by Vietnamese name
     private String buildDiseaseDisplayName(com.phucnguyen.agriai.entity.Disease disease) {
         String nameEn = disease.getDiseaseNameEn();
         String nameVi = disease.getDiseaseName();
@@ -280,6 +286,7 @@ public class DiagnoseHistoryService {
         return nameVi;
     }
 
+    // Create unique key for deduplicating drug interaction warnings
     private String interactionWarningKey(InteractionWarningDTO warning) {
         String ingredientA = String.valueOf(warning.getIngredientAId());
         String ingredientB = String.valueOf(warning.getIngredientBId());
@@ -293,17 +300,20 @@ public class DiagnoseHistoryService {
                 + String.valueOf(warning.getActionRule());
     }
 
+    // Create unique key for deduplicating weather alerts
     private String weatherAlertKey(WeatherAlertDTO alert) {
         return String.valueOf(alert.getTreatmentPlanId()) + ":"
                 + String.valueOf(alert.getWeatherFactor()) + ":"
                 + String.valueOf(alert.getOperator());
     }
 
+    // Create unique key for deduplicating weather risk assessments
     private String diseaseWeatherRiskKey(DiseaseWeatherRiskDTO risk) {
         return String.valueOf(risk.getDiseaseId()) + ":"
                 + String.valueOf(risk.getConditionGroup());
     }
 
+    // Load recommendations from database for the given details
     private List<TreatmentDTO> loadTreatmentsFromRecommendations(List<DiagnoseHistoryDetail> details) {
         List<Integer> detailIds = details.stream()
                 .map(DiagnoseHistoryDetail::getId)
@@ -322,6 +332,7 @@ public class DiagnoseHistoryService {
                 .toList();
     }
 
+    // Map recommendation record to TreatmentDTO
     private TreatmentDTO toTreatmentFromRecommendation(DiagnoseTreatmentRecommendation recommendation) {
         if (recommendation.getTreatmentPlan() == null) {
             return null;
