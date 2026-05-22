@@ -17,7 +17,7 @@ const PROVINCES = [
   'Tuyên Quang', 'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái',
 ];
 
-const API_BASE = process.env.REACT_APP_API_URL ?? 'http://localhost:8080';
+const API_BASE = "";
 
 /**
  * Modal chỉnh sửa khu vực canh tác.

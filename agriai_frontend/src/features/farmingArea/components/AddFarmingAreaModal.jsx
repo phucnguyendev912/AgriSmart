@@ -27,7 +27,7 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
         try {
             // Gọi API POST /api/areas
             const response = await axios.post(
-                'http://localhost:8080/api/areas',
+                '/api/areas',
                 {
                     areaName: formData.areaName,
                     province: formData.province,

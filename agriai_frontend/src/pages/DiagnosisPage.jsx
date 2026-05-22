@@ -17,7 +17,7 @@ import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuida
 import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
 import { getCultivationMeasures as getDiagnosisCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_URL = "";
 
 /** Trả về danh sách biện pháp canh tác từ kết quả chẩn đoán */
 // eslint-disable-next-line no-unused-vars

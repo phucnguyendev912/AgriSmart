@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import axios from "axios";
 
 const AuthContext = createContext();
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const API_URL = "";
 
 // Đặt cấu hình gửi Cookie mặc định cho tất cả các Axios requests
 axios.defaults.withCredentials = true;
