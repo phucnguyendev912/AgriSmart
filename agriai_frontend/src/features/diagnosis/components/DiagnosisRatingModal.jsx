@@ -72,8 +72,8 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
                             <button
                                 onClick={() => setAccuracy('accurate')}
                                 className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${accuracy === 'accurate'
-                                        ? 'border-primary bg-primary/10 text-primary'
-                                        : 'border-zinc-100 hover:border-zinc-200 text-zinc-400 hover:text-zinc-600'
+                                    ? 'border-primary bg-primary/10 text-primary'
+                                    : 'border-zinc-100 hover:border-zinc-200 text-zinc-400 hover:text-zinc-600'
                                     }`}
                             >
                                 <span className="material-symbols-outlined text-2xl mb-1"
@@ -85,8 +85,8 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
                             <button
                                 onClick={() => setAccuracy('inaccurate')}
                                 className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${accuracy === 'inaccurate'
-                                        ? 'border-error bg-error-container text-on-error-container'
-                                        : 'border-zinc-100 hover:border-zinc-200 text-zinc-400 hover:text-zinc-600'
+                                    ? 'border-error bg-error-container text-on-error-container'
+                                    : 'border-zinc-100 hover:border-zinc-200 text-zinc-400 hover:text-zinc-600'
                                     }`}
                             >
                                 <span className="material-symbols-outlined text-2xl mb-1">cancel</span>
@@ -133,8 +133,8 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
                             onClick={handleSubmit}
                             disabled={!accuracy && rating === 0}
                             className={`w-full py-4 rounded-lg font-bold transition-all ${(!accuracy && rating === 0)
-                                    ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed opacity-60'
-                                    : 'bg-primary text-on-primary shadow-lg hover:brightness-110 active:scale-[0.98]'
+                                ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed opacity-60'
+                                : 'bg-primary text-on-primary shadow-lg hover:brightness-110 active:scale-[0.98]'
                                 }`}
                         >
                             Gửi đánh giá

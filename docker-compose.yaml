@@ -32,7 +32,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       AUTH_COOKIE_SECURE: "false"
       AUTH_COOKIE_SAME_SITE: Lax
-      VISION_AI_URL: http://host.docker.internal:8010/predict
+      VISION_AI_URL: ${VISION_AI_URL:-http://host.docker.internal:8010/predict}
       SKILLS_BASE_PATH: /app/skills
       JWT_SECRET: ${JWT_SECRET}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
@@ -44,6 +44,8 @@ services:
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
       WEATHER_API_KEY: ${WEATHER_API_KEY}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./skills:/app/skills:ro
     ports:

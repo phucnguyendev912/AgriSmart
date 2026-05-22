@@ -29,3 +29,9 @@
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
+
+/* Ẩn nút hiện mật khẩu mặc định của Edge/IE */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
