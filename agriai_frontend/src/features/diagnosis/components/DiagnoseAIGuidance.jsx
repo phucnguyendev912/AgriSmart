@@ -25,7 +25,7 @@ const DiagnoseAIGuidance = ({ guidance }) => {
             </div>
 
             <div className="mt-4 pt-4 border-t border-surface-container-highest flex items-center justify-between">
-                <p className="text-[10px] text-on-surface-variant italic">* Phân tích dựa trên dữ liệu bệnh và thời tiết thực tế.</p>
+                <p className="text-[10px] text-on-surface-variant italic">* Phân tích dựa trên dữ liệu bệnh và thời tiết thực tế. Thông tin chỉ mang tính chất tham khảo.</p>
                 <button className="text-primary hover:bg-primary/10 p-1.5 rounded-full transition-colors">
                     <span className="material-symbols-outlined text-lg">share</span>
                 </button>

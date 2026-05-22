@@ -455,7 +455,14 @@ const ChatBotWidget = () => {
                           {message.isGreeting ? (
                             <ChatGreeting message={message} onSuggestionClick={handleSend} />
                           ) : (
-                            <p className="text-sm md:text-base leading-relaxed">{message.text}</p>
+                            <div className="flex flex-col gap-2">
+                              <p className="text-sm md:text-base leading-relaxed whitespace-pre-line">{message.text}</p>
+                              {message.sender === 'ai' && (
+                                <p className="text-[10px] text-on-surface-variant italic pt-2 border-t border-outline-variant/10">
+                                  * Thông tin chỉ mang tính chất tham khảo.
+                                </p>
+                              )}
+                            </div>
                           )}
                         </div>
 
