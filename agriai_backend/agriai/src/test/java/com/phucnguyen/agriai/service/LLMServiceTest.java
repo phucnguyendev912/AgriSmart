@@ -92,4 +92,22 @@ class LLMServiceTest {
         String guidance = service.generateGuidance(response);
         assertNotNull(guidance);
     }
+
+    @Test
+    @DisplayName("TC6: No API key → fallback guidance for unknown state")
+    void generateGuidance_noApiKey_unknownState() {
+        AIService service = new AIService("", "gemini-2.0-flash");
+
+        DiagnoseResponse response = DiagnoseResponse.builder()
+                .diseases(List.of())
+                .isHealthy(false)
+                .diagnosisType("UNKNOWN")
+                .build();
+
+        String guidance = service.generateGuidance(response);
+        assertNotNull(guidance);
+        assertFalse(guidance.isBlank());
+        assertTrue(guidance.contains("chụp lại") || guidance.contains("thử lại") || guidance.contains("chưa thể xác định"));
+    }
 }
+
