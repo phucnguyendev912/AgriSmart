@@ -9,7 +9,7 @@ import { useMapClusters } from "../features/map/hooks/useMapClusters";
 
 const MARKER_COLOR = "#EF4444";
 
-const API_BASE = process.env.REACT_APP_API_URL ?? "http://localhost:8080";
+const API_BASE = "";
 
 // -------------------------------------------------------------------
 // Component con: lắng nghe zoom/bounds và đẩy lên parent

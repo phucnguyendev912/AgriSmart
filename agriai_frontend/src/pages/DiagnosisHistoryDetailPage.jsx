@@ -10,7 +10,7 @@ import DiagnoseCultivationMeasures from '../features/diagnosis/components/Diagno
 import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuidance';
 import { getCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_URL = "";
 
 const SESSION_EXPIRED_MESSAGE = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xem lịch sử chẩn đoán.';
 

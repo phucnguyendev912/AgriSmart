@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_URL = "";
 
 
 const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
@@ -71,11 +71,10 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
                         <div className="grid grid-cols-2 gap-4">
                             <button
                                 onClick={() => setAccuracy('accurate')}
-                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${
-                                    accuracy === 'accurate'
+                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${accuracy === 'accurate'
                                         ? 'border-primary bg-primary/10 text-primary'
                                         : 'border-zinc-100 hover:border-zinc-200 text-zinc-400 hover:text-zinc-600'
-                                }`}
+                                    }`}
                             >
                                 <span className="material-symbols-outlined text-2xl mb-1"
                                     style={{ fontVariationSettings: accuracy === 'accurate' ? "'FILL' 1" : "'FILL' 0" }}>
@@ -85,11 +84,10 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
                             </button>
                             <button
                                 onClick={() => setAccuracy('inaccurate')}
-                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${
-                                    accuracy === 'inaccurate'
+                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${accuracy === 'inaccurate'
                                         ? 'border-error bg-error-container text-on-error-container'
                                         : 'border-zinc-100 hover:border-zinc-200 text-zinc-400 hover:text-zinc-600'
-                                }`}
+                                    }`}
                             >
                                 <span className="material-symbols-outlined text-2xl mb-1">cancel</span>
                                 <span className="text-sm font-medium">Không chính xác</span>
@@ -134,11 +132,10 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
                         <button
                             onClick={handleSubmit}
                             disabled={!accuracy && rating === 0}
-                            className={`w-full py-4 rounded-lg font-bold transition-all ${
-                                (!accuracy && rating === 0)
+                            className={`w-full py-4 rounded-lg font-bold transition-all ${(!accuracy && rating === 0)
                                     ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed opacity-60'
                                     : 'bg-primary text-on-primary shadow-lg hover:brightness-110 active:scale-[0.98]'
-                            }`}
+                                }`}
                         >
                             Gửi đánh giá
                         </button>
