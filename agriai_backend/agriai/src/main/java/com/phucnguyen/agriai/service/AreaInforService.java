@@ -95,6 +95,7 @@ public class AreaInforService {
         private AreaInforResponse toResponse(AreaInfor a) {
                 return AreaInforResponse.builder().id(a.getId()).areaName(a.getAreaName())
                                 .province(a.getProvince()).address(a.getAddress())
-                                .area(a.getArea()).description(a.getDescription()).build();
+                                .area(a.getArea()).description(a.getDescription())
+                                .latitude(a.getLatitude()).longitude(a.getLongitude()).build();
         }
 }

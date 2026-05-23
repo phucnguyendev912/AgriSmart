@@ -1,11 +1,27 @@
 import React, { useState } from 'react';
 import { createArea } from '../../../services/farmingAreaService';
 
+const PROVINCES = [
+  'An Giang', 'Bà Rịa - Vũng Tàu', 'Bắc Giang', 'Bắc Kạn', 'Bạc Liêu',
+  'Bắc Ninh', 'Bến Tre', 'Bình Định', 'Bình Dương', 'Bình Phước',
+  'Bình Thuận', 'Cà Mau', 'Cần Thơ', 'Cao Bằng', 'Đà Nẵng',
+  'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp',
+  'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Nội', 'Hà Tĩnh',
+  'Hải Dương', 'Hải Phòng', 'Hậu Giang', 'Hòa Bình', 'Hưng Yên',
+  'Khánh Hòa', 'Kiên Giang', 'Kon Tum', 'Lai Châu', 'Lâm Đồng',
+  'Lạng Sơn', 'Lào Cai', 'Long An', 'Nam Định', 'Nghệ An',
+  'Ninh Bình', 'Ninh Thuận', 'Phú Thọ', 'Phú Yên', 'Quảng Bình',
+  'Quảng Nam', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị', 'Sóc Trăng',
+  'Sơn La', 'Tây Ninh', 'Thái Bình', 'Thái Nguyên', 'Thanh Hóa',
+  'Huế', 'Tiền Giang', 'Hồ Chí Minh', 'Trà Vinh',
+  'Tuyên Quang', 'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái',
+];
+
 /**
  * AddFarmingAreaModal Component
  * Modal dialog for farmers to create a new farming/cultivation area.
  * Provides inputs for area name, province selection, detailed address, size, and description.
- * 
+ *
  * @param {Object} props - Component properties.
  * @param {boolean} props.isOpen - Controls modal visibility.
  * @param {Function} props.onClose - Action callback to close the modal.
@@ -116,13 +132,9 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                                         className="w-full bg-[#f3f4f5] border-b-2 border-transparent focus:border-[#22C55E] px-4 py-3 rounded-t-lg appearance-none transition-all outline-none text-[#191c1d]"
                                     >
                                         <option disabled value="">Chọn tỉnh/thành phố</option>
-                                        <option value="Hà Nội">Hà Nội</option>
-                                        <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
-                                        <option value="Lâm Đồng">Lâm Đồng</option>
-                                        <option value="Đồng Tháp">Đồng Tháp</option>
-                                        <option value="Tiền Giang">Tiền Giang</option>
-                                        <option value="Cần Thơ">Cần Thơ</option>
-                                        {/* Hardcoded provinces for demonstration purposes */}
+                                        {PROVINCES.map((p) => (
+                                            <option key={p} value={p}>{p}</option>
+                                        ))}
                                     </select>
                                     <span className="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-[#3d4a3d]">expand_more</span>
                                 </div>

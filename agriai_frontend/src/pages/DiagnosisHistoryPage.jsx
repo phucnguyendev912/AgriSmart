@@ -24,11 +24,20 @@ const formatDateInput = (date) => {
     return `${year}-${month}-${day}`;
 };
 
+// Backend trả về LocalDateTime không có timezone ("2026-05-23T16:30:00").
+// Một số browser hiểu chuỗi này là UTC → lệch 7h. Hàm này gắn +07:00 để đảm bảo đúng giờ VN.
+const parseVnDate = (iso) => {
+    if (!iso) return null;
+    const normalized = iso.endsWith('Z') || iso.includes('+') ? iso : iso + '+07:00';
+    return new Date(normalized);
+};
+
 /**
  * Calculates preset date range (today, last 7 days, last 30 days).
  * @param {string} filterKey - Predefined date filter key.
  * @returns {{fromDate: string, toDate: string}} The computed date range.
  */
+
 const getPresetRange = (filterKey) => {
     const today = new Date();
     const fromDate = new Date(today);
@@ -241,7 +250,7 @@ const DiagnosisHistoryPage = () => {
                                 ) : historyList.map((item, index) => (
                                     <tr key={item.id || index} className="hover:bg-surface-container-low/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <p className="text-sm font-bold text-on-surface">{new Date(item.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</p>
+                                            <p className="text-sm font-bold text-on-surface">{parseVnDate(item.createdAt)?.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</p>
                                             <p className="text-[10px] text-on-surface-variant">ID: #{item.id}</p>
                                         </td>
                                         <td className="px-6 py-4">
@@ -304,7 +313,7 @@ const DiagnosisHistoryPage = () => {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <p className="text-[9px] font-bold text-on-surface-variant uppercase tracking-tight">{new Date(item.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</p>
+                                            <p className="text-[9px] font-bold text-on-surface-variant uppercase tracking-tight">{parseVnDate(item.createdAt)?.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</p>
                                             <p className="text-xs text-on-surface-variant">{item.cropName || 'N/A'}</p>
                                         </div>
                                         <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getSeverityClasses(item.severity)}`}>

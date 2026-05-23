@@ -104,7 +104,11 @@ export default function DiseaseMapPage() {
 
   const formatDate = (iso) => {
     if (!iso) return "—";
-    return new Date(iso).toLocaleString("vi-VN", {
+    // Backend trả về LocalDateTime không có timezone (ví dụ: "2026-05-23T16:30:00").
+    // Một số browser parse chuỗi này là UTC → lệch 7h so với giờ Việt Nam.
+    // Gắn "+07:00" để đảm bảo luôn được hiểu đúng là giờ Việt Nam (UTC+7).
+    const normalized = iso.endsWith("Z") || iso.includes("+") ? iso : iso + "+07:00";
+    return new Date(normalized).toLocaleString("vi-VN", {
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });

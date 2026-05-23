@@ -5,6 +5,98 @@ import { getAreas, deleteArea } from '../services/farmingAreaService';
 import AddFarmingAreaModal from '../features/farmingArea/components/AddFarmingAreaModal';
 import EditFarmingAreaModal from '../features/farmingArea/components/EditFarmingAreaModal';
 
+// Tọa độ trung tâm của các tỉnh/thành phố Việt Nam
+const PROVINCE_COORDS = [
+    { name: 'Hà Nội', lat: 21.0285, lon: 105.8542 },
+    { name: 'Hồ Chí Minh', lat: 10.8231, lon: 106.6297 },
+    { name: 'Hải Phòng', lat: 20.8449, lon: 106.6881 },
+    { name: 'Đà Nẵng', lat: 16.0471, lon: 108.2068 },
+    { name: 'Cần Thơ', lat: 10.0452, lon: 105.7469 },
+    { name: 'An Giang', lat: 10.3561, lon: 105.4352 },
+    { name: 'Bà Rịa - Vũng Tàu', lat: 10.4113, lon: 107.1369 },
+    { name: 'Bắc Giang', lat: 21.2731, lon: 106.1947 },
+    { name: 'Bắc Kạn', lat: 22.1474, lon: 105.8348 },
+    { name: 'Bạc Liêu', lat: 9.2941, lon: 105.7278 },
+    { name: 'Bắc Ninh', lat: 21.1861, lon: 106.0763 },
+    { name: 'Ẩn Tre', lat: 10.2434, lon: 106.3756 },
+    { name: 'Bình Định', lat: 13.7820, lon: 109.2197 },
+    { name: 'Bình Dương', lat: 11.3254, lon: 106.4770 },
+    { name: 'Bình Phước', lat: 11.7512, lon: 106.7235 },
+    { name: 'Bình Thuận', lat: 11.0904, lon: 108.0721 },
+    { name: 'Cà Mau', lat: 9.1769, lon: 105.1500 },
+    { name: 'Cao Bằng', lat: 22.6657, lon: 106.2522 },
+    { name: 'Đắc Lậk', lat: 12.7100, lon: 108.2378 },
+    { name: 'Đắc Nông', lat: 12.2646, lon: 107.6098 },
+    { name: 'Điện Biên', lat: 21.3860, lon: 103.0230 },
+    { name: 'Đồng Nai', lat: 11.0686, lon: 107.1676 },
+    { name: 'Đồng Tháp', lat: 10.4938, lon: 105.6882 },
+    { name: 'Gia Lai', lat: 13.9833, lon: 108.0000 },
+    { name: 'Hà Giang', lat: 22.8025, lon: 104.9784 },
+    { name: 'Hà Nam', lat: 20.5835, lon: 105.9230 },
+    { name: 'Hà Tĩnh', lat: 18.3559, lon: 105.8877 },
+    { name: 'Hải Dương', lat: 20.9373, lon: 106.3147 },
+    { name: 'Hậu Giang', lat: 9.7579, lon: 105.6413 },
+    { name: 'Hòa Bình', lat: 20.8133, lon: 105.3383 },
+    { name: 'Hưng Yên', lat: 20.6464, lon: 106.0511 },
+    { name: 'Khánh Hòa', lat: 12.2388, lon: 109.1967 },
+    { name: 'Kiên Giang', lat: 9.8249, lon: 105.1259 },
+    { name: 'Kon Tum', lat: 14.3545, lon: 108.0097 },
+    { name: 'Lai Châu', lat: 22.3964, lon: 103.4592 },
+    { name: 'Lâm Đồng', lat: 11.5753, lon: 108.1429 },
+    { name: 'Lạng Sơn', lat: 21.8537, lon: 106.7615 },
+    { name: 'Lào Cai', lat: 22.4809, lon: 103.9753 },
+    { name: 'Long An', lat: 10.5354, lon: 106.4113 },
+    { name: 'Nam Định', lat: 20.4388, lon: 106.1621 },
+    { name: 'Nghệ An', lat: 19.2342, lon: 104.9200 },
+    { name: 'Ninh Bình', lat: 20.2506, lon: 105.9745 },
+    { name: 'Ninh Thuận', lat: 11.6739, lon: 108.8629 },
+    { name: 'Phú Thọ', lat: 21.3989, lon: 105.2289 },
+    { name: 'Phú Yên', lat: 13.0882, lon: 109.0929 },
+    { name: 'Quảng Bình', lat: 17.4689, lon: 106.5990 },
+    { name: 'Quảng Nam', lat: 15.5394, lon: 108.0191 },
+    { name: 'Quảng Ngãi', lat: 15.1214, lon: 108.8042 },
+    { name: 'Quảng Ninh', lat: 21.0064, lon: 107.2925 },
+    { name: 'Quảng Trị', lat: 16.7500, lon: 107.1852 },
+    { name: 'Sóc Trăng', lat: 9.6025, lon: 105.9800 },
+    { name: 'Sơn La', lat: 21.3256, lon: 103.9188 },
+    { name: 'Tây Ninh', lat: 11.3100, lon: 106.0980 },
+    { name: 'Thái Bình', lat: 20.4463, lon: 106.3366 },
+    { name: 'Thái Nguyên', lat: 21.5944, lon: 105.8412 },
+    { name: 'Thanh Hóa', lat: 19.8077, lon: 105.7764 },
+    { name: 'Huế', lat: 16.4637, lon: 107.5909 },
+    { name: 'Tiền Giang', lat: 10.4493, lon: 106.3421 },
+    { name: 'Trà Vinh', lat: 9.8127, lon: 106.2993 },
+    { name: 'Tuyên Quang', lat: 21.8236, lon: 105.2180 },
+    { name: 'Vĩnh Long', lat: 10.2397, lon: 105.9572 },
+    { name: 'Vĩnh Phúc', lat: 21.3609, lon: 105.6047 },
+    { name: 'Yên Bái', lat: 21.7051, lon: 104.9056 },
+    { name: 'Hương Thủy', lat: 16.3731, lon: 107.6294 },
+    { name: 'Huế', lat: 16.4637, lon: 107.5909 },
+];
+
+const findNearestProvince = (lat, lon) => {
+    if (!lat || !lon) return null;
+    let nearest = null;
+    let minDist = Infinity;
+    for (const p of PROVINCE_COORDS) {
+        const d = Math.hypot(lat - p.lat, lon - p.lon);
+        if (d < minDist) { minDist = d; nearest = p.name; }
+    }
+    return nearest;
+};
+
+// Lọc ra các giá trị cấp dưới tỉnh (phường, xã, quận, huyện)
+const SUB_PROVINCE_PREFIXES = ['Phường', 'Xã', 'Thị trấn', 'Quận', 'Huyện', 'Thị xã'];
+const isValidProvince = (province) => {
+    if (!province || !province.trim()) return false;
+    return !SUB_PROVINCE_PREFIXES.some((prefix) => province.startsWith(prefix));
+};
+
+const getProvinceDisplay = (area) => {
+    if (isValidProvince(area.province)) return area.province;
+    return findNearestProvince(area.latitude, area.longitude) || '—';
+};
+
 const FarmingAreaPage = () => {
     const [areas, setAreas] = useState([]); // useState: store farming areas fetched from API
     const [loading, setLoading] = useState(true); // useState: loading state for farming areas data
@@ -38,14 +130,14 @@ const FarmingAreaPage = () => {
         setAreas((prev) => prev.map((a) => (a.id === updatedArea.id ? updatedArea : a)));
     };
     const handleDelete = async (areaId) => {
-    if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
-    try {
-        await deleteArea(areaId);
-        setAreas((prev) => prev.filter((a) => a.id !== areaId));
-    } catch (err) {
-        console.error('Lỗi khi xóa:', err);
-    }
-};
+        if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
+        try {
+            await deleteArea(areaId);
+            setAreas((prev) => prev.filter((a) => a.id !== areaId));
+        } catch (err) {
+            console.error('Lỗi khi xóa:', err);
+        }
+    };
 
 
     return (
@@ -106,9 +198,11 @@ const FarmingAreaPage = () => {
                                     ) : (
                                         areas.map((area) => (
                                             <tr key={area.id} className="hover:bg-surface-container-low/50 transition-colors">
-                                                
+
                                                 <td className="px-6 py-4 font-semibold whitespace-nowrap">{area.areaName}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{area.province}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {getProvinceDisplay(area)}
+                                                </td>
                                                 <td className="px-6 py-4 text-sm text-on-surface-variant min-w-[200px]">{area.address}</td>
                                                 <td className="px-6 py-4 text-sm text-on-surface-variant italic min-w-[250px] truncate max-w-xs">{area.description}</td>
                                                 <td className="px-6 py-4">

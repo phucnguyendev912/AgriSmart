@@ -31,9 +31,11 @@ public class GeocodingService {
             return;
         }
 
-        // 2. Check if this address already exists for the user.
-        if (areaInforRepository.existsByUserIdAndAddress(user.getId(), result.shortAddress())) {
-            log.debug("Address '{}' already exists for user {}", result.shortAddress(), user.getId());
+
+        // 2. Kiểm tra trùng dựa trên địa chỉ (short address)
+        if (areaInforRepository.existsByUserIdAndAddressAndIsDeleteFalse(user.getId(), result.shortAddress())) {
+            log.debug("Địa chỉ '{}' đã tồn tại cho user {}", result.shortAddress(), user.getId());
+
             return;
         }
 
