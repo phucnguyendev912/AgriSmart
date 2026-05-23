@@ -24,7 +24,6 @@ const formatDateInput = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-<<<<<<< HEAD
 // Backend trả về LocalDateTime không có timezone ("2026-05-23T16:30:00").
 // Một số browser hiểu chuỗi này là UTC → lệch 7h. Hàm này gắn +07:00 để đảm bảo đúng giờ VN.
 const parseVnDate = (iso) => {
@@ -33,13 +32,12 @@ const parseVnDate = (iso) => {
     return new Date(normalized);
 };
 
-=======
 /**
  * Calculates preset date range (today, last 7 days, last 30 days).
  * @param {string} filterKey - Predefined date filter key.
  * @returns {{fromDate: string, toDate: string}} The computed date range.
  */
->>>>>>> origin/develop
+
 const getPresetRange = (filterKey) => {
     const today = new Date();
     const fromDate = new Date(today);
