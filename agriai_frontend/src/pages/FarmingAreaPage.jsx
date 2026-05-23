@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { getAreas, deleteArea } from '../services/farmingAreaService';
 
 import AddFarmingAreaModal from '../features/farmingArea/components/AddFarmingAreaModal';
 import EditFarmingAreaModal from '../features/farmingArea/components/EditFarmingAreaModal';
@@ -98,28 +98,26 @@ const getProvinceDisplay = (area) => {
 };
 
 const FarmingAreaPage = () => {
-    const [areas, setAreas] = useState([]); // useState: lưu danh sách khu vực canh tác tải về từ API.
-    const [loading, setLoading] = useState(true); // useState: trạng thái đang tải dữ liệu khu vực canh tác.
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false); // useState: kiểm soát hiển thị modal thêm khu vực canh tác mới.
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false); // useState: kiểm soát hiển thị modal sửa khu vực canh tác.
+    const [areas, setAreas] = useState([]); // useState: store farming areas fetched from API
+    const [loading, setLoading] = useState(true); // useState: loading state for farming areas data
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false); // useState: control add farming area modal visibility
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false); // useState: control edit farming area modal visibility
 
-    // useCallback: ghi nhớ hàm fetchAreas để tránh tạo lại vô ích khi re-render.
+    // useCallback: memoize fetchAreas to prevent recreation on re-renders
     const fetchAreas = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get('/api/areas', {
-                withCredentials: true
-            });
+            const response = await getAreas();
             setAreas(response.data);
         } catch (error) {
-            console.error('Lỗi khi tải danh sách khu vực canh tác:', error);
+            console.error('Error fetching farming areas:', error);
             setAreas([]);
         } finally {
             setLoading(false);
         }
     }, []);
 
-    // useEffect: gọi fetchAreas khi component mount hoặc khi hàm fetchAreas thay đổi.
+    // useEffect: fetch farming areas when component mounts
     useEffect(() => {
         fetchAreas();
     }, [fetchAreas]);
@@ -132,6 +130,7 @@ const FarmingAreaPage = () => {
         setAreas((prev) => prev.map((a) => (a.id === updatedArea.id ? updatedArea : a)));
     };
     const handleDelete = async (areaId) => {
+<<<<<<< HEAD
         if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
         try {
             await axios.delete(`/api/areas/${areaId}`, {
@@ -142,6 +141,16 @@ const FarmingAreaPage = () => {
             console.error('Lỗi khi xóa:', err);
         }
     };
+=======
+    if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
+    try {
+        await deleteArea(areaId);
+        setAreas((prev) => prev.filter((a) => a.id !== areaId));
+    } catch (err) {
+        console.error('Lỗi khi xóa:', err);
+    }
+};
+>>>>>>> origin/develop
 
 
     return (

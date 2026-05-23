@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getReview, submitReview } from '../../../services/diagnosisService';
 
-const API_URL = "";
 
-
+/**
+ * DiagnosisRatingModal Component
+ * Modal for collecting agricultural expert/farmer feedback on the crop diagnosis results,
+ * including accuracy check (Accurate/Inaccurate), 5-star experience rating, and text feedback.
+ * 
+ * @param {Object} props - Component properties.
+ * @param {number} props.historyId - The specific diagnosis history record ID.
+ * @param {Function} props.onClose - Action callback to close the modal.
+ * @param {Function} props.onSuccess - Callback triggered after review is successfully submitted.
+ */
 const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
     const [accuracy, setAccuracy] = useState(null);
     const [rating, setRating] = useState(0);
@@ -14,7 +22,7 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
     useEffect(() => {
         const fetchReview = async () => {
             try {
-                const res = await axios.get(`${API_URL}/api/reviews/${historyId}`, { withCredentials: true });
+                const res = await getReview(historyId);
                 if (res.data) {
                     setAccuracy(res.data.isAccurate ? 'accurate' : 'inaccurate');
                     setRating(res.data.rating || 0);
@@ -32,13 +40,11 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
     const handleSubmit = async () => {
         if (!accuracy && rating === 0) return;
         try {
-            await axios.post(`${API_URL}/api/reviews`, {
+            await submitReview({
                 historyId,
                 isAccurate: accuracy === 'accurate',
                 rating: rating || null,
                 feedback: feedback || null
-            }, {
-                withCredentials: true
             });
             onSuccess?.();
             onClose();

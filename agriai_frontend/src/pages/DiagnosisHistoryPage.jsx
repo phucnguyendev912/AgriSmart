@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
-
-const API_URL = "";
+import { getHistory } from '../services/diagnosisService';
 
 const DATE_FILTERS = [
     { key: 'today', label: 'Hôm nay' },
@@ -14,6 +12,11 @@ const DATE_FILTERS = [
     { key: 'custom', label: 'Tùy chỉnh' }
 ];
 
+/**
+ * Formats a Date object to a string in YYYY-MM-DD format.
+ * @param {Date} date - The date to format.
+ * @returns {string} The formatted date string.
+ */
 const formatDateInput = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -21,6 +24,7 @@ const formatDateInput = (date) => {
     return `${year}-${month}-${day}`;
 };
 
+<<<<<<< HEAD
 // Backend trả về LocalDateTime không có timezone ("2026-05-23T16:30:00").
 // Một số browser hiểu chuỗi này là UTC → lệch 7h. Hàm này gắn +07:00 để đảm bảo đúng giờ VN.
 const parseVnDate = (iso) => {
@@ -29,6 +33,13 @@ const parseVnDate = (iso) => {
     return new Date(normalized);
 };
 
+=======
+/**
+ * Calculates preset date range (today, last 7 days, last 30 days).
+ * @param {string} filterKey - Predefined date filter key.
+ * @returns {{fromDate: string, toDate: string}} The computed date range.
+ */
+>>>>>>> origin/develop
 const getPresetRange = (filterKey) => {
     const today = new Date();
     const fromDate = new Date(today);
@@ -45,6 +56,11 @@ const getPresetRange = (filterKey) => {
     };
 };
 
+/**
+ * Maps severity code to Tailwind styling classes.
+ * @param {string} severity - Severity level code.
+ * @returns {string} Tailwind CSS class string.
+ */
 const getSeverityClasses = (severity) => {
     if (severity === 'NANG') return 'bg-error-container text-on-error-container';
     if (severity === 'TRUNG_BINH') return 'bg-secondary-container text-on-secondary-container';
@@ -52,6 +68,11 @@ const getSeverityClasses = (severity) => {
     return 'bg-surface-variant text-on-surface-variant';
 };
 
+/**
+ * Converts severity code to user-friendly label.
+ * @param {string} severity - Severity level code.
+ * @returns {string} The localized label.
+ */
 const getSeverityLabel = (severity) => {
     if (severity === 'NANG') return 'Nặng';
     if (severity === 'TRUNG_BINH') return 'Trung bình';
@@ -59,6 +80,10 @@ const getSeverityLabel = (severity) => {
     return severity || 'N/A';
 };
 
+/**
+ * DiagnosisHistoryPage Component
+ * Renders list of historical crop diagnoses with date filters and ratings.
+ */
 const DiagnosisHistoryPage = () => {
     const { user } = useAuth();
     const [historyList, setHistoryList] = useState([]);
@@ -77,6 +102,7 @@ const DiagnosisHistoryPage = () => {
         && customToDate
         && customFromDate > customToDate;
 
+    // Memoize date parameters to prevent unnecessary API fetches
     const dateParams = useMemo(() => {
         if (activeDateFilter === 'custom') {
             return {
@@ -99,6 +125,7 @@ const DiagnosisHistoryPage = () => {
     };
 
     useEffect(() => {
+        // Fetch paginated history from service based on date filters
         const fetchHistory = async () => {
             if (isInvalidCustomRange) {
                 setHistoryList([]);
@@ -110,15 +137,12 @@ const DiagnosisHistoryPage = () => {
 
             setLoading(true);
             try {
-                const res = await axios.get(`${API_URL}/api/diagnosis/history`, {
-                    params: { page, size: 10, ...dateParams },
-                    withCredentials: true
-                });
+                const res = await getHistory({ page, size: 10, ...dateParams });
                 setHistoryList(res.data.content);
                 setTotalPages(res.data.totalPages);
                 setTotalElements(res.data.totalElements);
             } catch (err) {
-                console.error('Lỗi lấy lịch sử:', err);
+                console.error('Failed to get history:', err);
                 setHistoryList([]);
                 setTotalPages(0);
                 setTotalElements(0);
@@ -130,6 +154,7 @@ const DiagnosisHistoryPage = () => {
         if (user) {
             fetchHistory();
         } else {
+            // Reset state if user logs out
             setHistoryList([]);
             setTotalPages(0);
             setTotalElements(0);

@@ -1,6 +1,6 @@
-// 34 tỉnh/thành đại diện — bao phủ 7 vùng nông nghiệp Việt Nam
+// 34 representative provinces/cities covering 7 agricultural regions of Vietnam
 export const VIETNAM_PROVINCES = [
-  // ── Miền Bắc (10) ──────────────────────────────────────────
+  // Northern Region (10)
   { id: 1,  name: 'Hà Nội',           lat: 21.0245, lon: 105.8412 },
   { id: 2,  name: 'Hải Phòng',        lat: 20.8449, lon: 106.6881 },
   { id: 3,  name: 'Quảng Ninh',       lat: 21.0064, lon: 107.2925 },
@@ -12,7 +12,7 @@ export const VIETNAM_PROVINCES = [
   { id: 9,  name: 'Sơn La',           lat: 21.3256, lon: 103.9144 },
   { id: 10, name: 'Thanh Hóa',        lat: 19.8067, lon: 105.7852 },
 
-  // ── Miền Trung (11) ────────────────────────────────────────
+  // Central Region (11)
   { id: 11, name: 'Nghệ An',          lat: 19.2342, lon: 104.9200 },
   { id: 12, name: 'Hà Tĩnh',          lat: 18.3560, lon: 105.8877 },
   { id: 13, name: 'Quảng Trị',        lat: 17.4689, lon: 106.5998 },
@@ -25,13 +25,13 @@ export const VIETNAM_PROVINCES = [
   { id: 20, name: 'Ninh Thuận',       lat: 11.5638, lon: 108.9880 },
   { id: 21, name: 'Bình Thuận',       lat: 11.0904, lon: 108.0721 },
 
-  // ── Tây Nguyên (4) ─────────────────────────────────────────
+  // Central Highlands (4)
   { id: 22, name: 'Gia Lai',          lat: 13.9835, lon: 108.0000 },
   { id: 23, name: 'Đắk Lắk',          lat: 12.7100, lon: 108.2378 },
   { id: 24, name: 'Đắk Nông',         lat: 12.0046, lon: 107.6905 },
   { id: 25, name: 'Lâm Đồng',        lat: 11.5753, lon: 108.1429 },
 
-  // ── Miền Nam (9) ───────────────────────────────────────────
+  // Southern Region (9)
   { id: 26, name: 'TP. Hồ Chí Minh', lat: 10.8231, lon: 106.6297 },
   { id: 27, name: 'Đồng Nai',         lat: 11.0686, lon: 107.1676 },
   { id: 28, name: 'Bình Dương',       lat: 11.3254, lon: 106.4770 },
@@ -43,11 +43,14 @@ export const VIETNAM_PROVINCES = [
   { id: 34, name: 'Kiên Giang',       lat:  9.8249, lon: 105.1259 },
 ];
 
-
 export const DEFAULT_PROVINCE = VIETNAM_PROVINCES.find((p) => p.name === 'An Giang');
 
 /**
- * Tìm tỉnh gần nhất theo lat/lon (dùng sau khi reverse geocode hoặc geolocation)
+ * Finds the nearest province using latitude and longitude coordinates.
+ * Used after geolocation or reverse geocoding fails to match exactly.
+ * @param {number} lat - Latitude coordinate.
+ * @param {number} lon - Longitude coordinate.
+ * @returns {Object} Nearest province object from predefined list.
  */
 export function findNearestProvince(lat, lon) {
   let nearest = VIETNAM_PROVINCES[0];
@@ -60,7 +63,10 @@ export function findNearestProvince(lat, lon) {
 }
 
 /**
- * Tìm tỉnh theo tên (dùng sau Nominatim reverse geocode)
+ * Finds a province in the predefined list matching a name string.
+ * Used to parse the output of reverse geocoding.
+ * @param {string} name - Name of the province.
+ * @returns {Object|null} Matching province object or null.
  */
 export function findProvinceByName(name) {
   if (!name) return null;

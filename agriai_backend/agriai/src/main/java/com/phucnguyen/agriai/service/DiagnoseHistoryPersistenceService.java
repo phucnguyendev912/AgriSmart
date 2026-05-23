@@ -37,6 +37,9 @@ public class DiagnoseHistoryPersistenceService {
     private final DiagnoseResponseBuilder diagnoseResponseBuilder;
     private final ObjectMapper objectMapper;
 
+    // Service handling persistence of diagnosis history, details, and treatment recommendations
+
+    // Update diagnosis history record with image URL, weather, and status
     public void updateHistory(DiagnoseHistory history, String imageUrl, WeatherDTO weather, Status status) {
         history.setOriginalImageUrl(imageUrl);
         history.setWeatherData(writeJson(weather));
@@ -44,6 +47,7 @@ public class DiagnoseHistoryPersistenceService {
         diagnoseHistoryRepository.save(history);
     }
 
+    // Save diagnosis details and recommendations for each detected disease
     public void saveDetails(
             DiagnoseHistory history,
             DiagnoseResponse response,
@@ -81,7 +85,7 @@ public class DiagnoseHistoryPersistenceService {
         }
     }
 
-    // Lưu từng treatment recommendation vào bảng relational
+    // Save each treatment recommendation to the database relational table
     private void saveTreatmentRecommendations(
             DiagnoseHistoryDetail detail,
             Integer diseaseId,
@@ -118,6 +122,7 @@ public class DiagnoseHistoryPersistenceService {
         }
     }
 
+    // Serialize an object to JSON string
     private String writeJson(Object value) {
         if (value == null)
             return null;
@@ -129,6 +134,7 @@ public class DiagnoseHistoryPersistenceService {
         }
     }
 
+    // Build a snapshot of the diagnosis response for audit/history
     private DiagnosisDetailSnapshotDTO buildSnapshot(DiagnoseResponse response, Integer diseaseId) {
         List<TreatmentDTO> treatments = response.getTreatments() != null
                 ? response.getTreatments().stream()
@@ -147,6 +153,7 @@ public class DiagnoseHistoryPersistenceService {
                 .build();
     }
 
+    // Parse severity string to SeverityLevel enum
     private SeverityLevel parseSeverity(String value) {
         if (value == null || value.isBlank())
             return null;
@@ -157,6 +164,7 @@ public class DiagnoseHistoryPersistenceService {
         }
     }
 
+    // Get the first warning from the warnings list
     private String firstWarning(List<String> warnings) {
         return warnings != null && !warnings.isEmpty() ? warnings.get(0) : null;
     }

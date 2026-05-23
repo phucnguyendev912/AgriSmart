@@ -22,6 +22,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+// Service implementation that sends crop images to an external Vision AI service for disease detection.
 @Service
 public class VisionAIService implements VisionDetectionPort {
 
@@ -30,6 +31,7 @@ public class VisionAIService implements VisionDetectionPort {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    // Downloads the image and sends it as multipart data to the Vision AI model, parsing the bounding box labels.
     @Override
     public List<VisionResultDTO> detect(String imageUrl) {
         try {

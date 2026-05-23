@@ -1,6 +1,7 @@
 import React from 'react';
 import { buildTreatmentPrograms } from '../utils/diagnosisDisplay';
 
+// Labels mapped to program decision codes for user readability.
 const REASON_LABELS = {
     MIX_COMPATIBLE: 'Các hoạt chất tương thích, có thể phun chung',
     CONFLICT_SEPARATED: 'Tách lịch phun do xung đột hoạt chất',
@@ -9,6 +10,15 @@ const REASON_LABELS = {
     RANKED_TREATMENTS: 'Xếp hạng phác đồ theo dữ liệu thuốc và hướng dẫn sử dụng'
 };
 
+/**
+ * DiagnoseSprayProgramsPanel Component
+ * Displays recommended treatment plans, active ingredient details, usage guidelines,
+ * and safety notes grouped by scheduling phases or compatibility reasons.
+ * 
+ * @param {Object} props - Component properties.
+ * @param {Array} props.sprayPrograms - Pre-computed scheduling programs.
+ * @param {Array} props.treatments - Treatment detail data for each disease.
+ */
 const DiagnoseSprayProgramsPanel = ({ sprayPrograms, treatments }) => {
     const displayPrograms = buildTreatmentPrograms(sprayPrograms, treatments);
     if (displayPrograms.length === 0) return null;

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Service handling crop disease lookup and resolution by name or code
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor

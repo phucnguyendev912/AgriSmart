@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Controller for handling user authentication, including registration, login, logout, and token refresh
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -19,18 +20,22 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    // Register a new user in the system
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
+    // Authenticate user and issue access and refresh tokens via HttpOnly cookies for security
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResponse lr = authService.login(request);
+        // Set short-lived access token in HttpOnly cookie (1 hour)
         Cookie access = new Cookie("accessToken", lr.getToken());
         access.setHttpOnly(true);
         access.setPath("/");
         access.setMaxAge(3600);
+        // Set long-lived refresh token in HttpOnly cookie (7 days)
         Cookie refresh = new Cookie("refreshToken", lr.getRefreshToken());
         refresh.setHttpOnly(true);
         refresh.setPath("/");
@@ -38,16 +43,18 @@ public class AuthController {
         response.addCookie(access);
         response.addCookie(refresh);
         return ResponseEntity.ok(LoginResponse.builder()
-                .user(lr.getUser())
-                .build());
+                 .user(lr.getUser())
+                 .build());
     }
 
+    // Generate a new access token using the HttpOnly refresh token cookie
     @PostMapping("/refresh-token")
     public ResponseEntity<LoginResponse> refresh(
             @CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
         if (refreshToken == null)
             return ResponseEntity.status(401).build();
         LoginResponse lr = authService.refreshToken(refreshToken);
+        // Issue a new short-lived access token cookie
         Cookie access = new Cookie("accessToken", lr.getToken());
         access.setHttpOnly(true);
         access.setPath("/");
@@ -58,6 +65,7 @@ public class AuthController {
                 .build());
     }
 
+    // Clear access and refresh token cookies to log the user out
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie a = new Cookie("accessToken", null);

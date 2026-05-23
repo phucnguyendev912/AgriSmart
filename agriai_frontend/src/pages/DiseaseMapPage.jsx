@@ -1,19 +1,26 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } from "react-leaflet";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import "leaflet/dist/leaflet.css";
 import SEO from "../components/common/SEO";
 import ClusterMarker from "../features/map/components/ClusterMarker";
 import { useMapClusters } from "../features/map/hooks/useMapClusters";
+import { getMarkers, getDiseases } from "../services/diseaseMapService";
 
 const MARKER_COLOR = "#EF4444";
 
-const API_BASE = "";
+/**
+ * DiseaseMapPage Component
+ * Renders an interactive Leaflet map displaying clustered crop disease outbreak points.
+ * Provides custom filtering by disease type and time period.
+ */
 
-// -------------------------------------------------------------------
-// Component con: lắng nghe zoom/bounds và đẩy lên parent
-// -------------------------------------------------------------------
+/**
+ * MapEventHandler Helper Component
+ * Listens to map bounds and zoom level changes, lifting state changes up to the parent component.
+ * @param {Object} props - Component properties.
+ * @param {Function} props.onBoundsChange - Callback triggered on map view change.
+ */
 function MapEventHandler({ onBoundsChange }) {
   const map = useMap();
 
@@ -30,7 +37,7 @@ function MapEventHandler({ onBoundsChange }) {
     zoomend: update,
   });
 
-  // Gọi lần đầu khi map ready
+  // Call initially when the map is ready
   useEffect(() => {
     update();
   }, [update]);
@@ -47,8 +54,8 @@ export default function DiseaseMapPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Cluster state — khởi tạo sẵn bbox Việt Nam [west, south, east, north]
-  // để supercluster có thể tính clusters ngay từ đầu, không cần chờ map event
+  // Cluster state: initializes default bounding box for Vietnam [west, south, east, north]
+  // so supercluster can calculate clusters immediately without waiting for map events.
   const [mapState, setMapState] = useState({
     bounds: [102.14, 8.18, 109.46, 23.39],
     zoom: 6,
@@ -58,7 +65,7 @@ export default function DiseaseMapPage() {
     setMapState({ bounds, zoom });
   }, []);
 
-  // Tính clusters từ markers + bounds/zoom hiện tại
+  // Calculate clusters from current markers and bounds/zoom
   const { clusters, supercluster } = useMapClusters(
     markers,
     mapState.bounds,
@@ -71,7 +78,7 @@ export default function DiseaseMapPage() {
     try {
       const params = { days };
       if (diseaseId) params.diseaseId = diseaseId;
-      const res = await axios.get(`${API_BASE}/api/map/markers`, { params });
+      const res = await getMarkers(params);
       setMarkers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setError("Không thể tải dữ liệu bản đồ. Vui lòng thử lại.");
@@ -84,15 +91,15 @@ export default function DiseaseMapPage() {
   useEffect(() => { fetchMarkers(); }, [fetchMarkers]);
 
   useEffect(() => {
-    const fetchDiseases = async () => {
+    const fetchDiseasesList = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/map/diseases`);
+        const res = await getDiseases();
         setDiseasesList(res.data);
       } catch (err) {
         console.error("Lỗi khi tải danh sách bệnh", err);
       }
     };
-    fetchDiseases();
+    fetchDiseasesList();
   }, []);
 
   const formatDate = (iso) => {
@@ -196,10 +203,10 @@ export default function DiseaseMapPage() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* Lắng nghe thay đổi bounds/zoom */}
+          {/* Listen for map bounds and zoom changes */}
           <MapEventHandler onBoundsChange={handleBoundsChange} />
 
-          {/* Render clusters hoặc điểm đơn */}
+          {/* Render map cluster bubbles or single marker points */}
           {clusters.map((point) => {
             const [lng, lat] = point.geometry.coordinates;
             const isCluster = point.properties.cluster;
@@ -214,7 +221,7 @@ export default function DiseaseMapPage() {
               );
             }
 
-            // Điểm đơn — giữ nguyên CircleMarker style cũ
+            // Single point marker - keep original Leaflet CircleMarker styles
             const m = point.properties;
             return (
               <CircleMarker

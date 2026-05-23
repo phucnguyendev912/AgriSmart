@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { updateArea } from '../../../services/farmingAreaService';
 
 const PROVINCES = [
   'An Giang', 'Bà Rịa - Vũng Tàu', 'Bắc Giang', 'Bắc Kạn', 'Bạc Liêu',
@@ -17,7 +17,6 @@ const PROVINCES = [
   'Tuyên Quang', 'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái',
 ];
 
-const API_BASE = "";
 
 const normalizeProvince = (provinceName) => {
   if (!provinceName) return '';
@@ -31,13 +30,17 @@ const normalizeProvince = (provinceName) => {
   return match || provinceName;
 };
 
+
 /**
- * Modal chỉnh sửa khu vực canh tác.
+ * EditFarmingAreaModal Component
+ * Modal dialog for editing an existing farming/cultivation area.
+ * Keeps form state synchronized with the selected area details.
  *
- * @param {boolean}  isOpen       - Hiện/ẩn modal
- * @param {function} onClose      - Đóng modal
- * @param {object}   area         - Dữ liệu khu vực cần chỉnh sửa { id, areaName, province, address, areaSize, description }
- * @param {function} onEditSuccess - Callback sau khi cập nhật thành công, nhận về data mới
+ * @param {Object} props - Component properties.
+ * @param {boolean} props.isOpen - Controls modal visibility.
+ * @param {Function} props.onClose - Action callback to close the modal.
+ * @param {Object} props.area - Current area details to edit.
+ * @param {Function} props.onEditSuccess - Callback triggered after successful update.
  */
 const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
   const [formData, setFormData] = useState({
@@ -52,7 +55,7 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
   const [apiError, setApiError] = useState(null);
   const [showToast, setShowToast] = useState(false);
 
-  // Sync formData khi area prop thay đổi (bao gồm cả khi modal mở)
+  // Sync form data when selected area changes or modal opens
   useEffect(() => {
     if (isOpen && area) {
       setFormData({
@@ -67,11 +70,9 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
     }
   }, [isOpen, area]);
 
-  // ---------------------------------------------------------------------------
-  // Validation
-  // ---------------------------------------------------------------------------
   if (!isOpen) return null;
 
+  // Validate form fields
   const validate = () => {
     const newErrors = {};
     if (!formData.areaName.trim()) newErrors.areaName = 'Vui lòng nhập tên vườn';
@@ -79,13 +80,10 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
     return newErrors;
   };
 
-  // ---------------------------------------------------------------------------
-  // Handlers
-  // ---------------------------------------------------------------------------
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Xóa lỗi của field đang sửa
+    // Clear validation error when field is edited
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
@@ -101,19 +99,15 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
 
     setLoading(true);
     try {
-      const res = await axios.put(
-        `${API_BASE}/api/areas/${area.id}`,
-        {
+      const res = await updateArea(area.id, {
           areaName: formData.areaName.trim(),
           province: formData.province,
           address: formData.address.trim(),
           area: parseFloat(formData.area) || 0,
           description: formData.description.trim(),
-        },
-        { withCredentials: true }
-      );
+        });
 
-      // Hiện toast thành công
+      // Show success toast then close modal and trigger callback
       setShowToast(true);
       setTimeout(() => {
         setShowToast(false);
@@ -121,8 +115,8 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
         onClose();
       }, 1800);
     } catch (err) {
-      console.error('Lỗi khi cập nhật khu vực:', err);
-      setApiError(err.response?.data?.message ?? 'Có lỗi xảy ra khi cập nhật. Vui lòng thử lại!');
+      console.error('Failed to update farming area:', err);
+      setApiError(err.response?.data?.message ?? 'Something went wrong. Please try again!');
     } finally {
       setLoading(false);
     }
@@ -132,12 +126,9 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
     if (!loading) onClose();
   };
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
   return (
     <>
-      {/* ── Toast thành công ── */}
+      {/* Success Toast */}
       {showToast && (
         <div className="fixed top-6 right-6 z-[130] flex items-center gap-3 bg-surface-container-lowest border-l-4 border-primary px-5 py-4 rounded-xl shadow-[0_12px_32px_rgba(25,28,29,0.1)] animate-in fade-in slide-in-from-right-4 duration-300">
           <div className="bg-primary/10 p-1.5 rounded-full">
@@ -154,13 +145,13 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
         </div>
       )}
 
-      {/* ── Backdrop ── */}
+      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-[#191c1d]/30 backdrop-blur-sm z-[110]"
         onClick={handleBackdropClick}
       />
 
-      {/* ── Modal ── */}
+      {/* Modal Dialog */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-full max-w-2xl bg-surface-container-lowest rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
         {/* Header */}
@@ -203,7 +194,7 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* Tên vườn */}
+              {/* Garden Name */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                   Tên vườn *
@@ -228,7 +219,7 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
                 )}
               </div>
 
-              {/* Tỉnh/Thành phố */}
+              {/* Province/City */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                   Tỉnh/Thành phố *
@@ -261,7 +252,7 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
                 )}
               </div>
 
-              {/* Địa chỉ chi tiết */}
+              {/* Address Details */}
               <div className="space-y-1.5 md:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                   Địa chỉ chi tiết
@@ -275,7 +266,8 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
                   className="w-full bg-white border border-outline-variant px-4 py-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all placeholder:text-on-surface-variant/50"
                 />
               </div>
-              {/* Mô tả */}
+
+              {/* Description */}
               <div className="space-y-1.5 md:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                   Mô tả
@@ -293,7 +285,7 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
             </div>
           </div>
 
-          {/* Footer */}
+          {/* Footer Actions */}
           <div className="px-6 md:px-8 py-6 bg-surface-container-low/50 border-t border-surface-variant/20 flex flex-col-reverse md:flex-row gap-3">
             <button
               type="button"

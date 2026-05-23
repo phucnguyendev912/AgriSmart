@@ -25,12 +25,12 @@ public class TreatmentPlan extends BaseEntity {
 
 
 
-    // ── NEW: Drug FK ─────────────────────────────────────────────────────────
+    // Drug relationship for target treatment
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "drug_id")
     private Drug drug;
 
-    // ── NEW: Chuẩn hoá liều lượng ────────────────────────────────────────────
+    // Dosage normalization settings
     @Enumerated(EnumType.STRING)
     @Column(name = "dosage_type", length = 20)
     private DosageType dosageType;           // PER_HA | PER_TANK | PER_AREA
@@ -50,11 +50,11 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "dosage_area_unit", length = 20)
     private String dosageAreaUnit;       // ha, 1000m2
 
-    // ── NEW: UI display ──────────────────────────────────────────────────────
+    // Instructions for mixing the chemicals
     @Column(name = "mixing_instruction", columnDefinition = "TEXT")
     private String mixingInstruction;
 
-    // ── NEW: Lịch phun ───────────────────────────────────────────────────────
+    // Spray scheduling config
     @Column(name = "water_volume_min", precision = 10, scale = 2)
     private BigDecimal waterVolumeMin;
 
@@ -70,7 +70,7 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "spray_interval", length = 100)
     private String sprayInterval;
 
-    // ── Fields giữ nguyên ────────────────────────────────────────────────────
+    // Original legacy fields
     @Column(name = "applicationMethod", columnDefinition = "TEXT")
     private String applicationMethod;
 
@@ -83,7 +83,7 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "isRequired")
     private Boolean isRequired;
 
-    // ── NEW: Metadata ────────────────────────────────────────────────────────
+    // Additional metadata
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

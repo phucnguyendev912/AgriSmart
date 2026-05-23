@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
 
+// Controller for retrieving previous crop diagnostic records and details
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/diagnosis")
@@ -21,9 +22,7 @@ public class DiagnoseHistoryController {
 
     private final DiagnoseHistoryService diagnoseHistoryService;
 
-    /**
-     * GET /api/diagnosis/history — Lịch sử chẩn đoán của user
-     */
+    // Get paginated history of diagnosis records filtered by optional dates
     @GetMapping("/history")
     public ResponseEntity<Page<DiagnoseHistoryResponse>> getHistory(
             Principal principal,
@@ -36,9 +35,7 @@ public class DiagnoseHistoryController {
         return ResponseEntity.ok(diagnoseHistoryService.getHistory(email, pageable, fromDate, toDate));
     }
 
-    /**
-     * GET /api/diagnosis/{id} — Chi tiết 1 lần chẩn đoán
-     */
+    // Get specific details of a single diagnosis record by its ID
     @GetMapping("/{id}")
     public ResponseEntity<DiagnoseResponse> getDetail(Principal principal, @PathVariable Integer id) {
         String email = principal != null ? principal.getName() : null;

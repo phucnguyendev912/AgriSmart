@@ -2,18 +2,16 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/common/SEO';
-import axios from 'axios';
+import { updateProfile } from '../services/userService';
 import { toast } from 'react-toastify';
 
 export default function ProfilePage() {
-  const { user, updateUserContext } = useAuth(); // useAuth: lấy thông tin người dùng và cập nhật hồ sơ.
-  const [fullName, setFullName] = useState(user?.fullName || ''); // useState: lưu giá trị họ tên trong form chỉnh sửa hồ sơ.
-  const [email] = useState(user?.email || ''); // useState: hiển thị email chỉ đọc (không cho phép chỉnh sửa).
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || ''); // useState: lưu số điện thoại trong form cập nhật.
-  const [errors, setErrors] = useState({}); // useState: lưu các lỗi validate của form trước khi gửi lên server.
-  const [isUpdating, setIsUpdating] = useState(false); // useState: trạng thái đang gửi yêu cầu cập nhật hồ sơ lên API.
-
-  const API_URL = "";
+  const { user, updateUserContext } = useAuth(); // useAuth: get user info and update profile context
+  const [fullName, setFullName] = useState(user?.fullName || ''); // useState: store full name input value
+  const [email] = useState(user?.email || ''); // useState: read-only email display
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || ''); // useState: store phone number input value
+  const [errors, setErrors] = useState({}); // useState: store form validation errors
+  const [isUpdating, setIsUpdating] = useState(false); // useState: track API update submission state
 
   const validate = () => {
     const newErrors = {};
@@ -31,15 +29,7 @@ export default function ProfilePage() {
     if (!validate()) return;
     setIsUpdating(true);
     try {
-      const response = await axios.put(
-        `${API_URL}/api/users/profile`,
-        { fullName, phoneNumber },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const response = await updateProfile({ fullName, phoneNumber });
       updateUserContext(response.data);
       toast.success('Cập nhật thông tin thành công!');
     } catch (error) {

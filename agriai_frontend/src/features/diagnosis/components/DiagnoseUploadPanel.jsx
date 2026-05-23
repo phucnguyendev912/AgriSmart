@@ -1,7 +1,18 @@
 import React from 'react';
 
 /**
- * Panel upload ảnh, preview ảnh và nút chẩn đoán.
+ * DiagnoseUploadPanel Component
+ * Provides UI controls for uploading crop images, previewing selected images,
+ * initiating diagnostic analysis, and indicating GPS/location services status.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Function} props.onFileChange - Handler for file input change.
+ * @param {Function} props.onDiagnose - Handler to submit image for diagnosis.
+ * @param {boolean} props.loading - Indicates if diagnostic API call is running.
+ * @param {File} props.selectedFile - Currently selected image file.
+ * @param {string} props.previewUrl - Object URL for previewing selected image.
+ * @param {string} props.error - Diagnostic error message, if any.
+ * @param {string} props.gpsStatus - Status of geolocation permission (e.g. denied, granted).
  */
 const DiagnoseUploadPanel = ({
     onFileChange,

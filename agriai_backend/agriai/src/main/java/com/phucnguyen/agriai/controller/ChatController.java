@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Controller for managing chatbot sessions and conversation messages between farmers and AI
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {
@@ -35,6 +36,7 @@ public class ChatController {
         this.chatbotService = chatbotService;
     }
 
+    // Create a new chat session for a user or anonymous guest
     @PostMapping("/sessions")
     public ResponseEntity<ChatSessionResponse> createSession(
             Principal principal,
@@ -44,6 +46,7 @@ public class ChatController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // Get paginated list of chat sessions for the logged-in user
     @GetMapping("/sessions")
     public ResponseEntity<Page<ChatSessionResponse>> getSessions(
             Principal principal,
@@ -53,6 +56,7 @@ public class ChatController {
         return ResponseEntity.ok(chatSessionService.getSessions(principal != null ? principal.getName() : null, pageable));
     }
 
+    // Get paginated history of messages in a specific chat session
     @GetMapping("/sessions/{id}/messages")
     public ResponseEntity<Page<ChatMessageResponse>> getMessages(
             Principal principal,
@@ -64,11 +68,13 @@ public class ChatController {
                 .ok(chatMessageService.getMessages(principal != null ? principal.getName() : null, id, pageable));
     }
 
+    // Soft delete a chat session (hide it from user view without removing from DB)
     @PatchMapping("/sessions/{id}/delete")
     public ResponseEntity<SoftDeleteChatSessionResponse> deleteSession(Principal principal, @PathVariable Integer id) {
         return ResponseEntity.ok(chatSessionService.softDeleteSession(principal != null ? principal.getName() : null, id));
     }
 
+    // Send a message to the AI chatbot and get a response for a specific session
     @PostMapping("/sessions/{id}/messages")
     public ResponseEntity<ChatResponse> sendMessage(
             Principal principal,
@@ -77,6 +83,7 @@ public class ChatController {
         return ResponseEntity.ok(chatbotService.chatForSession(principal != null ? principal.getName() : null, id, request));
     }
 
+    // Safely build a pageable object with size limit to prevent DB overloading
     private Pageable createPageable(int page, int size) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), 50);
