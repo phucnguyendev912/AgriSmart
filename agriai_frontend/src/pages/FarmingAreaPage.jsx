@@ -130,27 +130,14 @@ const FarmingAreaPage = () => {
         setAreas((prev) => prev.map((a) => (a.id === updatedArea.id ? updatedArea : a)));
     };
     const handleDelete = async (areaId) => {
-<<<<<<< HEAD
         if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
         try {
-            await axios.delete(`/api/areas/${areaId}`, {
-                withCredentials: true
-            });
+            await deleteArea(areaId);
             setAreas((prev) => prev.filter((a) => a.id !== areaId));
         } catch (err) {
             console.error('Lỗi khi xóa:', err);
         }
     };
-=======
-    if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
-    try {
-        await deleteArea(areaId);
-        setAreas((prev) => prev.filter((a) => a.id !== areaId));
-    } catch (err) {
-        console.error('Lỗi khi xóa:', err);
-    }
-};
->>>>>>> origin/develop
 
 
     return (
