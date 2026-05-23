@@ -30,7 +30,7 @@ public class GeocodingService {
         }
 
         // 2. Kiểm tra trùng dựa trên địa chỉ (short address)
-        if (areaInforRepository.existsByUserIdAndAddress(user.getId(), result.shortAddress())) {
+        if (areaInforRepository.existsByUserIdAndAddressAndIsDeleteFalse(user.getId(), result.shortAddress())) {
             log.debug("Địa chỉ '{}' đã tồn tại cho user {}", result.shortAddress(), user.getId());
             return;
         }

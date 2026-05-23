@@ -63,10 +63,22 @@ public class NominatimAdapter implements NominatimPort {
             }
             String shortAddress = String.join(", ", addressParts);
 
+            // Trích xuất tên tỉnh: thử state trước, rồi fallback sang các field khác
+            String province = address.path("state").asText(null);
+            if (province == null || province.isBlank()) {
+                province = address.path("city").asText(null);
+            }
+            if (province == null || province.isBlank()) {
+                province = address.path("county").asText(null);
+            }
+            if (province == null || province.isBlank()) {
+                province = address.path("region").asText(null);
+            }
+
             return new NominatimResult(
                     root.path("display_name").asText(null),
                     shortAddress,
-                    address.path("state").asText(null),
+                    province,
                     address.path("city").asText(null),
                     address.path("district").asText(null),
                     address.path("village").asText(null),
