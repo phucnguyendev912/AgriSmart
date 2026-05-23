@@ -12,4 +12,6 @@ public class AreaInforResponse {
     private String address;
     private Double area;
     private String description;
+    private Double latitude;
+    private Double longitude;
 }

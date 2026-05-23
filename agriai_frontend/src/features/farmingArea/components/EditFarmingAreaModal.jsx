@@ -19,6 +19,18 @@ const PROVINCES = [
 
 const API_BASE = "";
 
+const normalizeProvince = (provinceName) => {
+  if (!provinceName) return '';
+  const cleanName = provinceName.replace(/^(Thành phố|Tỉnh)\s+/i, '').trim();
+  const match = PROVINCES.find(
+    (p) =>
+      p.toLowerCase() === cleanName.toLowerCase() ||
+      p.toLowerCase().includes(cleanName.toLowerCase()) ||
+      cleanName.toLowerCase().includes(p.toLowerCase())
+  );
+  return match || provinceName;
+};
+
 /**
  * Modal chỉnh sửa khu vực canh tác.
  *
@@ -45,7 +57,7 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
     if (isOpen && area) {
       setFormData({
         areaName: area.areaName ?? '',
-        province: area.province ?? '',
+        province: normalizeProvince(area.province ?? ''),
         address: area.address ?? '',
         area: area.area ?? '',
         description: area.description ?? '',
