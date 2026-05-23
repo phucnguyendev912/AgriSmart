@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// Service handling operations related to farming areas belonging to farmers
 @Service
 public class AreaInforService {
 
@@ -23,6 +24,7 @@ public class AreaInforService {
         @Autowired
         private UserRepository userRepository;
 
+        // Register a new farming area details for a user
         public AreaInforResponse create(String email, AreaInforRequest request) {
                 User user = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND,
@@ -33,6 +35,7 @@ public class AreaInforService {
                 return toResponse(areaInforRepository.save(area));
         }
 
+        // Get all active (non-deleted) farming areas of a user
         public List<AreaInforResponse> getByUser(String email) {
                 User user = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND,
@@ -41,6 +44,7 @@ public class AreaInforService {
                                 .stream().map(this::toResponse).collect(Collectors.toList());
         }
 
+        // Confirm area details and verify ownership of the area
         public AreaInforResponse confirm(String email, Integer id,
                         com.phucnguyen.agriai.dto.request.AreaInforConfirmRequest request) {
                 AreaInfor area = areaInforRepository.findById(id)
@@ -53,6 +57,7 @@ public class AreaInforService {
                 return toResponse(areaInforRepository.save(area));
         }
 
+        // Update details (name, province, address, size) of a farming area
         public AreaInforResponse update(String email, Integer id, AreaInforRequest request) {
                 AreaInfor area = areaInforRepository.findById(id)
                                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy khu vực."));
@@ -70,6 +75,7 @@ public class AreaInforService {
                 return toResponse(areaInforRepository.save(area));
         }
 
+        // Soft delete a farming area by setting the isDelete flag to true
         public void delete(String email, Integer id) {
                 User user = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND,
@@ -85,6 +91,7 @@ public class AreaInforService {
                 areaInforRepository.save(area);
         }
 
+        // Helper to convert AreaInfor entity to response DTO
         private AreaInforResponse toResponse(AreaInfor a) {
                 return AreaInforResponse.builder().id(a.getId()).areaName(a.getAreaName())
                                 .province(a.getProvince()).address(a.getAddress())

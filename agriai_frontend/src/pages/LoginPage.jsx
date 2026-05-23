@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
-
-const API_URL = "";
+import { login } from '../services/authService';
 
 const LoginPage = () => {
 
@@ -20,16 +18,11 @@ const LoginPage = () => {
     setErrors(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
-        email,
-        password
-      }, {
-        withCredentials: true
-      });
+      const response = await login(email, password);
 
       if (response.status === 200 || response.status === 201) {
         toast.success('Đăng nhập thành công!');
-        // Token được lưu bằng HttpOnly cookie; frontend chỉ cần user để cập nhật UI.
+        // Token is stored in HttpOnly cookie; frontend only needs user object to update UI state.
         const userData = response.data.user;
         if (userData) {
           loginContext(userData);

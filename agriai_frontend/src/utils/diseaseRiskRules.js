@@ -1,6 +1,6 @@
 /**
  * Rule-based disease risk engine.
- * Maps weather conditions → danh sách bệnh cây trồng có nguy cơ.
+ * Maps weather conditions to potential crop disease risks.
  */
 
 const RULES = [
@@ -81,6 +81,6 @@ export function evaluateDiseaseRisks({ temperature: t, humidity: h, precipitatio
     }
   }
 
-  // HIGH trước, MEDIUM sau
+  // Sort results: HIGH risk first, then MEDIUM risk
   return results.sort((a, b) => (a.risk === 'HIGH' ? -1 : 1));
 }

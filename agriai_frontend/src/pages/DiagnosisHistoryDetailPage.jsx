@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { getDiagnosisDetail } from '../services/diagnosisService';
 import DiagnoseWeatherCards from '../features/diagnosis/components/DiagnoseWeatherCards';
 import DiagnoseResultPanel from '../features/diagnosis/components/DiagnoseResultPanel';
 import DiagnoseSprayProgramsPanel from '../features/diagnosis/components/DiagnoseSprayProgramsPanel';
@@ -10,10 +10,13 @@ import DiagnoseCultivationMeasures from '../features/diagnosis/components/Diagno
 import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuidance';
 import { getCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
 
-const API_URL = "";
-
 const SESSION_EXPIRED_MESSAGE = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xem lịch sử chẩn đoán.';
 
+/**
+ * DiagnosisHistoryDetailPage Component
+ * Displays the detailed results of a specific past crop diagnosis,
+ * including weather, AI predictions, treatment/spray programs, and guidance.
+ */
 const DiagnosisHistoryDetailPage = () => {
     const { id } = useParams();
     const { user, loading: authLoading } = useAuth();
@@ -22,6 +25,7 @@ const DiagnosisHistoryDetailPage = () => {
     const [error, setError] = useState('');
 
     useEffect(() => {
+        // Use flag to prevent state updates on unmounted component
         let isActive = true;
 
         const fetchDetail = async () => {
@@ -29,9 +33,8 @@ const DiagnosisHistoryDetailPage = () => {
             setError('');
 
             try {
-                const res = await axios.get(`${API_URL}/api/diagnosis/${id}`, {
-                    withCredentials: true
-                });
+                // Fetch diagnosis detail from API
+                const res = await getDiagnosisDetail(id);
 
                 if (isActive) {
                     setResult(res.data);

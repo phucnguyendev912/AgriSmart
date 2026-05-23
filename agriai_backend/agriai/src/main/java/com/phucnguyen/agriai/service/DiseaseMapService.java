@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+// Service for fetching disease distribution map markers
 @Service
 @RequiredArgsConstructor
 public class DiseaseMapService {

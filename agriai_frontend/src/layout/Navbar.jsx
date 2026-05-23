@@ -3,12 +3,18 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 
+/**
+ * Navbar Component
+ * Renders the top navigation bar with responsive dropdown menus for both desktop
+ * and mobile viewports. Connects to AuthContext for user state.
+ */
 const Navbar = () => {
-  const { user, logoutContext } = useAuth(); // useAuth: lấy thông tin người dùng và hàm logout từ Context.
-  const navigate = useNavigate(); // useNavigate: điều hướng lập trình (VD: chuyển về /login sau khi đăng xuất).
-  const location = useLocation(); // useLocation: lấy đường dẫn hiện tại để tô sáng link menu đang active.
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // useState: kiểm soát đóng/mở menu điều hướng trên mobile.
-  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false); // useState: kiểm soát đóng/mở dropdown menu tài khoản trên desktop.
+  // Authentication, navigation, and menu toggle states
+  const { user, logoutContext } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await logoutContext();

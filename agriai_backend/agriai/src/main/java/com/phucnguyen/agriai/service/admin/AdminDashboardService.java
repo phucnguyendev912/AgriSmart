@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// Service to calculate administrative dashboard analytics.
 @Service
 @RequiredArgsConstructor
 public class AdminDashboardService {
@@ -30,6 +31,7 @@ public class AdminDashboardService {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    // Aggregates statistics, trends, distributions, top diseases, recent diagnoses, and reviews.
     public AdminDashboardResponse getDashboard(int periodDays) {
         if (periodDays < 1 || periodDays > 365) {
             throw new AppException(HttpStatus.BAD_REQUEST, "periodDays phải từ 1 đến 365");
@@ -37,7 +39,7 @@ public class AdminDashboardService {
 
         LocalDateTime from = LocalDateTime.now().minusDays(periodDays);
 
-        // --- Summary ---
+        // Retrieve summary statistics.
         long totalUsers = userRepository.countTotalUsers();
         long activeUsers = userRepository.countActiveUsers();
         long totalDiagnoses = diagnoseHistoryDetailRepository.countTotalDiagnoses();
@@ -59,7 +61,7 @@ public class AdminDashboardService {
                 .averageConfidence(avgConfidence != null ? Math.round(avgConfidence * 1000.0) / 10.0 : 0.0)
                 .build();
 
-        // --- Diagnosis Trend ---
+        // Retrieve diagnosis count trend over the period.
         List<Object[]> trendRaw = diagnoseHistoryRepository.countByDateInPeriod(from);
         List<TrendItem> diagnosisTrend = trendRaw.stream()
                 .map(row -> TrendItem.builder()
@@ -68,7 +70,7 @@ public class AdminDashboardService {
                         .build())
                 .collect(Collectors.toList());
 
-        // --- Accuracy Trend ---
+        // Retrieve review accuracy trend over the period.
         List<Object[]> accRaw = diagnoseReviewRepository.accuracyTrendByDate(from);
         Map<String, AccuracyTrendItem.AccuracyTrendItemBuilder> accMap = new LinkedHashMap<>();
         for (Object[] row : accRaw) {
@@ -84,7 +86,7 @@ public class AdminDashboardService {
                 .map(AccuracyTrendItem.AccuracyTrendItemBuilder::build)
                 .collect(Collectors.toList());
 
-        // --- Crop Distribution ---
+        // Retrieve distribution of crop types in diagnostic history.
         List<Object[]> cropRaw = diagnoseHistoryRepository.countByCropType();
         List<CropDistributionItem> cropDistribution = cropRaw.stream()
                 .map(row -> CropDistributionItem.builder()
@@ -93,7 +95,7 @@ public class AdminDashboardService {
                         .build())
                 .collect(Collectors.toList());
 
-        // --- Top Diseases ---
+        // Retrieve top 10 most common diseases.
         List<Object[]> diseaseRaw = diagnoseHistoryDetailRepository.countByDisease(PageRequest.of(0, 10));
         List<TopDiseaseItem> topDiseases = diseaseRaw.stream()
                 .map(row -> TopDiseaseItem.builder()
@@ -103,18 +105,18 @@ public class AdminDashboardService {
                         .build())
                 .collect(Collectors.toList());
 
-        // --- Recent Diagnoses ---
+        // Retrieve the 10 most recent diagnoses.
         List<DiagnoseHistory> latestHistories = diagnoseHistoryRepository.findLatest(PageRequest.of(0, 10));
         List<RecentDiagnosisItem> recentDiagnoses = latestHistories.stream()
                 .map(h -> {
-                    // Lấy bệnh đầu tiên từ detail
+                    // Extract the primary disease name from the diagnosis details.
                     List<DiagnoseHistoryDetail> details = diagnoseHistoryDetailRepository
                             .findByDiagnoseHistoryIdAndIsDeleteFalse(h.getId());
                     String diseaseName = details.isEmpty() ? "" :
                             (details.get(0).getDisease() != null ? details.get(0).getDisease().getDiseaseName() : "");
                     double confidence = details.isEmpty() ? 0.0 :
                             (details.get(0).getConfidenceScore() != null ?
-                                    details.get(0).getConfidenceScore().doubleValue() * 100 : 0.0);
+                                     details.get(0).getConfidenceScore().doubleValue() * 100 : 0.0);
 
                     return RecentDiagnosisItem.builder()
                             .id(h.getId())
@@ -128,7 +130,7 @@ public class AdminDashboardService {
                 })
                 .collect(Collectors.toList());
 
-        // --- Latest Reviews ---
+        // Retrieve the 10 most recent user feedback reviews.
         List<DiagnoseReview> latestReviewsList = diagnoseReviewRepository.findLatest(PageRequest.of(0, 10));
         List<LatestReviewItem> latestReviews = latestReviewsList.stream()
                 .map(r -> LatestReviewItem.builder()
