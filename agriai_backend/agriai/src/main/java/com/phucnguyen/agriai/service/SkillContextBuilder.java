@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-// extracts relevant sections from skill markdown based on keyword matching
-// heading-boost: sections whose heading matches a disease name in the query score +5
+// Service to extract relevant sections from skill markdown files based on keyword matching.
+// It prioritizes sections whose headings match disease names from the query (heading boost).
 @Service
 public class SkillContextBuilder {
 
@@ -27,22 +27,18 @@ public class SkillContextBuilder {
         this.maxContextChars = maxContextChars;
     }
 
-    // build trimmed context from skill markdown, selecting top relevant sections
+    // Builds a trimmed context from skill markdown by selecting the most relevant sections within a character budget.
     public String buildContext(SkillDefinition skill, String userQuery) {
         String markdown = skillRegistry.getSkillContent(skill);
-        // split skill markdown into sections
         List<SkillSection> sections = splitIntoSections(markdown);
-        // score sections by counting query words that appear in content
         List<SkillSection> scored = scoreSections(sections, userQuery);
-        // select top sections within character budget
         List<SkillSection> selected = selectTopSections(scored);
-        // join selected sections with "---" separator
         return selected.stream()
                 .map(SkillSection::content)
                 .collect(Collectors.joining("\n---\n"));
     }
 
-    // split markdown by ## and ### headings
+    // Splits markdown content into separate sections based on h2 (##) or h3 (###) headers.
     List<SkillSection> splitIntoSections(String markdown) {
         String[] parts = SECTION_SPLITTER.split(markdown);
         List<SkillSection> sections = new ArrayList<>();
@@ -57,13 +53,13 @@ public class SkillContextBuilder {
         return sections;
     }
 
-    // score sections by counting query words that appear in content
-    // heading-boost: +5 if heading contains a multi-word token from query (disease name match)
+    // Scores markdown sections based on the frequency of query word matches.
+    // Boosts the score (+5) if a section heading matches a multi-word token (e.g., a disease name).
     List<SkillSection> scoreSections(List<SkillSection> sections, String userQuery) {
         String queryLower = userQuery.toLowerCase();
         String[] queryWords = queryLower.split("\\s+");
 
-        // build query bigrams (2-word combos) to detect disease names like "đốm nâu"
+        // Build query bigrams (2-word pairs) to identify specific disease names.
         List<String> queryBigrams = buildBigrams(queryWords);
 
         return sections.stream()
@@ -72,26 +68,26 @@ public class SkillContextBuilder {
                     String headingLower = section.heading().toLowerCase();
                     int score = 0;
 
-                    // word-level score from content
+                    // Content word-level matching score.
                     for (String word : queryWords) {
                         if (word.length() >= 2 && contentLower.contains(word)) {
                             score++;
                         }
                     }
 
-                    // heading boost: +5 if heading contains any bigram from query
+                    // Heading boost: +5 if the heading matches any bigram from the query.
                     for (String bigram : queryBigrams) {
                         if (headingLower.contains(bigram)) {
                             score += 5;
-                            break; // one boost per section
+                            break;
                         }
                     }
 
-                    // heading boost: +3 if heading contains any single query word (length >= 3)
+                    // Heading boost: +3 if the heading contains any single query word (length >= 3).
                     for (String word : queryWords) {
                         if (word.length() >= 3 && headingLower.contains(word)) {
                             score += 3;
-                            break; // one boost per section
+                            break;
                         }
                     }
 
@@ -101,7 +97,7 @@ public class SkillContextBuilder {
                 .collect(Collectors.toList());
     }
 
-    // build consecutive word pairs from query tokens
+    // Builds consecutive word pairs (bigrams) from query tokens.
     private List<String> buildBigrams(String[] words) {
         List<String> bigrams = new ArrayList<>();
         for (int i = 0; i < words.length - 1; i++) {
@@ -112,7 +108,7 @@ public class SkillContextBuilder {
         return bigrams;
     }
 
-    // select top sections within character budget
+    // Selects the highest-scoring sections that fit within the character limit.
     List<SkillSection> selectTopSections(List<SkillSection> scoredSections) {
         List<SkillSection> selected = new ArrayList<>();
         int totalChars = 0;
@@ -126,17 +122,16 @@ public class SkillContextBuilder {
         return selected;
     }
 
-    // extract heading from section
+    // Extracts the heading text from a markdown section.
     private String extractHeading(String section) {
         int newline = section.indexOf('\n');
         if (newline == -1) {
             return section;
         }
-        // remove # and whitespace from heading
         return section.substring(0, newline).replaceAll("^#+\\s*", "").trim();
     }
 
-    // record to store section with heading, content, and score
+    // Stores a markdown section along with its heading, full content, and relevance score.
     record SkillSection(String heading, String content, int score) {
     }
 }

@@ -11,7 +11,7 @@ public interface TreatmentPlanRepository extends JpaRepository<TreatmentPlan, In
 
     List<TreatmentPlan> findByDiseaseIdAndIsDeleteFalse(Integer diseaseId);
 
-    // Lấy plans theo nhiều diseaseIds, kèm eager-fetch disease + drug (tránh N+1)
+    // Fetch plans by disease IDs with eager loading of disease and drug to avoid N+1 queries
     @EntityGraph(attributePaths = {"disease", "drug", "drug.ingredients", "drug.ingredients.ingredient"})
     List<TreatmentPlan> findByDiseaseIdInAndIsDeleteFalse(List<Integer> diseaseIds);
 }

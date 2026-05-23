@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+// Service for administrative tasks related to managing users.
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,6 +29,7 @@ public class AdminUserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // Retrieves a paginated list of users, optionally filtered by role and activation status.
     @Transactional(readOnly = true)
     public Page<AdminUserResponse> getUsers(int page, int size, String roleName, Boolean isActive) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -35,12 +37,14 @@ public class AdminUserService {
                 .map(this::toResponse);
     }
 
+    // Retrieves a specific user by their ID.
     @Transactional(readOnly = true)
     public AdminUserResponse getUserById(Integer id) {
         User user = findUserOrThrow(id);
         return toResponse(user);
     }
 
+    // Creates a new user with encoded password and assigned role.
     public AdminUserResponse createUser(AdminCreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(HttpStatus.CONFLICT, "Email đã tồn tại trong hệ thống.");
@@ -60,6 +64,7 @@ public class AdminUserService {
         return toResponse(userRepository.save(user));
     }
 
+    // Updates an existing user's profile details and role.
     public AdminUserResponse updateUser(Integer id, AdminUpdateUserRequest request) {
         User user = findUserOrThrow(id);
         Role role = findRoleOrThrow(request.getRoleId());
@@ -74,6 +79,7 @@ public class AdminUserService {
         return toResponse(userRepository.save(user));
     }
 
+    // Soft deletes a user account, preventing an admin from deleting their own account.
     public void softDeleteUser(Integer targetId, Integer currentAdminId) {
         if (targetId.equals(currentAdminId)) {
             throw new AppException(HttpStatus.FORBIDDEN, "Không thể xóa tài khoản của chính mình.");
@@ -85,8 +91,6 @@ public class AdminUserService {
         user.setDeletedBy(currentAdminId);
         userRepository.save(user);
     }
-
-    // ---- helpers ----
 
     private User findUserOrThrow(Integer id) {
         User user = userRepository.findById(id)

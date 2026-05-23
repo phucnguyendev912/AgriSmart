@@ -9,6 +9,6 @@ import java.util.List;
 public interface AreaInforRepository extends JpaRepository<AreaInfor, Integer> {
     List<AreaInfor> findByUserIdAndIsDeleteFalse(Integer userId);
 
-    // Kiểm tra user đã có khu vực với địa chỉ này chưa (sau khi gọi Nominatim)
+    // Check if user already registered an area with this address (after calling Nominatim)
     boolean existsByUserIdAndAddress(Integer userId, String address);
 }

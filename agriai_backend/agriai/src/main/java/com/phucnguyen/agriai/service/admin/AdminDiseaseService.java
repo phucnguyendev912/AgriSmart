@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 
+// Service for administrative tasks related to managing crop diseases.
 @Service
 @RequiredArgsConstructor
 public class AdminDiseaseService {
@@ -25,21 +26,23 @@ public class AdminDiseaseService {
     private final DiseaseRepository diseaseRepository;
     private final CropTypeRepository cropTypeRepository;
 
+    // Retrieves a paginated list of diseases, optionally filtered by crop type.
     @Transactional(readOnly = true)
     public Page<AdminDiseaseResponse> getDiseases(Integer cropTypeId, Pageable pageable) {
         Page<Disease> diseases = diseaseRepository.findAllByFilter(cropTypeId, pageable);
         return diseases.map(this::mapToResponse);
     }
 
+    // Retrieves a specific disease by its ID.
     @Transactional(readOnly = true)
     public AdminDiseaseResponse getDiseaseById(Integer id) {
         Disease disease = getDiseaseEntityById(id);
         return mapToResponse(disease);
     }
 
+    // Creates a new crop disease record after validating crop type and checking for unique disease codes.
     @Transactional
     public AdminDiseaseResponse createDisease(AdminCreateDiseaseRequest request) {
-        // Validate CropType
         CropType cropType = cropTypeRepository.findById(request.getCropTypeId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Loại cây trồng không tồn tại"));
 
@@ -47,7 +50,6 @@ public class AdminDiseaseService {
             throw new AppException(HttpStatus.BAD_REQUEST, "Loại cây trồng không còn hoạt động hoặc đã bị xóa");
         }
 
-        // Validate DiseaseCode unique
         diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(request.getDiseaseCode())
                 .ifPresent(d -> {
                     throw new AppException(HttpStatus.BAD_REQUEST, "Mã bệnh đã tồn tại trong hệ thống");
@@ -67,11 +69,11 @@ public class AdminDiseaseService {
         return mapToResponse(savedDisease);
     }
 
+    // Updates an existing crop disease record after validating details.
     @Transactional
     public AdminDiseaseResponse updateDisease(Integer id, AdminUpdateDiseaseRequest request) {
         Disease disease = getDiseaseEntityById(id);
 
-        // Validate CropType
         CropType cropType = cropTypeRepository.findById(request.getCropTypeId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Loại cây trồng không tồn tại"));
 
@@ -79,7 +81,6 @@ public class AdminDiseaseService {
             throw new AppException(HttpStatus.BAD_REQUEST, "Loại cây trồng không còn hoạt động hoặc đã bị xóa");
         }
 
-        // Validate DiseaseCode unique (excluding current)
         diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(request.getDiseaseCode())
                 .ifPresent(d -> {
                     if (!d.getId().equals(disease.getId())) {
@@ -98,6 +99,7 @@ public class AdminDiseaseService {
         return mapToResponse(updatedDisease);
     }
 
+    // Soft deletes a crop disease record.
     @Transactional
     public void deleteDisease(Integer id) {
         Disease disease = getDiseaseEntityById(id);
@@ -105,6 +107,7 @@ public class AdminDiseaseService {
         diseaseRepository.save(disease);
     }
 
+    // Retrieves simple disease and crop count statistics.
     @Transactional(readOnly = true)
     public Map<String, Object> getDiseaseStats() {
         Map<String, Object> stats = new HashMap<>();

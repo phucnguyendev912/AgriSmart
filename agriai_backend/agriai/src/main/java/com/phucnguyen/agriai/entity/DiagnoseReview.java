@@ -5,10 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-/**
- * Lưu trữ đánh giá của người dùng cho một lần chẩn đoán.
- * Mỗi lần chẩn đoán (DiagnoseHistory) chỉ có TỐI ĐA một đánh giá.
- */
+// Stores user feedback and ratings for a crop diagnosis session.
+// Each diagnosis history record has at most one review.
 @Entity
 @Table(name = "DiagnoseReview")
 @Getter
@@ -18,27 +16,25 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class DiagnoseReview extends BaseEntity {
 
-    /** Liên kết 1-1 đến lần chẩn đoán được đánh giá */
+    // 1-1 relationship link to the evaluated diagnosis history
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "historyId", nullable = false, unique = true)
     private DiagnoseHistory history;
 
-    /** Người dùng thực hiện đánh giá */
+    // The user who submitted the review
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     private User user;
 
-    /**
-     * Đánh giá chính xác: true = chính xác, false = không chính xác.
-     */
+    // Accuracy evaluation: true = accurate, false = inaccurate
     @Column(name = "isAccurate")
     private Boolean accurate;
 
-    /** Đánh giá số sao từ 1 đến 5, nullable nếu bỏ qua bước này */
+    // Rating score from 1 to 5, nullable if skipped
     @Column(name = "rating")
     private Integer rating;
 
-    /** Nhận xét tự do, tùy chọn */
+    // Optional open text feedback
     @Column(name = "feedback", columnDefinition = "TEXT")
     private String feedback;
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+// Controller for administrators to manage user accounts in the system
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class AdminUserController {
     private final AdminUserService adminUserService;
     private final UserRepository userRepository;
 
+    // Get paginated list of users, with optional filtering by role and active status
     @GetMapping
     public ResponseEntity<Page<AdminUserResponse>> getUsers(
             @RequestParam(defaultValue = "0") int page,
@@ -34,16 +36,19 @@ public class AdminUserController {
         return ResponseEntity.ok(adminUserService.getUsers(page, size, role, isActive));
     }
 
+    // Get user details by user ID
     @GetMapping("/{id}")
     public ResponseEntity<AdminUserResponse> getUserById(@PathVariable Integer id) {
         return ResponseEntity.ok(adminUserService.getUserById(id));
     }
 
+    // Create a new user account (admin manually creating a user)
     @PostMapping
     public ResponseEntity<AdminUserResponse> createUser(@Valid @RequestBody AdminCreateUserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminUserService.createUser(request));
     }
 
+    // Update profile or settings of an existing user account
     @PutMapping("/{id}")
     public ResponseEntity<AdminUserResponse> updateUser(
             @PathVariable Integer id,
@@ -51,6 +56,7 @@ public class AdminUserController {
         return ResponseEntity.ok(adminUserService.updateUser(id, request));
     }
 
+    // Soft delete a user account (deactivate they can no longer log in)
     @PatchMapping("/{id}/delete")
     public ResponseEntity<Map<String, String>> softDeleteUser(
             @PathVariable Integer id,
@@ -60,7 +66,7 @@ public class AdminUserController {
         return ResponseEntity.ok(Map.of("message", "Xóa người dùng thành công."));
     }
 
-    // Resolve current admin user id from email
+    // Resolve current admin user id from email to log who performed the action
     private Integer resolveAdminId(String email) {
         return userRepository.findByEmail(email)
                 .map(User::getId)

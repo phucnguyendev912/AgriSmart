@@ -1,7 +1,11 @@
 import React from 'react';
 
 /**
- * Hiển thị 3 card thời tiết: Nhiệt độ, Độ ẩm, Lượng mưa.
+ * DiagnoseWeatherCards Component
+ * Displays weather status cards containing current temperature, humidity, and rainfall.
+ * 
+ * @param {Object} props - Component properties.
+ * @param {Object} props.weather - Weather info containing temperature, humidity, and rainfall.
  */
 const DiagnoseWeatherCards = ({ weather }) => {
     if (!weather) return null;

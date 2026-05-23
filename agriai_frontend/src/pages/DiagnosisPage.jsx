@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import SEO from '../components/common/SEO';
 import { useLocationPermission } from '../context/LocationPermissionContext';
+import { getCropTypes, submitDiagnosis } from '../services/diagnosisService';
 
 // Diagnosis sub-components
 import DiagnoseUploadPanel from '../features/diagnosis/components/DiagnoseUploadPanel';
@@ -17,9 +17,11 @@ import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuida
 import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
 import { getCultivationMeasures as getDiagnosisCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
 
-const API_URL = "";
-
-/** Trả về danh sách biện pháp canh tác từ kết quả chẩn đoán */
+/**
+ * Returns a list of cultivation measures based on the diagnosis result.
+ * @param {Object} result - The diagnosis result from the backend.
+ * @returns {string[]} Array of recommendation strings.
+ */
 // eslint-disable-next-line no-unused-vars
 const getCultivationMeasures = (result) => {
     if (!result) return [];
@@ -31,38 +33,45 @@ const getCultivationMeasures = (result) => {
     return ['Có thể xử lý trong một đợt phun, nhưng cần đọc kỹ cảnh báo trước khi pha.'];
 };
 
+/**
+ * DiagnosisPage Component
+ * Handles new crop disease diagnosis requests. Users upload leaf photos,
+ * select crop type, and receive real-time AI classification, local weather
+ * context, spray program schedule, and rating options.
+ */
 const DiagnosisPage = () => {
-    // === STATE ===
-    const { user } = useAuth(); // useAuth: lấy thông tin xác thực của người dùng từ Context toàn cục.
+    // === AUTH & LOCATION ===
+    const { user } = useAuth();
     const { coords, gpsStatus, hasCoords, requestLocation } = useLocationPermission();
     const hasRetriedDeniedLocation = useRef(false);
-    const [cropTypes, setCropTypes] = useState([]); // useState: lưu danh sách loại cây trồng tải về từ API.
-    const [selectedCropTypeId, setSelectedCropTypeId] = useState(''); // useState: lưu ID loại cây người dùng đang chọn.
-    const [selectedFile, setSelectedFile] = useState(null); // useState: lưu file ảnh người dùng đã chọn để chẩn đoán.
-    const [previewUrl, setPreviewUrl] = useState(null); // useState: lưu URL xem trước ảnh được tạo từ file đã chọn.
-    const [loading, setLoading] = useState(false); // useState: trạng thái đang gọi API chẩn đoán.
-    const [result, setResult] = useState(null); // useState: lưu kết quả chẩn đoán trả về từ backend.
-    const [error, setError] = useState(''); // useState: lưu thông báo lỗi nếu chẩn đoán thất bại.
-    // Rating modal state
-    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false); // useState: kiểm soát hiển thị modal đánh giá kết quả.
-    const [showToast, setShowToast] = useState(false); // useState: điều khiển hiển thị thông báo cảm ơn sau khi đánh giá.
 
-    // === FETCH CROP TYPES ===
-    // useEffect: tự động tải danh sách loại cây trồng khi component mount.
+    // === DIAGNOSIS STATE ===
+    const [cropTypes, setCropTypes] = useState([]);
+    const [selectedCropTypeId, setSelectedCropTypeId] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState(null);
+    const [error, setError] = useState('');
+
+    // === RATING STATE ===
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+
+    // Fetch crop types on component mount
     useEffect(() => {
         const fetchCropTypes = async () => {
             try {
-                const res = await axios.get(`${API_URL}/api/crop-types`, {
-                    withCredentials: true
-                });
+                const res = await getCropTypes();
                 setCropTypes(res.data);
             } catch (err) {
-                console.error('Lỗi tải danh sách cây trồng:', err);
+                console.error('Failed to load crop types:', err);
             }
         };
         fetchCropTypes();
     }, []);
 
+    // Prompt for GPS coordinates if previously denied but required
     useEffect(() => {
         if (!hasCoords && gpsStatus === 'denied' && !hasRetriedDeniedLocation.current) {
             hasRetriedDeniedLocation.current = true;
@@ -70,7 +79,7 @@ const DiagnosisPage = () => {
         }
     }, [gpsStatus, hasCoords, requestLocation]);
 
-    // === HANDLE FILE SELECT ===
+    // Handle image file selection and generate preview URL
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -81,6 +90,7 @@ const DiagnosisPage = () => {
         }
     };
 
+    // Submit image, crop type ID, and location for AI diagnosis
     const submitDiagnose = async () => {
         if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
         if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
@@ -96,12 +106,7 @@ const DiagnosisPage = () => {
         if (coords.longitude !== null && coords.longitude !== undefined) formData.append('longitude', coords.longitude);
 
         try {
-            const res = await axios.post(`${API_URL}/api/diagnosis`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                withCredentials: true
-            });
+            const res = await submitDiagnosis(formData);
             setResult(res.data);
             if (!user) {
                 toast.info('Vui lòng đăng nhập để có thể xem lại kết quả chẩn đoán sau khi chẩn đoán.');
@@ -114,12 +119,10 @@ const DiagnosisPage = () => {
         }
     };
 
-    // === HANDLE DIAGNOSE ===
     const handleDiagnose = async () => {
         await submitDiagnose();
     };
 
-    // === HANDLE OPEN RATING MODAL ===
     const handleOpenRating = () => {
         if (!user) {
             toast.error('Vui lòng đăng nhập để đánh giá kết quả.');
@@ -128,7 +131,6 @@ const DiagnosisPage = () => {
         setIsRatingModalOpen(true);
     };
 
-    // === HANDLE RATING SUCCESS ===
     const handleRatingSuccess = () => {
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);

@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { createArea } from '../../../services/farmingAreaService';
 
+/**
+ * AddFarmingAreaModal Component
+ * Modal dialog for farmers to create a new farming/cultivation area.
+ * Provides inputs for area name, province selection, detailed address, size, and description.
+ * 
+ * @param {Object} props - Component properties.
+ * @param {boolean} props.isOpen - Controls modal visibility.
+ * @param {Function} props.onClose - Action callback to close the modal.
+ * @param {Function} props.onAddSuccess - Callback triggered after successful creation.
+ */
 const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
     const [formData, setFormData] = useState({
         areaName: '',
@@ -25,30 +35,22 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
         setLoading(true);
 
         try {
-            // Gọi API POST /api/areas
-            const response = await axios.post(
-                '/api/areas',
-                {
-                    areaName: formData.areaName,
-                    province: formData.province,
-                    address: formData.address,
-                    areaSize: parseFloat(formData.areaSize) || 0,
-                    description: formData.description
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    withCredentials: true
-                }
-            );
+            // Submit area creation request
+            const response = await createArea({
+                areaName: formData.areaName,
+                province: formData.province,
+                address: formData.address,
+                areaSize: parseFloat(formData.areaSize) || 0,
+                description: formData.description
+            });
 
-            // Nếu thành công, đóng modal và gọi callback refresh data
+            // Close modal and trigger callback on success
             onAddSuccess(response.data);
             onClose();
         } catch (error) {
-            console.error('Lỗi khi thêm khu vực mới:', error);
-            setErrorText(error.response?.data?.message || 'Có lỗi xảy ra khi lưu khu vực. Vui lòng thử lại!');
+            // Log error and notify user
+            console.error('Failed to create new farming area:', error);
+            setErrorText(error.response?.data?.message || 'Something went wrong. Please try again!');
         } finally {
             setLoading(false);
         }
@@ -56,13 +58,13 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
 
     return (
         <>
-            {/* Modal Backdrop */}
+            {/* Backdrop */}
             <div className="fixed inset-0 bg-[#191c1d]/30 backdrop-blur-sm z-[110]" onClick={onClose}></div>
 
-            {/* Main Modal Container */}
+            {/* Container */}
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-full max-w-2xl bg-white rounded-[1.25rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
-                {/* Modal Header */}
+                {/* Header */}
                 <div className="px-8 pt-8 pb-6 border-b border-gray-200">
                     <div className="flex items-center gap-3 mb-1">
                         <div className="w-10 h-10 rounded-full bg-[#afefb4]/40 flex items-center justify-center">
@@ -73,11 +75,11 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                     <p className="text-[#3d4a3d] text-sm font-medium">Nhập thông tin khu vực trồng trọt của bạn</p>
                 </div>
 
-                {/* Modal Body / Form */}
+                {/* Form Body */}
                 <form onSubmit={handleSubmit}>
                     <div className="px-8 py-6 space-y-6 max-h-[60vh] overflow-y-auto">
 
-                        {/* Alert Error State */}
+                        {/* Error Alert */}
                         {errorText && (
                             <div className="flex gap-3 p-4 bg-red-50 rounded-xl border border-red-200 text-red-700">
                                 <span className="material-symbols-outlined">error</span>
@@ -86,7 +88,7 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* 1. Tên vườn */}
+                            {/* Garden Name */}
                             <div className="md:col-span-2 space-y-2">
                                 <label className="text-[0.75rem] font-bold text-[#3d4a3d] uppercase tracking-wider">Tên vườn *</label>
                                 <div className="relative">
@@ -102,7 +104,7 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                                 </div>
                             </div>
 
-                            {/* 2. Tỉnh/Thành phố */}
+                            {/* Province/City */}
                             <div className="space-y-2">
                                 <label className="text-[0.75rem] font-bold text-[#3d4a3d] uppercase tracking-wider">Tỉnh/Thành phố *</label>
                                 <div className="relative">
@@ -120,13 +122,13 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                                         <option value="Đồng Tháp">Đồng Tháp</option>
                                         <option value="Tiền Giang">Tiền Giang</option>
                                         <option value="Cần Thơ">Cần Thơ</option>
-                                        {/* Thực tế sẽ lấy từ API tỉnh thành, tạm hardcode vài tỉnh */}
+                                        {/* Hardcoded provinces for demonstration purposes */}
                                     </select>
                                     <span className="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-[#3d4a3d]">expand_more</span>
                                 </div>
                             </div>
 
-                            {/* 3. Địa chỉ chi tiết */}
+                            {/* Address Details */}
                             <div className="md:col-span-2 space-y-2">
                                 <label className="text-[0.75rem] font-bold text-[#3d4a3d] uppercase tracking-wider">Địa chỉ chi tiết</label>
                                 <input
@@ -140,7 +142,7 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                                 />
                             </div>
 
-                            {/* 5. Mô tả */}
+                            {/* Description */}
                             <div className="md:col-span-2 space-y-2">
                                 <label className="text-[0.75rem] font-bold text-[#3d4a3d] uppercase tracking-wider">Mô tả</label>
                                 <textarea
@@ -155,7 +157,7 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                         </div>
                     </div>
 
-                    {/* Modal Footer */}
+                    {/* Actions */}
                     <div className="px-8 py-6 bg-gray-50 flex flex-col-reverse md:flex-row items-center justify-end gap-4 rounded-b-[1.25rem]">
                         <button
                             type="button"

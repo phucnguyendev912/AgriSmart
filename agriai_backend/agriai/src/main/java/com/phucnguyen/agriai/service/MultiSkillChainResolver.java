@@ -7,17 +7,17 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 
-// resolves whether a query needs chaining to a secondary skill (max 2 skills)
+// Service to resolve whether a query needs chaining to a secondary skill (up to 2 skills maximum).
 @Service
 public class MultiSkillChainResolver {
 
-    // rule-based chains: primary → possible secondary
+    // Pre-defined mapping of primary skills to their potential secondary skills.
     private static final Map<SkillDefinition, SkillDefinition> CHAIN_RULES = Map.of(
             SkillDefinition.DISEASE, SkillDefinition.TREATMENT,
             SkillDefinition.TREATMENT, SkillDefinition.CONFLICT
     );
 
-    // trigger words that hint the user wants the chained skill too
+    // Keywords indicating that the user is interested in the secondary skill.
     private static final Map<SkillDefinition, List<String>> CHAIN_TRIGGERS = Map.of(
             SkillDefinition.DISEASE, List.of(
                     "trị", "thuốc", "phun", "chữa", "điều trị", "xử lý"),
@@ -25,7 +25,7 @@ public class MultiSkillChainResolver {
                     "trộn", "pha", "kết hợp", "xung đột", "phối hợp")
     );
 
-    // resolve primary skill → list of skills to use (1 or 2)
+    // Resolves the list of skills (either one or two) to run based on the primary skill and user query keywords.
     public List<SkillDefinition> resolve(SkillDefinition primary, String userQuery) {
         List<SkillDefinition> skills = new ArrayList<>();
         skills.add(primary);
@@ -35,7 +35,7 @@ public class MultiSkillChainResolver {
             return skills;
         }
 
-        // check if user query contains chain trigger words
+        // Check if the user query contains any chain trigger words.
         List<String> triggers = CHAIN_TRIGGERS.getOrDefault(primary, Collections.emptyList());
         String queryLower = userQuery.toLowerCase();
         boolean shouldChain = triggers.stream().anyMatch(queryLower::contains);

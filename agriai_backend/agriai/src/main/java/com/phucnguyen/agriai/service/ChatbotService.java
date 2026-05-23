@@ -85,7 +85,7 @@ public class ChatbotService {
         return new SessionContext(session, history);
     }
 
-    /** TX 2 — persist AI reply, then release connection. */
+    // TX 2 — persist AI reply, then release connection.
     @Transactional
     protected ChatMessage saveAiResponse(ChatSession session, String answer) {
         ChatMessage aiMessage = chatMessageService.saveAiMessage(session, answer);
@@ -93,7 +93,7 @@ public class ChatbotService {
         return aiMessage;
     }
 
-    /** Lightweight value holder — no need for a full DTO. */
+    // Lightweight value holder — no need for a full DTO.
     protected record SessionContext(ChatSession session, List<ChatMessage> history) {
     }
 

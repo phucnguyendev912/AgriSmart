@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Controller for analyzing crop leaf images to diagnose plant diseases
 @RestController
 @RequestMapping("/api/diagnosis")
 public class DiagnoseController {
@@ -18,9 +19,7 @@ public class DiagnoseController {
     @Autowired
     private DiagnoseService diagnoseService;
 
-    /**
-     * POST /api/diagnosis — Chẩn đoán bệnh (multipart form data)
-     */
+    // Send leaf image and farm location data for AI plant disease analysis
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DiagnoseResponse> diagnose(
             Principal principal,
