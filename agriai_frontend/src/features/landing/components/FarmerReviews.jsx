@@ -52,7 +52,7 @@ const FarmerStories = () => {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900 text-xs">{item.userName || 'Nhà nông'}</p>
-                  <p className="text-[10px] text-slate-500">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</p>
+                  <p className="text-[10px] text-slate-500">{item.createdAt ? new Date(item.createdAt.endsWith('Z') || item.createdAt.includes('+') ? item.createdAt : item.createdAt + '+07:00').toLocaleDateString('vi-VN') : ''}</p>
                 </div>
               </div>
             </div>
