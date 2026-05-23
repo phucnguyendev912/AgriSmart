@@ -11,9 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository truy vấn bảng DiagnoseReview.
- */
+// Repository for querying DiagnoseReview entity.
 @Repository
 public interface DiagnoseReviewRepository extends JpaRepository<DiagnoseReview, Integer> {
 

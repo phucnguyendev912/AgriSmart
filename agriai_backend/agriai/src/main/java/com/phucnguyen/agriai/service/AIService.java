@@ -284,9 +284,9 @@ public class AIService implements GuidancePort {
             String response = chatModel.chat(sb.toString());
             System.out.println("[AI-Recommend] Raw AI response: " + response);
             
-            // Trích xuất JSON từ response (xử lý cả markdown block lẫn text thừa)
+            // Extract JSON from response (handling markdown blocks and extra text)
             String cleaned = response.trim();
-            // Xử lý markdown code block
+            // Handle markdown code block
             int jsonBlockStart = cleaned.indexOf("```json");
             if (jsonBlockStart >= 0) {
                 cleaned = cleaned.substring(jsonBlockStart + 7);
@@ -298,7 +298,7 @@ public class AIService implements GuidancePort {
                 cleaned = cleaned.replaceAll("```", "");
             }
             
-            // Tìm JSON object trong chuỗi
+            // Find JSON object in the string
             int braceStart = cleaned.indexOf("{");
             int braceEnd = cleaned.lastIndexOf("}");
             if (braceStart >= 0 && braceEnd > braceStart) {

@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Service coordinating the crop diagnosis pipeline using vision analysis, weather data, and rule engine
 @Slf4j
 @Service
 @Transactional(noRollbackFor = AppException.class)
@@ -50,6 +51,7 @@ public class DiagnoseService {
     private final DiagnoseHistoryPersistenceService historyPersistenceService;
     private final GeocodingService geocodingService;
 
+    // Main entry point to diagnose a crop image and return treatment guidelines
     public DiagnoseResponse diagnose(String email, DiagnoseRequest request) {
         DiagnosisValidationService.DiagnosisContext context = diagnosisValidationService.validate(email, request);
         DiagnoseHistory history = createPendingHistoryIfAuthenticated(context, request);
@@ -103,6 +105,7 @@ public class DiagnoseService {
         }
     }
 
+    // Save a pending history record if the user is authenticated
     private DiagnoseHistory createPendingHistoryIfAuthenticated(
             DiagnosisValidationService.DiagnosisContext context,
             DiagnoseRequest request) {
@@ -119,6 +122,7 @@ public class DiagnoseService {
                 .build());
     }
 
+    // Fetch current weather data based on GPS coordinates safely
     private WeatherDTO fetchWeatherSafely(DiagnoseRequest request) {
         if (!request.hasGps()) {
             return null;
@@ -132,6 +136,7 @@ public class DiagnoseService {
         }
     }
 
+    // Run reverse geocoding asynchronously in the background
     private void runGeocodingInBackground(
             DiagnosisValidationService.DiagnosisContext context,
             DiagnoseRequest request) {
@@ -151,6 +156,7 @@ public class DiagnoseService {
         });
     }
 
+    // Mark the diagnosis history status as FAILED in database
     private void markHistoryFailed(DiagnoseHistory history) {
         if (history == null) {
             return;
@@ -160,6 +166,7 @@ public class DiagnoseService {
         diagnoseHistoryRepository.save(history);
     }
 
+    // Filter and group raw AI vision results to identify valid diseases
     private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults) {
         List<VisionResultDTO> safeResults = visionResults != null ? visionResults : List.of();
         boolean containsHealthyLabel = safeResults.stream()
@@ -183,6 +190,7 @@ public class DiagnoseService {
         return new DiagnosisAnalysis(healthy, detectedDiseases.isEmpty(), detectedDiseases);
     }
 
+    // Map a vision prediction result to a database Disease entity match
     private DetectedDiseaseMatch toDetectedDiseaseMatch(VisionResultDTO result) {
         Optional<Disease> diseaseOptional = diseaseMapper.findDisease(result.getLabel());
         if (diseaseOptional.isEmpty()) {
@@ -191,6 +199,7 @@ public class DiagnoseService {
         return new DetectedDiseaseMatch(diseaseOptional.get(), result);
     }
 
+    // Normalize label string to lowercase and replace spaces with underscores
     private String normalizeLabel(String label) {
         return label.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }

@@ -19,8 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Service handling user registration, authentication, and JWT token refresh
 @Service
-
 @Transactional
 public class AuthService {
 
@@ -35,6 +35,7 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    // Register a new user, validate unique email, and encrypt password
     public UserResponse register(RegisterRequest request) {
         String email = request.getEmail().trim().toLowerCase();
         if (userRepository.existsByEmail(email))
@@ -57,6 +58,7 @@ public class AuthService {
                 .role(saved.getRole().getRoleName()).build();
     }
 
+    // Authenticate user credentials and return new access and refresh tokens
     public LoginResponse login(LoginRequest request) {
         String email = request.getEmail().trim().toLowerCase();
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, request.getPassword()));
@@ -74,6 +76,7 @@ public class AuthService {
                 .build();
     }
 
+    // Validate refresh token and generate a new access token
     public LoginResponse refreshToken(String refreshToken) {
         String userEmail;
         try {
@@ -98,6 +101,7 @@ public class AuthService {
                 .build();
     }
 
+    // Map database User entity to Spring Security UserDetails object
     private UserDetails toSpringUser(User user) {
         String roleName = user.getRole() != null ? user.getRole().getRoleName() : "USER";
         return org.springframework.security.core.userdetails.User.builder()

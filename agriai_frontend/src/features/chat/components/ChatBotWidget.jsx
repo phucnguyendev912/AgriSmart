@@ -7,7 +7,7 @@ import {
   fetchChatMessages,
   fetchChatSessions,
   sendChatMessage,
-} from '../../../services/chatApi';
+} from '../../../services/chatService';
 import {
   createGreetingMessage,
   createUserMessage,
@@ -34,6 +34,11 @@ function formatRelativeTime(dateStr) {
   return `${days} ngày trước`;
 }
 
+/**
+ * ChatBotWidget Component
+ * Provides an overlay chatbot widget for user interactions. Features AI-powered response suggestions,
+ * context-specific agricultural skill selections, and persistent history session management.
+ */
 const ChatBotWidget = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -60,10 +65,10 @@ const ChatBotWidget = () => {
     }
   }, [messages, isTyping]);
 
-  // load most recent session on open — KHÔNG tự tạo session mới
+  // Load the most recent session on open - do not auto-create a new session
   useEffect(() => {
     if (!isOpen) return;
-    // Nếu đã có session đang active → không reload lại (tránh mất trạng thái khi đóng/mở lại)
+    // If there is an active session, skip reloading to prevent resetting state
     if (activeSessionId) return;
 
     let cancelled = false;
@@ -71,7 +76,7 @@ const ChatBotWidget = () => {
     const loadConversation = async () => {
       try {
         const sessionsPage = await fetchChatSessions({ page: 0, size: 10 });
-        // Bỏ qua các session rỗng (do bug cũ tạo ra), chỉ lấy session đã có tin nhắn
+        // Filter out empty sessions, load only sessions with messages
         const validSession = sessionsPage?.content?.find((s) => s.lastMessage);
 
         if (!validSession) {
@@ -94,7 +99,7 @@ const ChatBotWidget = () => {
 
         const mappedMessages = (messagesPage?.content || []).map(mapHistoryMessageToMessage);
         setMessages(mappedMessages.length > 0 ? mappedMessages : [createGreetingMessage()]);
-        // Nếu load session cũ đã có tin nhắn, set ref > 0 để không fetch lại title
+        // Set user message count ref > 0 to skip title auto-generation for old sessions
         userMessageCountRef.current = mappedMessages.filter((m) => m.sender === 'user').length;
       } catch (error) {
         console.error('Failed to load chat session:', error);
@@ -167,11 +172,11 @@ const ChatBotWidget = () => {
 
   const ensureSession = async () => {
     if (activeSessionId) return activeSessionId;
-    // Tạo session mới lần đầu user gửi tin
+    // Create new session when user sends their first message
     const createdSession = await createChatSession({});
     setActiveSessionId(createdSession.id);
     userMessageCountRef.current = 0;
-    // Thêm session mới vào đầu danh sách history
+    // Prepend new session to the history list
     setSessions((prev) => [createdSession, ...prev.filter((s) => s.id !== createdSession.id)]);
     return createdSession.id;
   };
@@ -191,7 +196,7 @@ const ChatBotWidget = () => {
       const assistantMessage = mapApiResponseToMessage(response);
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // refresh title sau tin nhắn đầu tiên trong session
+      // Refresh title after the first message in the session
       if (userMessageCountRef.current === 0) {
         const refreshed = await fetchChatSessions({ page: 0, size: 20 });
         const currentSession = refreshed?.content?.find((s) => s.id === sessionId);
@@ -199,7 +204,7 @@ const ChatBotWidget = () => {
         if (updatedTitle) {
           setSessionTitle(updatedTitle);
         }
-        // Cập nhật lại toàn bộ danh sách lịch sử để đảm bảo title "ở ngoài" panel history được hiển thị đúng
+        // Refresh full history list to update titles in selection panel
         if (refreshed?.content) {
           setSessions(refreshed.content);
         }

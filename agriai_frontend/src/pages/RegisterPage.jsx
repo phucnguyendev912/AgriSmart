@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import { register } from '../services/authService';
 
-const API_URL = "";
-
+/**
+ * RegisterPage Component
+ * Provides a registration interface for new users, including validation for password match,
+ * submission of new registration details to the auth service, and field error toast feedback.
+ */
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -48,7 +51,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/register`, {
+      const response = await register({
         fullName: formData.fullName,
         email: formData.email,
         phoneNumber: formData.phoneNumber,

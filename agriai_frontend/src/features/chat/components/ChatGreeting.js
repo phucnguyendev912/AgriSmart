@@ -1,5 +1,12 @@
 import React from 'react';
 
+/**
+ * ChatGreeting Component
+ * Displays the initial chatbot greeting message and pre-defined quick action button suggestions.
+ * @param {Object} props - Component props.
+ * @param {Object} props.message - The message object containing greeting text and suggestion tags.
+ * @param {Function} props.onSuggestionClick - Callback function triggered when a suggestion is clicked.
+ */
 const ChatGreeting = ({ message, onSuggestionClick }) => (
   <div className="space-y-3">
     <p className="text-sm md:text-base leading-relaxed">{message.text}</p>

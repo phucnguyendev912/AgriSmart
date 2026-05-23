@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import com.phucnguyen.agriai.mapper.TreatmentMapper;
 
+// Service to rank and select the best treatment plans using AI evaluations.
 @Service
 @RequiredArgsConstructor
 public class TreatmentRankingService {
@@ -17,7 +18,7 @@ public class TreatmentRankingService {
     private final TreatmentMapper treatmentMapper;
     private final AIService aiService;
 
-    // Hiển thị tất cả phác đồ, gửi toàn bộ cho AI chọn phác đồ tốt nhất
+    // Ranks treatment plans for each disease context using AI evaluations.
     public List<TreatmentDTO> rankPlans(Map<Integer, List<TreatmentPlan>> plansByDisease, List<DiseaseContextDTO> diseases, WeatherDTO weather) {
         return plansByDisease.entrySet().stream()
                 .filter(entry -> !entry.getValue().isEmpty())
@@ -33,9 +34,8 @@ public class TreatmentRankingService {
                 .toList();
     }
 
-    // Gửi tất cả phác đồ cho AI, AI tự chọn recommended
+    // Submits the treatment options to the AI model to select the recommended option.
     private List<TreatmentDTO> processDiseasePlans(List<TreatmentPlan> plans, DiseaseContextDTO context, WeatherDTO weather) {
-        // Gửi toàn bộ phác đồ cho AI đánh giá
         AIService.RecommendResult aiResult = aiService.recommendTreatment(
                 context.diseaseName(), context.severity(), weather, plans);
 
@@ -50,7 +50,7 @@ public class TreatmentRankingService {
             }
         }
 
-        // Fallback: nếu AI lỗi, chọn phác đồ đầu tiên
+        // Fallback: if the AI selection fails or is invalid, select the first available plan.
         if (recommendedPlanId == null && !plans.isEmpty()) {
             recommendedPlanId = plans.get(0).getId();
             recommendationReason = "Phác đồ phù hợp nhất";

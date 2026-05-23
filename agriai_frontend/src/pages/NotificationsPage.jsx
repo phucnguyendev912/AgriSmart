@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * NotificationsPage Component
+ * Renders user notifications regarding system updates, extreme weather alerts,
+ * and AI disease detections. Supports marking notifications as read and deleting them.
+ */
 const NotificationsPage = () => {
     // Dummy state from the design
     const [notifications, setNotifications] = useState([

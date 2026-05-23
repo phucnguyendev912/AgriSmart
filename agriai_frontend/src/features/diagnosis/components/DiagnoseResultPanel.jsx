@@ -1,11 +1,21 @@
 import React from 'react';
 
+/**
+ * Helper to determine CSS classes for severity badges.
+ * @param {string} severity - Severity level (NANG, TRUNG_BINH, NHE).
+ * @returns {string} Tailwind CSS class string.
+ */
 const getSeverityClasses = (severity) => {
     if (severity === 'NANG') return "bg-error-container text-on-error-container";
     if (severity === 'TRUNG_BINH') return "bg-secondary-container text-on-secondary-container";
     return "bg-primary-container text-on-primary-container";
 };
 
+/**
+ * Helper to get Vietnamese label for severity levels.
+ * @param {string} severity - Severity code.
+ * @returns {string} Vietnamese display label.
+ */
 const getSeverityLabel = (severity) => {
     if (severity === 'NANG') return 'Nặng';
     if (severity === 'TRUNG_BINH') return 'Trung bình';
@@ -13,6 +23,12 @@ const getSeverityLabel = (severity) => {
     return severity || 'N/A';
 };
 
+/**
+ * Generates warning message when current weather favors detected diseases.
+ * @param {Array} diseases - Detected disease objects.
+ * @param {Array} diseaseWeatherRisks - Disease-weather risk associations.
+ * @returns {string} Warning message or empty string.
+ */
 const getWeatherRiskMessage = (diseases, diseaseWeatherRisks) => {
     const diseaseIds = new Set(
         diseases
@@ -34,7 +50,12 @@ const getWeatherRiskMessage = (diseases, diseaseWeatherRisks) => {
 };
 
 /**
- * Hiển thị danh sách bệnh phát hiện được cùng cảnh báo nhanh.
+ * DiagnoseResultPanel Component
+ * Displays the list of detected crop diseases, confidence percentages,
+ * severity level indicators, and any associated weather or safety warnings.
+ * 
+ * @param {Object} props - Component properties.
+ * @param {Object} props.result - Diagnosis API response object.
  */
 const DiagnoseResultPanel = ({ result }) => {
     if (!result) return null;

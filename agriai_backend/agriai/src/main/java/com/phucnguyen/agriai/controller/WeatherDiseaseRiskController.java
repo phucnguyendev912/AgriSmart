@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+// Controller for analyzing disease risks based on current weather at the farm location
 @RestController
 @RequestMapping("/api/weather")
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ public class WeatherDiseaseRiskController {
 
     private final WeatherDiseaseRiskService weatherDiseaseRiskService;
 
+    // Get list of crop diseases at risk based on weather coordinates
     @GetMapping("/disease-risks")
     public ResponseEntity<WeatherDiseaseRiskResponse> getDiseaseRisks(
             @RequestParam Double latitude,

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
+// Controller for managing user profile details
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public class UserController {
 
     private final UserService userService;
 
+    // Update profile information (e.g. name, phone) of the logged-in user
     @PutMapping("/profile")
     public ResponseEntity<UserResponse> updateProfile(
             Principal principal,

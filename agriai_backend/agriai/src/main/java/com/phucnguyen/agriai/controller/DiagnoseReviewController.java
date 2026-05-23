@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.GetMapping;
 
+// Controller for managing user reviews and feedback on AI diagnosis results
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
@@ -18,15 +19,7 @@ public class DiagnoseReviewController {
 
     private final DiagnoseReviewService reviewService;
 
-    /**
-     * POST /api/reviews
-     * Tạo mới đánh giá cho một lần chẩn đoán.
-     * Yêu cầu: Người dùng phải đăng nhập (endpoint được bảo vệ bởi SecurityConfig).
-     *
-     * @param principal Người dùng hiện tại (từ JWT)
-     * @param request   Body chứa historyId, isAccurate, rating, feedback
-     * @return 200 OK + DiagnoseReviewResponse đã lưu
-     */
+    // Submit a review or feedback for a specific diagnosis session
     @PostMapping
     public ResponseEntity<DiagnoseReviewResponse> submitReview(
             Principal principal,
@@ -35,14 +28,7 @@ public class DiagnoseReviewController {
         return ResponseEntity.ok(reviewService.submitReview(email, request));
     }
 
-    /**
-     * GET /api/reviews/{historyId}
-     * Lấy đánh giá theo historyId. Dùng để kiểm tra trạng thái đánh giá
-     * trước khi hiển thị nút "Đánh giá" hay "Đã đánh giá" trên trang lịch sử.
-     *
-     * @param historyId ID của DiagnoseHistory
-     * @return 200 OK + DiagnoseReviewResponse nếu có, hoặc 404 nếu chưa có
-     */
+    // Get the review details of a specific diagnosis session by history ID
     @GetMapping("/{historyId}")
     public ResponseEntity<DiagnoseReviewResponse> getReview(@PathVariable Integer historyId) {
         Optional<DiagnoseReviewResponse> review = reviewService.getByHistoryId(historyId);
@@ -50,6 +36,7 @@ public class DiagnoseReviewController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // Get all diagnosis reviews submitted by users
     @GetMapping("/all")
     public ResponseEntity<List<DiagnoseReviewResponse>> getAllReview() {
         return ResponseEntity.ok(reviewService.getAllReview());
