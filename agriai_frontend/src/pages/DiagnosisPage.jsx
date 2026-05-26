@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -36,14 +36,13 @@ const getCultivationMeasures = (result) => {
 /**
  * DiagnosisPage Component
  * Handles new crop disease diagnosis requests. Users upload leaf photos,
- * select crop type, and receive real-time AI classification, local weather
- * context, spray program schedule, and rating options.
+ * select crop type, and receive AI classification, local weather context,
+ * spray program schedule, and rating options.
  */
 const DiagnosisPage = () => {
     // === AUTH & LOCATION ===
     const { user } = useAuth();
     const { coords, gpsStatus, hasCoords, requestLocation } = useLocationPermission();
-    const hasRetriedDeniedLocation = useRef(false);
 
     // === DIAGNOSIS STATE ===
     const [cropTypes, setCropTypes] = useState([]);
@@ -71,13 +70,32 @@ const DiagnosisPage = () => {
         fetchCropTypes();
     }, []);
 
-    // Prompt for GPS coordinates if previously denied but required
+    // Check location permission when entering the diagnosis page
     useEffect(() => {
-        if (!hasCoords && gpsStatus === 'denied' && !hasRetriedDeniedLocation.current) {
-            hasRetriedDeniedLocation.current = true;
-            requestLocation();
-        }
-    }, [gpsStatus, hasCoords, requestLocation]);
+        const verifyAndFetchLocation = async () => {
+            if (hasCoords || gpsStatus === 'unsupported') return;
+
+            let permState = 'prompt';
+            if (navigator.permissions) {
+                try {
+                    const perm = await navigator.permissions.query({ name: 'geolocation' });
+                    permState = perm.state;
+                } catch (e) {
+                    permState = gpsStatus;
+                }
+            } else {
+                permState = gpsStatus;
+            }
+
+            // If it is granted or prompt, request location automatically
+            if (permState === 'granted' || permState === 'prompt') {
+                await requestLocation();
+            }
+        };
+
+        verifyAndFetchLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Handle image file selection and generate preview URL
     const handleFileChange = (e) => {
@@ -95,6 +113,28 @@ const DiagnosisPage = () => {
         if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
         if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
 
+        let currentCoords = coords;
+
+        // Active permission check to bypass stale gpsStatus
+        let isDenied = false;
+        if (navigator.permissions) {
+            try {
+                const perm = await navigator.permissions.query({ name: 'geolocation' });
+                isDenied = (perm.state === 'denied');
+            } catch (e) {
+                isDenied = (gpsStatus === 'denied');
+            }
+        } else {
+            isDenied = (gpsStatus === 'denied');
+        }
+
+        if (!hasCoords && !isDenied && gpsStatus !== 'unsupported') {
+            const locResult = await requestLocation();
+            if (locResult.ok) {
+                currentCoords = locResult.coords;
+            }
+        }
+
         setLoading(true);
         setError('');
         setResult(null);
@@ -102,8 +142,8 @@ const DiagnosisPage = () => {
         const formData = new FormData();
         formData.append('image', selectedFile);
         formData.append('cropTypeId', selectedCropTypeId);
-        if (coords.latitude !== null && coords.latitude !== undefined) formData.append('latitude', coords.latitude);
-        if (coords.longitude !== null && coords.longitude !== undefined) formData.append('longitude', coords.longitude);
+        if (currentCoords.latitude !== null && currentCoords.latitude !== undefined) formData.append('latitude', currentCoords.latitude);
+        if (currentCoords.longitude !== null && currentCoords.longitude !== undefined) formData.append('longitude', currentCoords.longitude);
 
         try {
             const res = await submitDiagnosis(formData);
@@ -126,6 +166,10 @@ const DiagnosisPage = () => {
     const handleOpenRating = () => {
         if (!user) {
             toast.error('Vui lòng đăng nhập để đánh giá kết quả.');
+            return;
+        }
+        if (!result?.id) {
+            toast.info('Vui lòng chờ kết quả được lưu xong trước khi đánh giá.');
             return;
         }
         setIsRatingModalOpen(true);
@@ -166,16 +210,7 @@ const DiagnosisPage = () => {
                                 ))}
                             </select>
                         </div>
-                        {gpsStatus === 'granted' && (
-                            <div className="hidden md:flex items-center gap-1 text-xs text-emerald-600 font-bold">
-                                <span className="material-symbols-outlined text-sm">location_on</span> GPS bật
-                            </div>
-                        )}
-                        {(gpsStatus === 'denied' || gpsStatus === 'unsupported') && (
-                            <div className="hidden md:flex items-center gap-1 text-xs text-on-surface-variant font-bold">
-                                <span className="material-symbols-outlined text-sm">location_off</span> GPS tắt
-                            </div>
-                        )}
+
                     </div>
                 </div>
 
@@ -216,7 +251,10 @@ const DiagnosisPage = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         {/* Left: Technical panels */}
                         <div className="lg:col-span-8 space-y-6">
-                            <DiagnoseSprayProgramsPanel sprayPrograms={result.sprayPrograms} treatments={result.treatments} />
+                            <DiagnoseSprayProgramsPanel
+                                sprayPrograms={result.sprayPrograms}
+                                treatments={result.treatments}
+                            />
                             <DiagnoseInteractionWarnings interactionWarnings={result.interactionWarnings} />
                             <DiagnoseCultivationMeasures measures={getDiagnosisCultivationMeasures(result)} />
 
@@ -224,7 +262,7 @@ const DiagnosisPage = () => {
                             <div className="flex justify-center mt-8">
                                 <button
                                     onClick={handleOpenRating}
-                                    className="px-6 py-3 bg-secondary-container text-on-secondary-container rounded-full font-bold shadow-sm flex items-center gap-2 hover:brightness-105 active:scale-95 transition-all"
+                                    className="bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-bold shadow-sm flex items-center gap-2 hover:brightness-105 active:scale-95 transition-all"
                                 >
                                     <span className="material-symbols-outlined text-xl">rate_review</span>
                                     Đánh giá kết quả chẩn đoán
