@@ -42,11 +42,7 @@ public class SkillRegistry {
 
     // Returns the cached markdown content for a skill.
     public String getSkillContent(SkillDefinition skill) {
-        return contentCache.computeIfAbsent(skill, s -> {
-            String content = readFile(s);
-            keywordCache.computeIfAbsent(s, k -> parseKeywords(content));
-            return content;
-        });
+        return contentCache.computeIfAbsent(skill, this::readFile);
     }
 
     // Returns cached keywords parsed from the "## Keywords" section of the skill file.

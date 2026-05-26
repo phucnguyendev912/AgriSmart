@@ -83,7 +83,7 @@ class ChatSessionServiceTest {
 
     @Test
     void updateTitleFromFirstMessage_usesShortNormalizedMessage() {
-        ChatSession session = ChatSession.builder().id(2).user(user).sessionTitle("Default").build();
+        ChatSession session = ChatSession.builder().id(2).user(user).sessionTitle("Phiên tư vấn mới").build();
         when(chatSessionRepository.save(any(ChatSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ChatSession saved = chatSessionService.updateTitleFromFirstMessage(session, "  Lua bi dao on   tren la  ");
@@ -93,7 +93,7 @@ class ChatSessionServiceTest {
 
     @Test
     void updateTitleFromFirstMessage_truncatesLongMessage() {
-        ChatSession session = ChatSession.builder().id(2).user(user).sessionTitle("Default").build();
+        ChatSession session = ChatSession.builder().id(2).user(user).sessionTitle("Phiên tư vấn mới").build();
         when(chatSessionRepository.save(any(ChatSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ChatSession saved = chatSessionService.updateTitleFromFirstMessage(session,

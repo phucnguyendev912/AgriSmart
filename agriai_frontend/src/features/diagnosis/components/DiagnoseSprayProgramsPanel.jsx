@@ -14,7 +14,7 @@ const REASON_LABELS = {
  * DiagnoseSprayProgramsPanel Component
  * Displays recommended treatment plans, active ingredient details, usage guidelines,
  * and safety notes grouped by scheduling phases or compatibility reasons.
- * 
+ *
  * @param {Object} props - Component properties.
  * @param {Array} props.sprayPrograms - Pre-computed scheduling programs.
  * @param {Array} props.treatments - Treatment detail data for each disease.
@@ -160,10 +160,7 @@ const DiagnoseSprayProgramsPanel = ({ sprayPrograms, treatments }) => {
                                                 <p className="text-sm font-bold text-amber-700 dark:text-amber-400">{t.safetyNotes}</p>
                                             </div>
                                         )}
-
-
                                     </div>
-
                                 </div>
                             ))}
                         </div>

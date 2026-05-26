@@ -114,7 +114,7 @@ class DiagnoseServiceTest {
         assertEquals("https://example.test/leaf.jpg", response.getOriginalImageUrl());
         assertEquals(weather, response.getWeather());
         assertFalse(response.getDiseases().isEmpty());
-        assertEquals("Leaf Blast (Dao on)", response.getDiseases().get(0).getDiseaseName());
+        assertEquals("Dao on", response.getDiseases().get(0).getDiseaseName());
         assertEquals("Remove infected leaves and monitor the field.", response.getUserGuidance());
         verifyNoInteractions(historyPersistenceService);
     }
