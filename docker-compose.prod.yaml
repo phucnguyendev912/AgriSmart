@@ -19,8 +19,7 @@ services:
       retries: 5
 
   backend:
-    build: 
-      context: ./agriai_backend/agriai
+    image: phucnguyendev912/agriai-backend:latest
     container_name: agriai-backend
     restart: unless-stopped
     depends_on:
@@ -30,7 +29,7 @@ services:
       DB_URL: ${DB_URL}
       DB_USERNAME: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
-      AUTH_COOKIE_SECURE: "false"
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
       AUTH_COOKIE_SAME_SITE: Lax
       VISION_AI_URL: ${VISION_AI_URL:-http://host.docker.internal:8010/predict}
       SKILLS_BASE_PATH: /app/skills
@@ -54,10 +53,7 @@ services:
       - "8080:8080"
 
   frontend:
-    build:
-      context: ./agriai_frontend
-      args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL}
+    image: phucnguyendev912/agriai-frontend:latest
     container_name: agriai-frontend
     restart: unless-stopped
     depends_on:
@@ -66,27 +62,21 @@ services:
       - "3000:80"
 
   admin-frontend:
-    build:
-      context: ./agriai_admin_frontend
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    image: phucnguyendev912/agriai-admin-frontend:latest
     container_name: agriai-admin-frontend
     restart: unless-stopped
     depends_on:
       - backend
     ports:
       - "3001:80"
-# Cloudflared
+
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
     restart: unless-stopped
-
     command: tunnel run
-
     volumes:
       - ./cloudflared:/etc/cloudflared
+
 volumes:
   agriai_postgres18_data:
-
-
