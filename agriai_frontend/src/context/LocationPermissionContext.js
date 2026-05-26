@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 const LAST_LOCATION_KEY = 'agriai_last_location';
 
@@ -51,10 +51,12 @@ export function LocationProvider({ children }) {
           setGpsStatus('granted');
           resolve({ ok: true, status: 'granted', coords: nextCoords });
         },
-        (error) => {
-          const status = error.code === error.PERMISSION_DENIED ? 'denied' : 'denied';
-          setGpsStatus(status);
-          resolve({ ok: false, status });
+        () => {
+          // Clear stale coords from localStorage so future mounts don't show 'granted' incorrectly
+          localStorage.removeItem(LAST_LOCATION_KEY);
+          setCoords({ latitude: null, longitude: null });
+          setGpsStatus('denied');
+          resolve({ ok: false, status: 'denied' });
         },
         {
           enableHighAccuracy: true,
@@ -64,6 +66,42 @@ export function LocationProvider({ children }) {
       );
     });
   }, []);
+
+  // Sync gpsStatus with the real browser permission state on mount and on change.
+  // This fixes the case where the user resets location permission in browser settings
+  // while the app is open (or was previously open), leaving stale 'granted' state.
+  useEffect(() => {
+    if (!navigator.permissions) return;
+    let permissionStatus;
+    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+      permissionStatus = result;
+      // Correct stale 'granted' state if permission was already revoked
+      if (result.state === 'denied') {
+        localStorage.removeItem(LAST_LOCATION_KEY);
+        setCoords({ latitude: null, longitude: null });
+        setGpsStatus('denied');
+      } else if (result.state === 'granted') {
+        requestLocation();
+      }
+      // Listen for realtime permission changes (e.g. user toggles in browser settings)
+      result.onchange = () => {
+        if (result.state === 'denied') {
+          localStorage.removeItem(LAST_LOCATION_KEY);
+          setCoords({ latitude: null, longitude: null });
+          setGpsStatus('denied');
+        } else if (result.state === 'prompt') {
+          setGpsStatus('idle');
+        } else if (result.state === 'granted') {
+          requestLocation();
+        }
+      };
+    });
+    return () => {
+      if (permissionStatus) permissionStatus.onchange = null;
+    };
+  }, [requestLocation]);
+
+
 
   const value = useMemo(
     () => ({

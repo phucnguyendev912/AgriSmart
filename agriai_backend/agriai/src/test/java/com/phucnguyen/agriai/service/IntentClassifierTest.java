@@ -110,7 +110,7 @@ class IntentClassifierTest {
     @Test
     @DisplayName("Should use LLM when keyword result is ambiguous")
     void useLLMWhenAmbiguous() {
-        when(chatModel.generate(anyString())).thenReturn("treatment");
+        when(chatModel.chat(anyString())).thenReturn("treatment");
         IntentResult result = classifier.classify("bệnh này dùng thuốc gì");
         assertEquals(Source.LLM, result.source());
         assertEquals(SkillDefinition.TREATMENT, result.primarySkill());
@@ -119,7 +119,7 @@ class IntentClassifierTest {
     @Test
     @DisplayName("LLM fallback should parse 'conflict' response")
     void llmParsesConflictResponse() {
-        when(chatModel.generate(anyString())).thenReturn("conflict");
+        when(chatModel.chat(anyString())).thenReturn("conflict");
         IntentResult result = classifier.classifyByLLM("hai thuốc này có pha được không");
         assertNotNull(result);
         assertEquals(SkillDefinition.CONFLICT, result.primarySkill());
@@ -128,7 +128,7 @@ class IntentClassifierTest {
     @Test
     @DisplayName("Should handle LLM exception gracefully")
     void handleLLMException() {
-        when(chatModel.generate(anyString())).thenThrow(new RuntimeException("API error"));
+        when(chatModel.chat(anyString())).thenThrow(new RuntimeException("API error"));
         IntentResult result = classifier.classifyByLLM("test query");
         assertNull(result);
     }

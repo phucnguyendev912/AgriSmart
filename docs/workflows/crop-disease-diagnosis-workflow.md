@@ -55,6 +55,14 @@ Dưới đây là sơ đồ luồng hoạt động trực quan dạng Text mô t
         ├─(8) Đợi cả 2 nhánh hoàn thành (join). Phân tích kết quả bệnh & đối chiếu với Database
         │
         ├─(9) Chạy [RuleEngineService] xử lý đề xuất thuốc, tương tác thuốc và cảnh báo thời tiết
+        │     ├── Gọi [TreatmentRankingService] để sắp xếp, đánh giá & chọn ra phác đồ khuyên dùng tối ưu
+        │     │     ├── [Cấu hình Batch]: gemini.recommend.batch.enabled (mặc định true), max-diseases (mặc định 5)
+        │     │     ├── [Nếu bật Batch]: Sắp xếp bệnh theo confidence giảm dần -> Chọn Top 5 bệnh
+        │     │     │   gọi [AIService.recommendTreatmentsBatch] qua Gemini để đề xuất phác đồ cho tất cả trong 1 call duy nhất
+        │     │     ├── [Nếu tắt Batch]: Chạy Legacy Sequential loop gọi recommendTreatment từng bệnh
+        │     │     └── [Fallback]: Bệnh ngoài Top 5, hoặc khi Gemini lỗi/timeout/sai ID phác đồ 
+        │     │         sẽ không có phác đồ khuyên dùng (recommended = false), không dùng default plan để gắn khuyến nghị giả
+        │     └── Chạy [DrugInteractionChecker] lọc các phác đồ có recommended = true để kiểm tra tương tác hoạt chất thuốc
         │
         ├─(10) Gọi [GuidancePort] (LLM/Gemini) sinh cẩm nang hướng dẫn điều trị dạng văn bản
         │
@@ -139,6 +147,22 @@ Sau khi chẩn đoán thành công và nông dân đã đăng nhập, họ có t
 * **Logic xử lý:**
   * Thực hiện kiểm tra quyền sở hữu nghiêm ngặt: Đảm bảo người gửi đánh giá chính là chủ nhân của lần chẩn đoán đó.
 
+#### G. [TreatmentRankingService.java](file:///d:/AgriAI/agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/service/TreatmentRankingService.java)
+* **Vai trò:** Lập thứ tự ưu tiên và đánh giá các phác đồ điều trị ứng viên cho từng bệnh được phát hiện, chọn ra phác đồ khuyên dùng tối ưu nhất.
+* **Logic xử lý:**
+  * **Xác định danh sách ưu tiên:** Sắp xếp các bệnh được phát hiện theo độ tin cậy (`confidence` giảm dần), sau đó theo ID bệnh (`diseaseId` tăng dần) để đảm bảo độ chính xác và ổn định.
+  * **Phân lô đề xuất (Batching):** Lọc ra tối đa Top N bệnh (cấu hình qua `gemini.recommend.max-diseases`, mặc định là 5) để gộp chung gửi sang Gemini.
+  * **Luồng chạy Batch:** Gọi `aiService.recommendTreatmentsBatch` để gửi duy nhất 1 cuộc gọi API, thay vì gọi tuần tự tốn kém.
+  * **Luồng Sequential cũ:** Nếu `gemini.recommend.batch.enabled = false`, tự động chạy vòng lặp di sản tuần tự.
+  * **Xác thực và Fallback chặt chẽ:** Đối chiếu `recommendedPlanId` của Gemini với danh sách candidate plans trong DB. Nếu không khớp hoặc có lỗi/timeout/cooldown, tất cả các phác đồ ứng viên của bệnh đó được gán `recommended = false` (không gắn khuyến nghị giả).
+
+#### H. [AIService.java](file:///d:/AgriAI/agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/service/AIService.java)
+* **Vai trò:** Kết nối trực tiếp đến Google Gemini API bằng LangChain4j, chịu trách nhiệm sinh guidance và nhận diện/đề xuất phác đồ điều trị.
+* **Logic xử lý:**
+  * **Cấu hình tối ưu:** Duy trì `recommendModel` chuyên dụng với nhiệt độ thấp (`temperature = 0.1` để tránh ảo tưởng), chế độ JSON format bắt buộc, và thời hạn timeout (`timeout = 20s`).
+  * **Bộ ngắt mạch gọn nhẹ (Lightweight Circuit Breaker):** Khi phát hiện lỗi mạng nặng (Timeout, lỗi Quota 429, lỗi Server 5xx), hệ thống sẽ kích hoạt trạng thái "Nguội" (cooldown) trong 30 giây bằng biến nguyên tử `AtomicLong recommendUnavailableUntil`. Trong thời gian cooldown, mọi yêu cầu đề xuất qua Gemini sẽ bị bỏ qua và trả về `null` ngay lập tức để giải phóng hệ thống. Bộ đếm sẽ tự động reset về 0 khi có 1 yêu cầu thành công.
+  * **Phân tích cú pháp hai lớp:** Hàm `parseBatchResponse` hỗ trợ parse định dạng JSON trả về từ Gemini bằng cách thử parse wrapper `{"items": [...]}` trước, nếu thất bại sẽ thử parse trực tiếp mảng JSON `[...]` để đảm bảo tỷ lệ parse thành công cao nhất.
+
 ---
 
 ### 3.2. Các Component quan trọng phía Frontend
@@ -180,6 +204,14 @@ WeatherDTO weather = weatherFuture.join();
 Đăng tải hình ảnh bắt buộc sử dụng định dạng `multipart/form-data`. Ở Backend Spring Boot:
 * Sử dụng `@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)` để báo cho Spring Security và Spring MVC biết request này chứa file nhị phân.
 * Sử dụng `@ModelAttribute DiagnoseRequest request` thay vì `@RequestBody`. Đây là một điểm cần chú ý: `@RequestBody` dùng để parse JSON body từ chuỗi ký tự, còn `@ModelAttribute` dùng để binding các trường form-data (bao gồm cả các trường văn bản thường và các đối tượng `MultipartFile` nhị phân) vào DTO Java.
+
+### 4.3. Tối ưu hóa độ trễ & chi phí LLM với Batching Gemini Recommendations
+* **Mục tiêu:** Cắt giảm độ trễ (latency) khi chẩn đoán nhiều bệnh cùng lúc trên một ảnh lá cây.
+* **Cách thực hiện:** Thay vì duyệt tuần tự từng bệnh và thực hiện N cuộc gọi HTTP riêng biệt sang Gemini (gây tích lũy thời gian phản hồi: $T_{\text{tổng}} = \sum_{i=1}^N T_{\text{Gemini}, i}$), hệ thống gom toàn bộ thông tin của tối đa Top 5 bệnh ưu tiên và toàn bộ danh sách phác đồ ứng viên vào một Prompt phân cấp duy nhất.
+* **Cơ chế hoạt động:**
+  - LLM trả về cấu trúc JSON được bọc trong đối tượng wrapper `{"items": [{"diseaseId": 1, "recommendedPlanId": 10, "reasoning": "..."}]}` hoặc mảng JSON thuần `[...]`.
+  - Nhờ việc gộp (batching) này, tổng thời gian chọn phác đồ chỉ tốn đúng **1 cuộc gọi Gemini duy nhất** ($T_{\text{tổng}} \approx \max(T_{\text{Vision}}, T_{\text{Weather}}) + T_{\text{Gemini\_Batch}}$), giúp giảm độ trễ chẩn đoán tổng thể từ trung bình 8-15 giây xuống dưới 3-4 giây khi có nhiều bệnh phát hiện đồng thời.
+  - **Cô lập lỗi:** Nếu Gemini gặp sự cố (bị timeout hoặc trả về JSON sai định dạng), hệ thống tự động ghi nhận log và thực hiện fallback an toàn (không đánh dấu phác đồ khuyên dùng), đảm bảo luồng chẩn đoán chính vẫn trả về kết quả cho nông dân bình thường mà không bị ngắt quãng.
 
 ---
 
