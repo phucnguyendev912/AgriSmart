@@ -9,7 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -25,6 +30,8 @@ public class GlobalExceptionHandler {
     private static final String INVALID_IMAGE_MESSAGE = "Ảnh không hợp lệ, vui lòng thử lại";
     private static final String MISSING_CROP_MESSAGE = "Vui lòng chọn loại cây trồng trước khi chẩn đoán";
     private static final String SYSTEM_ERROR_MESSAGE = "Có lỗi xảy ra, vui lòng thử lại sau";
+    private static final String INVALID_CREDENTIALS_MESSAGE = "Tài khoản hoặc mật khẩu không chính xác.";
+    private static final String DISABLED_ACCOUNT_MESSAGE = "Tài khoản đã bị vô hiệu hóa.";
 
     // Handle application-specific business exceptions (e.g. Auth, Diagnose, Area, Chat)
     @ExceptionHandler(AppException.class)
@@ -33,10 +40,29 @@ public class GlobalExceptionHandler {
         return buildError(ex.getStatus(), ex.getMessage());
     }
 
-    // Handle authentication errors (e.g. invalid username or password during login)
+    // Handle invalid username or password during login
+    @ExceptionHandler({ BadCredentialsException.class, UsernameNotFoundException.class })
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(AuthenticationException ex) {
+        return buildError(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS_MESSAGE);
+    }
+
+    // Handle inactive accounts separately from invalid credentials
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<Map<String, Object>> handleDisabledAccount(DisabledException ex) {
+        return buildError(HttpStatus.UNAUTHORIZED, DISABLED_ACCOUNT_MESSAGE);
+    }
+
+    // Handle internal authentication failures without reporting them as wrong credentials
+    @ExceptionHandler({ InternalAuthenticationServiceException.class, AuthenticationServiceException.class })
+    public ResponseEntity<Map<String, Object>> handleAuthenticationService(AuthenticationException ex) {
+        log.error("[AuthenticationServiceException] {}", ex.getMessage(), ex);
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
+    }
+
+    // Handle other authentication errors
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex) {
-        return buildError(HttpStatus.UNAUTHORIZED, "Tài khoản hoặc mật khẩu không chính xác.");
+        return buildError(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS_MESSAGE);
     }
 
     // Handle access authorization issues (e.g. USER trying to call ADMIN endpoints)
