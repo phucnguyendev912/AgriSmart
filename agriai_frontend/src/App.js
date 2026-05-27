@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Navbar from "./layout/Navbar";
 import Footer from "./layout/Footer";
@@ -14,6 +14,7 @@ import DiagnosisHistoryDetailPage from "./pages/DiagnosisHistoryDetailPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import DiseaseMapPage from "./pages/DiseaseMapPage";
 import ProfilePage from "./pages/ProfilePage";
+import AboutPage from "./pages/AboutPage";
 import ChatBotWidget from "./features/chat/components/ChatBotWidget";
 import GlobalNotificationListener from "./layout/GlobalNotificationListener";
 import InitialLocationPrompt from "./layout/InitialLocationPrompt";
@@ -37,6 +38,19 @@ const RequireAuth = ({ children }) => {
 };
 
 /**
+ * Helper component to scroll the window to the top whenever the route changes.
+ */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
+/**
  * Main Application Component
  * Sets up routing, providers, navigation layout, global modal listeners,
  * and toast notification container.
@@ -45,6 +59,7 @@ function App() {
   return (
     <HelmetProvider>
       <Router>
+        <ScrollToTop />
         <InitialLocationPrompt />
         <GlobalNotificationListener />
         {/* Main application layout wrapper */}
@@ -74,6 +89,7 @@ function App() {
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/warning-map" element={<DiseaseMapPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/about" element={<AboutPage />} />
             </Routes>
           </div>
           <ChatBotWidget />
