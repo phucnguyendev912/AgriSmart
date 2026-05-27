@@ -22,7 +22,9 @@ const DiagnoseUploadPanel = ({
     loading,
     selectedFile,
     previewUrl,
-    error
+    error,
+    checkingLocation,
+    hasLocation
 }) => {
     const isUploadDisabled = loading;
 
@@ -91,6 +93,13 @@ const DiagnoseUploadPanel = ({
                         </>
                     )}
                 </button>
+
+                {!checkingLocation && !hasLocation && (
+                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm font-medium flex items-start gap-2">
+                        <span className="material-symbols-outlined text-base mt-0.5 text-amber-600">location_off</span>
+                        <span>Không lấy được vị trí hiện tại, chẩn đoán vẫn tiếp tục nhưng thiếu dữ liệu thời tiết/khu vực</span>
+                    </div>
+                )}
 
                 {error && (
                     <div className="mt-3 p-3 bg-error/10 border border-error/20 rounded-lg text-error text-sm font-medium">{error}</div>

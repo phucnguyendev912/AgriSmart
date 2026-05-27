@@ -29,20 +29,45 @@ export function LocationProvider({ children }) {
     };
 
     return new Promise((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const nextCoords = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: position.timestamp,
-          };
+      const onSuccess = (position) => {
+        const nextCoords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: position.timestamp,
+        };
 
-          setCoords(nextCoords);
-          setGpsStatus('granted');
-          resolve({ ok: true, status: 'granted', coords: nextCoords });
-        },
-        () => {
+        setCoords(nextCoords);
+        setGpsStatus('granted');
+        resolve({ ok: true, status: 'granted', coords: nextCoords });
+      };
+
+      const onError = (error) => {
+        // If it's a technical error (code 2 = unavailable, code 3 = timeout)
+        // and we requested high accuracy, try a fallback with low accuracy
+        if (error && error.code !== 1 && finalOptions.enableHighAccuracy) {
+          console.warn('High accuracy location failed. Retrying with low accuracy...', error);
+          const fallbackOptions = {
+            ...finalOptions,
+            enableHighAccuracy: false,
+            timeout: 5000, // Short timeout for fallback
+          };
+          navigator.geolocation.getCurrentPosition(
+            onSuccess,
+            (fallbackError) => {
+              console.error('Fallback location also failed:', fallbackError);
+              setCoords({
+                latitude: null,
+                longitude: null,
+                accuracy: null,
+                timestamp: null,
+              });
+              setGpsStatus('denied');
+              resolve({ ok: false, status: 'denied' });
+            },
+            fallbackOptions
+          );
+        } else {
           setCoords({
             latitude: null,
             longitude: null,
@@ -51,9 +76,10 @@ export function LocationProvider({ children }) {
           });
           setGpsStatus('denied');
           resolve({ ok: false, status: 'denied' });
-        },
-        finalOptions
-      );
+        }
+      };
+
+      navigator.geolocation.getCurrentPosition(onSuccess, onError, finalOptions);
     });
   }, []);
 

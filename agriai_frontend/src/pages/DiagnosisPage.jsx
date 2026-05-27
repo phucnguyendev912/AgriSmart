@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -42,7 +42,7 @@ const getCultivationMeasures = (result) => {
 const DiagnosisPage = () => {
     // === AUTH & LOCATION ===
     const { user } = useAuth();
-    const { requestLocation } = useLocationPermission();
+    const { gpsStatus, coords, requestLocation } = useLocationPermission();
 
     // === DIAGNOSIS STATE ===
     const [cropTypes, setCropTypes] = useState([]);
@@ -55,7 +55,7 @@ const DiagnosisPage = () => {
 
     // === LOCAL LOCATION STATE FOR DIAGNOSIS ===
     const [diagnosisCoords, setDiagnosisCoords] = useState({ latitude: null, longitude: null, accuracy: null, timestamp: null });
-    const [checkingLocation, setCheckingLocation] = useState(false);
+    const [checkingLocation, setCheckingLocation] = useState(true);
     const locationPromiseRef = useRef(null);
 
     // === RATING STATE ===
@@ -75,38 +75,61 @@ const DiagnosisPage = () => {
         fetchCropTypes();
     }, []);
 
+    // Fetch fresh GPS coordinates
+    const fetchFreshLocation = useCallback(async () => {
+        setCheckingLocation(true);
+
+        const promise = requestLocation({
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 15000,
+        });
+        locationPromiseRef.current = promise;
+
+        try {
+            const res = await promise;
+            if (res.ok && res.coords) {
+                setDiagnosisCoords({
+                    latitude: res.coords.latitude,
+                    longitude: res.coords.longitude,
+                    accuracy: res.coords.accuracy,
+                    timestamp: res.coords.timestamp,
+                });
+            } else {
+                setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+            }
+        } catch (err) {
+            console.error('Lỗi khi lấy vị trí định vị:', err);
+            setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+        } finally {
+            setCheckingLocation(false);
+        }
+    }, [requestLocation]);
+
     // Check location permission and fetch fresh GPS coordinates on component mount
     useEffect(() => {
-        const verifyAndFetchLocation = async () => {
-            setCheckingLocation(true);
+        fetchFreshLocation();
+    }, [fetchFreshLocation]);
 
-            const promise = requestLocation({
-                enableHighAccuracy: true,
-                maximumAge: 0,
-                timeout: 15000,
-            });
-            locationPromiseRef.current = promise;
-
-            try {
-                const res = await promise;
-                if (res.ok && res.coords) {
-                    setDiagnosisCoords({
-                        latitude: res.coords.latitude,
-                        longitude: res.coords.longitude,
-                        accuracy: res.coords.accuracy,
-                        timestamp: res.coords.timestamp,
-                    });
-                }
-            } catch (err) {
-                console.error('Lỗi khi lấy vị trí định vị:', err);
-            } finally {
+    // Sync with global GPS status changes (e.g. user toggles settings in browser)
+    useEffect(() => {
+        if (gpsStatus === 'denied' || gpsStatus === 'unsupported') {
+            setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+            setCheckingLocation(false);
+        } else if (gpsStatus === 'granted') {
+            if (coords.latitude && coords.longitude) {
+                setDiagnosisCoords({
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    accuracy: coords.accuracy,
+                    timestamp: coords.timestamp,
+                });
                 setCheckingLocation(false);
+            } else {
+                fetchFreshLocation();
             }
-        };
-
-        verifyAndFetchLocation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [requestLocation]);
+        }
+    }, [gpsStatus, coords, fetchFreshLocation]);
 
     // Handle image file selection and generate preview URL
     const handleFileChange = (e) => {
@@ -240,6 +263,8 @@ const DiagnosisPage = () => {
                         selectedFile={selectedFile}
                         previewUrl={previewUrl}
                         error={error}
+                        checkingLocation={checkingLocation}
+                        hasLocation={Boolean(diagnosisCoords.latitude && diagnosisCoords.longitude)}
                     />
 
                     {/* Right side: Weather + Results */}
