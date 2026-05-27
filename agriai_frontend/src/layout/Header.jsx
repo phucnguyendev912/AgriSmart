@@ -4,11 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 
 /**
- * Navbar Component
+ * Header Component
  * Renders the top navigation bar with responsive dropdown menus for both desktop
  * and mobile viewports. Connects to AuthContext for user state.
  */
-const Navbar = () => {
+const Header = () => {
   // Authentication, navigation, and menu toggle states
   const { user, logoutContext } = useAuth();
   const navigate = useNavigate();
@@ -191,4 +191,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Header;

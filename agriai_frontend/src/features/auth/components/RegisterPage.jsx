@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { register } from '../services/authService';
+import { register } from '../../../services/authService';
+
 
 /**
  * RegisterPage Component

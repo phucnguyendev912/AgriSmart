@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import FarmerStories from '../features/landing/components/FarmerReviews';
-import WeatherDiseaseSection from '../features/landing/components/WeatherDiseaseSection';
+import { FarmerReviews as FarmerStories, WeatherDiseaseSection } from '../features/landing';
 
 /**
  * HomePage Component

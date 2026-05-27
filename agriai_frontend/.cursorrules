@@ -1,0 +1,24 @@
+# Frontend rules for Cursor AI
+
+You are working in the `agriai_frontend` directory. Follow these guidelines:
+
+1. **Aesthetics & UI:**
+   - Premium, clean and scalable designs.
+   - Use HSL colors, harmonious palettes, dark mode support.
+   - No browser default layouts.
+   - Micro-animations, responsive layout.
+
+2. **Naming Conventions:**
+   - Components: PascalCase (e.g., `UserCard.jsx`).
+   - Hooks: camelCase (e.g., `useDebounce.js`).
+   - Folders: kebab-case (e.g., `user-profile/`).
+   - Utilities/files: camelCase (e.g., `formatDate.js`).
+   - Constants: SCREAMING_SNAKE (e.g., `MAX_RETRY`).
+
+3. **State Management:**
+   - React Context for shared light state.
+   - Axios instance in `src/services/api.js` for APIs. No direct Axios calls in components.
+
+4. **Exception Handling:**
+   - Never swallow exceptions silently.
+   - Consistent toast messages or UI states on error.

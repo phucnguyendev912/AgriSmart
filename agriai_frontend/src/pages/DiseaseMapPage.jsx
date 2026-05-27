@@ -3,8 +3,8 @@ import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } fr
 import { Link } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import SEO from "../components/common/SEO";
-import ClusterMarker from "../features/map/components/ClusterMarker";
-import { useMapClusters } from "../features/map/hooks/useMapClusters";
+import { ClusterMarker, useMapClusters } from "../features/map";
+
 import { getMarkers, getDiseases } from "../services/diseaseMapService";
 
 const MARKER_COLOR = "#EF4444";
