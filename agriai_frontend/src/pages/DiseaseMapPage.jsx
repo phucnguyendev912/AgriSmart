@@ -115,7 +115,7 @@ export default function DiseaseMapPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface text-on-surface">
+    <div className="flex flex-col min-h-screen bg-surface text-on-surface pt-20">
       <SEO
         title="Bản đồ cảnh báo dịch bệnh cây trồng"
         description="Theo dõi phân bố dịch bệnh cây trồng theo thời gian thực trên bản đồ tương tác."
@@ -191,7 +191,7 @@ export default function DiseaseMapPage() {
       )}
 
       {/* Map */}
-      <div className="flex-1 relative" style={{ minHeight: "500px" }}>
+      <div className="flex-1 relative z-10" style={{ minHeight: "500px" }}>
         <MapContainer
           center={[16.047079, 108.20623]}
           zoom={6}
