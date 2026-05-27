@@ -12,7 +12,9 @@ import React from 'react';
  * @param {File} props.selectedFile - Currently selected image file.
  * @param {string} props.previewUrl - Object URL for previewing selected image.
  * @param {string} props.error - Diagnostic error message, if any.
- * @param {string} props.gpsStatus - Status of geolocation permission (e.g. denied, granted).
+ * @param {boolean} props.checkingLocation - Indicates if geolocation lookup is in progress.
+ * @param {boolean} props.hasLocation - Indicates if fresh GPS coordinates are available.
+ * @param {string} props.locationError - Geolocation error message, if any.
  */
 const DiagnoseUploadPanel = ({
     onFileChange,
@@ -20,8 +22,7 @@ const DiagnoseUploadPanel = ({
     loading,
     selectedFile,
     previewUrl,
-    error,
-    gpsStatus
+    error
 }) => {
     const isUploadDisabled = loading;
 
@@ -90,13 +91,6 @@ const DiagnoseUploadPanel = ({
                         </>
                     )}
                 </button>
-
-                {(gpsStatus === 'denied' || gpsStatus === 'unsupported') && (
-                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm font-medium flex items-start gap-2">
-                        <span className="material-symbols-outlined text-base mt-0.5">location_off</span>
-                        <span>Không có dữ liệu vị trí. Một số cảnh báo thời tiết có thể không chính xác</span>
-                    </div>
-                )}
 
                 {error && (
                     <div className="mt-3 p-3 bg-error/10 border border-error/20 rounded-lg text-error text-sm font-medium">{error}</div>
