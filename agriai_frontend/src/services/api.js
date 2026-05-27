@@ -11,6 +11,11 @@ const api = axios.create({
   },
 });
 
+const TOKEN_REFRESH_SKIP_PATHS = ['/api/auth/login', '/api/auth/refresh-token'];
+
+const shouldSkipTokenRefresh = (url = '') =>
+  TOKEN_REFRESH_SKIP_PATHS.some((path) => url.includes(path));
+
 /**
  * Refreshes the authentication token using raw Axios to avoid circular dependency.
  * This is exported so authService can re-export if needed.
@@ -29,12 +34,14 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
 
     // Retry only once, do not retry the refresh token request itself
     if (
       error.response?.status === 401 &&
+      originalRequest &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes('/api/auth/refresh-token')
+      !shouldSkipTokenRefresh(requestUrl)
     ) {
       originalRequest._retry = true;
 

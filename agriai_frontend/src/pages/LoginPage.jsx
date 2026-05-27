@@ -4,6 +4,32 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { login } from '../services/authService';
 
+const INVALID_CREDENTIALS_MESSAGE = 'Email hoặc mật khẩu không đúng';
+const SYSTEM_LOGIN_ERROR_MESSAGE = 'Lỗi hệ thống hoặc kết nối máy chủ. Vui lòng thử lại sau.';
+const NETWORK_LOGIN_ERROR_MESSAGE = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng.';
+
+const getLoginErrorMessage = (error) => {
+  if (!error.response) {
+    return NETWORK_LOGIN_ERROR_MESSAGE;
+  }
+
+  const { status, data } = error.response;
+
+  if (status === 401) {
+    return data?.message || INVALID_CREDENTIALS_MESSAGE;
+  }
+
+  if (status >= 500) {
+    return SYSTEM_LOGIN_ERROR_MESSAGE;
+  }
+
+  if (typeof data === 'object') {
+    return data.message || data.error || SYSTEM_LOGIN_ERROR_MESSAGE;
+  }
+
+  return data || SYSTEM_LOGIN_ERROR_MESSAGE;
+};
+
 const LoginPage = () => {
 
   const { loginContext } = useAuth();
@@ -31,18 +57,11 @@ const LoginPage = () => {
         navigate('/home');
       }
     } catch (error) {
-      if (error.response && error.response.data) {
-        const errorData = error.response.data;
+      const errorMsg = getLoginErrorMessage(error);
+      setErrors(errorMsg);
+      toast.error(errorMsg);
 
-        if (typeof errorData === 'object') {
-          const errorMsg = errorData.message || errorData.error || 'Email hoặc mật khẩu không đúng';
-          toast.error(errorMsg);
-        } else {
-          toast.error(errorData);
-        }
-      } else {
-        setErrors('Lỗi kết nối máy chủ');
-        toast.error('Lỗi cấu hình CSDL hoặc kết nối mạng!');
+      if (!error.response || error.response.status >= 500) {
         console.error(error);
       }
     }

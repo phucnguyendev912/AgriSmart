@@ -6,4 +6,7 @@ ingress:
   - hostname: phucblog.indevs.in
     service: http://frontend:80
 
+  - hostname: admin.phucblog.indevs.in
+    service: http://admin-frontend:80
+
   - service: http_status:404
