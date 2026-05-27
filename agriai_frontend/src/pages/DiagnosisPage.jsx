@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -42,7 +42,7 @@ const getCultivationMeasures = (result) => {
 const DiagnosisPage = () => {
     // === AUTH & LOCATION ===
     const { user } = useAuth();
-    const { coords, gpsStatus, hasCoords, requestLocation } = useLocationPermission();
+    const { gpsStatus, coords, requestLocation } = useLocationPermission();
 
     // === DIAGNOSIS STATE ===
     const [cropTypes, setCropTypes] = useState([]);
@@ -52,6 +52,11 @@ const DiagnosisPage = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
+
+    // === LOCAL LOCATION STATE FOR DIAGNOSIS ===
+    const [diagnosisCoords, setDiagnosisCoords] = useState({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+    const [checkingLocation, setCheckingLocation] = useState(true);
+    const locationPromiseRef = useRef(null);
 
     // === RATING STATE ===
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
@@ -70,32 +75,61 @@ const DiagnosisPage = () => {
         fetchCropTypes();
     }, []);
 
-    // Check location permission when entering the diagnosis page
-    useEffect(() => {
-        const verifyAndFetchLocation = async () => {
-            if (hasCoords || gpsStatus === 'unsupported') return;
+    // Fetch fresh GPS coordinates
+    const fetchFreshLocation = useCallback(async () => {
+        setCheckingLocation(true);
 
-            let permState = 'prompt';
-            if (navigator.permissions) {
-                try {
-                    const perm = await navigator.permissions.query({ name: 'geolocation' });
-                    permState = perm.state;
-                } catch (e) {
-                    permState = gpsStatus;
-                }
+        const promise = requestLocation({
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 15000,
+        });
+        locationPromiseRef.current = promise;
+
+        try {
+            const res = await promise;
+            if (res.ok && res.coords) {
+                setDiagnosisCoords({
+                    latitude: res.coords.latitude,
+                    longitude: res.coords.longitude,
+                    accuracy: res.coords.accuracy,
+                    timestamp: res.coords.timestamp,
+                });
             } else {
-                permState = gpsStatus;
+                setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
             }
+        } catch (err) {
+            console.error('Lỗi khi lấy vị trí định vị:', err);
+            setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+        } finally {
+            setCheckingLocation(false);
+        }
+    }, [requestLocation]);
 
-            // If it is granted or prompt, request location automatically
-            if (permState === 'granted' || permState === 'prompt') {
-                await requestLocation();
+    // Check location permission and fetch fresh GPS coordinates on component mount
+    useEffect(() => {
+        fetchFreshLocation();
+    }, [fetchFreshLocation]);
+
+    // Sync with global GPS status changes (e.g. user toggles settings in browser)
+    useEffect(() => {
+        if (gpsStatus === 'denied' || gpsStatus === 'unsupported') {
+            setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+            setCheckingLocation(false);
+        } else if (gpsStatus === 'granted') {
+            if (coords.latitude && coords.longitude) {
+                setDiagnosisCoords({
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    accuracy: coords.accuracy,
+                    timestamp: coords.timestamp,
+                });
+                setCheckingLocation(false);
+            } else {
+                fetchFreshLocation();
             }
-        };
-
-        verifyAndFetchLocation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        }
+    }, [gpsStatus, coords, fetchFreshLocation]);
 
     // Handle image file selection and generate preview URL
     const handleFileChange = (e) => {
@@ -113,37 +147,39 @@ const DiagnosisPage = () => {
         if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
         if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
 
-        let currentCoords = coords;
-
-        // Active permission check to bypass stale gpsStatus
-        let isDenied = false;
-        if (navigator.permissions) {
-            try {
-                const perm = await navigator.permissions.query({ name: 'geolocation' });
-                isDenied = (perm.state === 'denied');
-            } catch (e) {
-                isDenied = (gpsStatus === 'denied');
-            }
-        } else {
-            isDenied = (gpsStatus === 'denied');
-        }
-
-        if (!hasCoords && !isDenied && gpsStatus !== 'unsupported') {
-            const locResult = await requestLocation();
-            if (locResult.ok) {
-                currentCoords = locResult.coords;
-            }
-        }
-
         setLoading(true);
         setError('');
         setResult(null);
 
+        let finalCoords = diagnosisCoords;
+
+        // If location is currently checking, wait for the request to resolve/timeout
+        if (checkingLocation && locationPromiseRef.current) {
+            try {
+                const res = await locationPromiseRef.current;
+                if (res.ok && res.coords) {
+                    finalCoords = {
+                        latitude: res.coords.latitude,
+                        longitude: res.coords.longitude,
+                        accuracy: res.coords.accuracy,
+                        timestamp: res.coords.timestamp,
+                    };
+                    setDiagnosisCoords(finalCoords);
+                }
+            } catch (err) {
+                console.error('Lỗi khi chờ GPS:', err);
+            }
+        }
+
         const formData = new FormData();
         formData.append('image', selectedFile);
         formData.append('cropTypeId', selectedCropTypeId);
-        if (currentCoords.latitude !== null && currentCoords.latitude !== undefined) formData.append('latitude', currentCoords.latitude);
-        if (currentCoords.longitude !== null && currentCoords.longitude !== undefined) formData.append('longitude', currentCoords.longitude);
+        if (finalCoords.latitude !== null && finalCoords.latitude !== undefined) {
+            formData.append('latitude', finalCoords.latitude);
+        }
+        if (finalCoords.longitude !== null && finalCoords.longitude !== undefined) {
+            formData.append('longitude', finalCoords.longitude);
+        }
 
         try {
             const res = await submitDiagnosis(formData);
@@ -227,7 +263,8 @@ const DiagnosisPage = () => {
                         selectedFile={selectedFile}
                         previewUrl={previewUrl}
                         error={error}
-                        gpsStatus={gpsStatus}
+                        checkingLocation={checkingLocation}
+                        hasLocation={Boolean(diagnosisCoords.latitude && diagnosisCoords.longitude)}
                     />
 
                     {/* Right side: Weather + Results */}
