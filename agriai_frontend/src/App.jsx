@@ -1,12 +1,11 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import Navbar from "./layout/Navbar";
+import Header from "./layout/Header";
 import Footer from "./layout/Footer";
 import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import { LoginPage, RegisterPage } from "./features/auth";
 import FarmingAreaPage from "./pages/FarmingAreaPage";
 import DiagnosisPage from "./pages/DiagnosisPage";
 import DiagnosisHistoryPage from "./pages/DiagnosisHistoryPage";
@@ -15,7 +14,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import DiseaseMapPage from "./pages/DiseaseMapPage";
 import ProfilePage from "./pages/ProfilePage";
 import AboutPage from "./pages/AboutPage";
-import ChatBotWidget from "./features/chat/components/ChatBotWidget";
+import { ChatBotWidget } from "./features/chat";
 import GlobalNotificationListener from "./layout/GlobalNotificationListener";
 import InitialLocationPrompt from "./layout/InitialLocationPrompt";
 import { ToastContainer } from "react-toastify";
@@ -64,7 +63,7 @@ function App() {
         <GlobalNotificationListener />
         {/* Main application layout wrapper */}
         <div className="bg-surface text-on-surface font-sans min-h-screen flex flex-col">
-          <Navbar />
+          <Header />
           {/* Router view container */}
           <div className="flex-1">
             <Routes>
