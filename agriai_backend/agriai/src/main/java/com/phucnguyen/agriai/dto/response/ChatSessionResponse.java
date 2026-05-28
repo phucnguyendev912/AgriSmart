@@ -20,7 +20,6 @@ public class ChatSessionResponse {
     private LocalDateTime lastMessageAt;
     private LocalDateTime createdAt;
 
-    // convert entity to response
     public static ChatSessionResponse fromEntity(ChatSession session) {
         return ChatSessionResponse.builder()
                 .id(session.getId())

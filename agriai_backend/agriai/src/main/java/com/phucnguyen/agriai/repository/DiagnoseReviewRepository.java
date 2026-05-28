@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-// Repository for querying DiagnoseReview entity.
 @Repository
 public interface DiagnoseReviewRepository extends JpaRepository<DiagnoseReview, Integer> {
 
@@ -21,7 +20,6 @@ public interface DiagnoseReviewRepository extends JpaRepository<DiagnoseReview, 
 
     List<DiagnoseReview> findAllByOrderByCreatedAtDesc();
 
-    // --- Admin Dashboard Queries ---
 
     @Query("SELECT COUNT(r) FROM DiagnoseReview r WHERE r.isDelete = false")
     long countTotalReviews();

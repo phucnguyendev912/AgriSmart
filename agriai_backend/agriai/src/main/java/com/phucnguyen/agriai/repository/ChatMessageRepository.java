@@ -9,11 +9,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Integer> {
-    // get all messages in a chat session (paginated, ASC for display)
     Page<ChatMessage> findByChatSessionIdAndChatSessionIsDeleteFalseOrderByCreatedAtAsc(Integer chatSessionId,
             Pageable pageable);
 
-    // get N most recent messages for LLM history (DESC — caller must reverse to ASC)
     List<ChatMessage> findByChatSessionIdAndChatSessionIsDeleteFalseOrderByCreatedAtDesc(
             Integer chatSessionId, Pageable pageable);
 }

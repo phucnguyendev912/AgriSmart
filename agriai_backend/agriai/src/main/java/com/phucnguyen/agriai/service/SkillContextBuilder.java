@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-// Service to extract relevant sections from skill markdown files based on keyword matching.
-// It prioritizes sections whose headings match disease names from the query (heading boost).
 @Service
 public class SkillContextBuilder {
 
@@ -27,7 +25,6 @@ public class SkillContextBuilder {
         this.maxContextChars = maxContextChars;
     }
 
-    // Builds a trimmed context from skill markdown by selecting the most relevant sections within a character budget.
     public String buildContext(SkillDefinition skill, String userQuery) {
         String markdown = skillRegistry.getSkillContent(skill);
         List<SkillSection> sections = splitIntoSections(markdown);
@@ -38,7 +35,6 @@ public class SkillContextBuilder {
                 .collect(Collectors.joining("\n---\n"));
     }
 
-    // Splits markdown content into separate sections based on h2 (##) or h3 (###) headers.
     List<SkillSection> splitIntoSections(String markdown) {
         String[] parts = SECTION_SPLITTER.split(markdown);
         List<SkillSection> sections = new ArrayList<>();
@@ -53,7 +49,6 @@ public class SkillContextBuilder {
         return sections;
     }
 
-    // Scores markdown sections based on the frequency of query word matches.
     // Boosts the score (+5) if a section heading matches a multi-word token (e.g., a disease name).
     List<SkillSection> scoreSections(List<SkillSection> sections, String userQuery) {
         String queryLower = userQuery.toLowerCase();
@@ -97,7 +92,6 @@ public class SkillContextBuilder {
                 .collect(Collectors.toList());
     }
 
-    // Builds consecutive word pairs (bigrams) from query tokens.
     private List<String> buildBigrams(String[] words) {
         List<String> bigrams = new ArrayList<>();
         for (int i = 0; i < words.length - 1; i++) {
@@ -108,7 +102,6 @@ public class SkillContextBuilder {
         return bigrams;
     }
 
-    // Selects the highest-scoring sections that fit within the character limit.
     List<SkillSection> selectTopSections(List<SkillSection> scoredSections) {
         List<SkillSection> selected = new ArrayList<>();
         int totalChars = 0;
@@ -122,7 +115,6 @@ public class SkillContextBuilder {
         return selected;
     }
 
-    // Extracts the heading text from a markdown section.
     private String extractHeading(String section) {
         int newline = section.indexOf('\n');
         if (newline == -1) {
@@ -131,7 +123,6 @@ public class SkillContextBuilder {
         return section.substring(0, newline).replaceAll("^#+\\s*", "").trim();
     }
 
-    // Stores a markdown section along with its heading, full content, and relevance score.
     record SkillSection(String heading, String content, int score) {
     }
 }

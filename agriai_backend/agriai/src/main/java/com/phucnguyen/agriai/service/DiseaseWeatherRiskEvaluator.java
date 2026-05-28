@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// Service to evaluate disease outbreak risks based on real-time weather conditions
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor

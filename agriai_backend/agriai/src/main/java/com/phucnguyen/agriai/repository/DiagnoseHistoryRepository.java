@@ -26,7 +26,6 @@ public interface DiagnoseHistoryRepository extends JpaRepository<DiagnoseHistory
 
     Optional<DiagnoseHistory> findByIdAndUserIdAndIsDeleteFalse(Integer id, Integer userId);
 
-    // --- Admin Dashboard Queries ---
 
     @Query("SELECT COUNT(h) FROM DiagnoseHistory h WHERE h.isDelete = false AND h.createdAt >= :from")
     long countInPeriod(@Param("from") LocalDateTime from);

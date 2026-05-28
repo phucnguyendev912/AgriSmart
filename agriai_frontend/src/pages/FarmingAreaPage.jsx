@@ -98,12 +98,12 @@ const getProvinceDisplay = (area) => {
 };
 
 const FarmingAreaPage = () => {
-    const [areas, setAreas] = useState([]); // useState: store farming areas fetched from API
-    const [loading, setLoading] = useState(true); // useState: loading state for farming areas data
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false); // useState: control add farming area modal visibility
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false); // useState: control edit farming area modal visibility
+    const [areas, setAreas] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // useCallback: memoize fetchAreas to prevent recreation on re-renders
+
     const fetchAreas = useCallback(async () => {
         try {
             setLoading(true);
@@ -117,7 +117,7 @@ const FarmingAreaPage = () => {
         }
     }, []);
 
-    // useEffect: fetch farming areas when component mounts
+
     useEffect(() => {
         fetchAreas();
     }, [fetchAreas]);

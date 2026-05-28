@@ -2,7 +2,6 @@ package com.phucnguyen.agriai.enums;
 
 import java.nio.file.Path;
 
-// 4 chatbot skills for rice crop advisory, each maps to a markdown file
 public enum SkillDefinition {
 
     DISEASE("01_nhan_dien_benh", "nhan-dien-benh-lua"),

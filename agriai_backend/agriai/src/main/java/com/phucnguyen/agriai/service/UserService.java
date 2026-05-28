@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// Service for managing user profile updates.
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -18,7 +17,6 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // Updates the profile information of the currently authenticated user.
     public UserResponse updateProfile(String email, ProfileUpdateRequest request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."));

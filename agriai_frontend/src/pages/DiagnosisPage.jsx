@@ -6,7 +6,6 @@ import SEO from '../components/common/SEO';
 import { useLocationPermission } from '../context/LocationPermissionContext';
 import { getCropTypes, submitDiagnosis } from '../services/diagnosisService';
 
-// Diagnosis sub-components
 import DiagnoseUploadPanel from '../features/diagnosis/components/DiagnoseUploadPanel';
 import DiagnoseWeatherCards from '../features/diagnosis/components/DiagnoseWeatherCards';
 import DiagnoseResultPanel from '../features/diagnosis/components/DiagnoseResultPanel';
@@ -17,11 +16,6 @@ import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuida
 import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
 import { getCultivationMeasures as getDiagnosisCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
 
-/**
- * Returns a list of cultivation measures based on the diagnosis result.
- * @param {Object} result - The diagnosis result from the backend.
- * @returns {string[]} Array of recommendation strings.
- */
 // eslint-disable-next-line no-unused-vars
 const getCultivationMeasures = (result) => {
     if (!result) return [];
@@ -33,18 +27,10 @@ const getCultivationMeasures = (result) => {
     return ['Có thể xử lý trong một đợt phun, nhưng cần đọc kỹ cảnh báo trước khi pha.'];
 };
 
-/**
- * DiagnosisPage Component
- * Handles new crop disease diagnosis requests. Users upload leaf photos,
- * select crop type, and receive AI classification, local weather context,
- * spray program schedule, and rating options.
- */
 const DiagnosisPage = () => {
-    // === AUTH & LOCATION ===
     const { user } = useAuth();
     const { gpsStatus, coords, requestLocation } = useLocationPermission();
 
-    // === DIAGNOSIS STATE ===
     const [cropTypes, setCropTypes] = useState([]);
     const [selectedCropTypeId, setSelectedCropTypeId] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
@@ -53,16 +39,13 @@ const DiagnosisPage = () => {
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
 
-    // === LOCAL LOCATION STATE FOR DIAGNOSIS ===
     const [diagnosisCoords, setDiagnosisCoords] = useState({ latitude: null, longitude: null, accuracy: null, timestamp: null });
     const [checkingLocation, setCheckingLocation] = useState(true);
     const locationPromiseRef = useRef(null);
 
-    // === RATING STATE ===
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [showToast, setShowToast] = useState(false);
 
-    // Fetch crop types on component mount
     useEffect(() => {
         const fetchCropTypes = async () => {
             try {
@@ -75,7 +58,6 @@ const DiagnosisPage = () => {
         fetchCropTypes();
     }, []);
 
-    // Fetch fresh GPS coordinates
     const fetchFreshLocation = useCallback(async () => {
         setCheckingLocation(true);
 
@@ -106,7 +88,6 @@ const DiagnosisPage = () => {
         }
     }, [requestLocation]);
 
-    // Check location permission and fetch fresh GPS coordinates on component mount
     useEffect(() => {
         fetchFreshLocation();
     }, [fetchFreshLocation]);
@@ -131,7 +112,6 @@ const DiagnosisPage = () => {
         }
     }, [gpsStatus, coords, fetchFreshLocation]);
 
-    // Handle image file selection and generate preview URL
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -142,7 +122,6 @@ const DiagnosisPage = () => {
         }
     };
 
-    // Submit image, crop type ID, and location for AI diagnosis
     const submitDiagnose = async () => {
         if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
         if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
@@ -153,7 +132,7 @@ const DiagnosisPage = () => {
 
         let finalCoords = diagnosisCoords;
 
-        // If location is currently checking, wait for the request to resolve/timeout
+        // Wait for pending location check before submitting
         if (checkingLocation && locationPromiseRef.current) {
             try {
                 const res = await locationPromiseRef.current;

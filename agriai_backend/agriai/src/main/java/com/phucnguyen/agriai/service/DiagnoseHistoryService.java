@@ -34,7 +34,6 @@ import com.phucnguyen.agriai.mapper.TreatmentMapper;
 import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 
-// Service handling queries and retrieval of diagnosis history details
 @RequiredArgsConstructor
 @Service
 @Transactional

@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// Service for managing chat sessions.
 // Handles session creation, retrieval, soft deleting, and automatic title generation.
 @Service
 @Transactional
@@ -33,7 +32,6 @@ public class ChatSessionService {
         this.userRepository = userRepository;
     }
 
-    // Creates a new chat session. If no custom title is provided, a default title is used.
     public ChatSessionResponse createSession(String email, CreateChatSessionRequest request) {
         User user = getUserByEmail(email);
         ChatSession session = ChatSession.builder()
@@ -44,7 +42,6 @@ public class ChatSessionService {
         return ChatSessionResponse.fromEntity(saved);
     }
 
-    // Retrieves paginated chat sessions belonging to a specific user, sorted by recency.
     @Transactional(readOnly = true)
     public Page<ChatSessionResponse> getSessions(String email, Pageable pageable) {
         User user = getUserByEmail(email);
@@ -73,7 +70,6 @@ public class ChatSessionService {
                 .build();
     }
 
-    // Updates the last message content and timestamp for a session.
     public ChatSession updateLastMessage(ChatSession session, String lastMessage, LocalDateTime timestamp) {
         session.setLastMessage(lastMessage);
         session.setLastMessageAt(timestamp);

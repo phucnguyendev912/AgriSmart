@@ -34,11 +34,6 @@ function formatRelativeTime(dateStr) {
   return `${days} ngày trước`;
 }
 
-/**
- * ChatBotWidget Component
- * Provides an overlay chatbot widget for user interactions. Features AI-powered response suggestions,
- * context-specific agricultural skill selections, and persistent history session management.
- */
 const ChatBotWidget = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -49,7 +44,6 @@ const ChatBotWidget = () => {
   const [sessionTitle, setSessionTitle] = useState('Trợ lý AgriAI');
   const [isTyping, setIsTyping] = useState(false);
 
-  // history panel state
   const [showHistory, setShowHistory] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -112,7 +106,6 @@ const ChatBotWidget = () => {
   }, [isOpen, activeSessionId]);
 
 
-  // load history sessions list
   const loadHistory = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
@@ -130,7 +123,6 @@ const ChatBotWidget = () => {
     setShowHistory((prev) => !prev);
   };
 
-  // switch to a session from history
   const handleSelectSession = async (session) => {
     if (isLoadingSession || session.id === activeSessionId) {
       setShowHistory(false);
@@ -162,7 +154,6 @@ const ChatBotWidget = () => {
       userMessageCountRef.current = 0;
       setInput('');
       setSelectedSkill('DISEASE');
-      // prepend new session to history list
       setSessions((prev) => [createdSession, ...prev.filter((s) => s.id !== createdSession.id)]);
       setShowHistory(false);
     } catch (error) {
@@ -176,8 +167,7 @@ const ChatBotWidget = () => {
     const createdSession = await createChatSession({});
     setActiveSessionId(createdSession.id);
     userMessageCountRef.current = 0;
-    // Prepend new session to the history list
-    setSessions((prev) => [createdSession, ...prev.filter((s) => s.id !== createdSession.id)]);
+      setSessions((prev) => [createdSession, ...prev.filter((s) => s.id !== createdSession.id)]);
     return createdSession.id;
   };
 
@@ -209,7 +199,6 @@ const ChatBotWidget = () => {
           setSessions(refreshed.content);
         }
       } else {
-        // update last message in history list if not first message
         setSessions((prev) =>
           prev.map((s) =>
             s.id === sessionId

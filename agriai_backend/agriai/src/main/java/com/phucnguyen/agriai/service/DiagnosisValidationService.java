@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-// Service to validate inputs for the crop diagnosis requests
 @Service
 @RequiredArgsConstructor
 public class DiagnosisValidationService {

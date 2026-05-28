@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-// Controller for handling user authentication, including registration, login, logout, and token refresh
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -20,13 +19,11 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    // Register a new user in the system
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
-    // Authenticate user and issue access and refresh tokens via HttpOnly cookies for security
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResponse lr = authService.login(request);
@@ -47,7 +44,6 @@ public class AuthController {
                  .build());
     }
 
-    // Generate a new access token using the HttpOnly refresh token cookie
     @PostMapping("/refresh-token")
     public ResponseEntity<LoginResponse> refresh(
             @CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
@@ -65,7 +61,6 @@ public class AuthController {
                 .build());
     }
 
-    // Clear access and refresh token cookies to log the user out
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie a = new Cookie("accessToken", null);

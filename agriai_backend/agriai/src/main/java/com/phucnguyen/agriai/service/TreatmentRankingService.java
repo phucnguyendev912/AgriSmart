@@ -31,7 +31,6 @@ public class TreatmentRankingService {
         this.maxDiseases = maxDiseases;
     }
 
-    // Ranks treatment plans for each disease context using AI evaluations.
     public List<TreatmentDTO> rankPlans(Map<Integer, List<TreatmentPlan>> plansByDisease,
             List<DiseaseContextDTO> diseases, WeatherDTO weather) {
         

@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-// Service handling user submission and retrieval of diagnosis feedback reviews
 @Service
 @RequiredArgsConstructor
 @Transactional
