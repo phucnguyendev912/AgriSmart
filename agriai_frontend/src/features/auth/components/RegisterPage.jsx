@@ -21,6 +21,8 @@ const RegisterPage = () => {
   });
 
   const [formErrors, setFormErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
@@ -176,14 +178,23 @@ const RegisterPage = () => {
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
                   <input
-                    className="w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary transition-all text-on-surface text-base"
+                    className="w-full pl-11 pr-11 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary transition-all text-on-surface text-base"
                     id="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     required
                     value={formData.password}
                     onChange={handleChange}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  >
+                    <span className="material-symbols-outlined">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                  </button>
                 </div>
               </div>
 
@@ -194,14 +205,23 @@ const RegisterPage = () => {
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">lock_reset</span>
                   <input
-                    className={`w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 transition-all text-on-surface text-base ${formErrors.confirm_password ? 'focus:ring-error ring-2 ring-error/50' : 'focus:ring-primary'}`}
+                    className={`w-full pl-11 pr-11 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 transition-all text-on-surface text-base ${formErrors.confirm_password ? 'focus:ring-error ring-2 ring-error/50' : 'focus:ring-primary'}`}
                     id="passwordConfirm"
-                    type="password"
+                    type={showPasswordConfirm ? 'text' : 'password'}
                     placeholder="••••••••"
                     required
                     value={formData.passwordConfirm}
                     onChange={handleChange}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordConfirm(prev => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+                    tabIndex={-1}
+                    aria-label={showPasswordConfirm ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  >
+                    <span className="material-symbols-outlined">{showPasswordConfirm ? 'visibility_off' : 'visibility'}</span>
+                  </button>
                 </div>
                 {formErrors.confirm_password && (
                   <p className="text-error text-xs flex items-center gap-1 mt-1 ml-1 font-medium">
