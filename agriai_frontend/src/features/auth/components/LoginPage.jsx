@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuth } from '../context/AuthContext';
-import { login } from '../services/authService';
+import { useAuth } from '../../../context/AuthContext';
+import { login } from '../../../services/authService';
+
 
 const INVALID_CREDENTIALS_MESSAGE = 'Email hoặc mật khẩu không đúng';
 const SYSTEM_LOGIN_ERROR_MESSAGE = 'Lỗi hệ thống hoặc kết nối máy chủ. Vui lòng thử lại sau.';

@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getDiagnosisDetail } from '../services/diagnosisService';
-import DiagnoseWeatherCards from '../features/diagnosis/components/DiagnoseWeatherCards';
-import DiagnoseResultPanel from '../features/diagnosis/components/DiagnoseResultPanel';
-import DiagnoseSprayProgramsPanel from '../features/diagnosis/components/DiagnoseSprayProgramsPanel';
-import DiagnoseInteractionWarnings from '../features/diagnosis/components/DiagnoseInteractionWarnings';
-import DiagnoseCultivationMeasures from '../features/diagnosis/components/DiagnoseCultivationMeasures';
-import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuidance';
-import { getCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
+import {
+    DiagnoseWeatherCards,
+    DiagnoseResultPanel,
+    DiagnoseSprayProgramsPanel,
+    DiagnoseInteractionWarnings,
+    DiagnoseCultivationMeasures,
+    DiagnoseAIGuidance,
+    getCultivationMeasures
+} from '../features/diagnosis';
 
 const SESSION_EXPIRED_MESSAGE = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xem lịch sử chẩn đoán.';
 

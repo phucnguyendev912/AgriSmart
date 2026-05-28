@@ -6,15 +6,17 @@ import SEO from '../components/common/SEO';
 import { useLocationPermission } from '../context/LocationPermissionContext';
 import { getCropTypes, submitDiagnosis } from '../services/diagnosisService';
 
-import DiagnoseUploadPanel from '../features/diagnosis/components/DiagnoseUploadPanel';
-import DiagnoseWeatherCards from '../features/diagnosis/components/DiagnoseWeatherCards';
-import DiagnoseResultPanel from '../features/diagnosis/components/DiagnoseResultPanel';
-import DiagnoseSprayProgramsPanel from '../features/diagnosis/components/DiagnoseSprayProgramsPanel';
-import DiagnoseInteractionWarnings from '../features/diagnosis/components/DiagnoseInteractionWarnings';
-import DiagnoseCultivationMeasures from '../features/diagnosis/components/DiagnoseCultivationMeasures';
-import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuidance';
-import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
-import { getCultivationMeasures as getDiagnosisCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
+import {
+    DiagnoseUploadPanel,
+    DiagnoseWeatherCards,
+    DiagnoseResultPanel,
+    DiagnoseSprayProgramsPanel,
+    DiagnoseInteractionWarnings,
+    DiagnoseCultivationMeasures,
+    DiagnoseAIGuidance,
+    DiagnosisRatingModal,
+    getCultivationMeasures as getDiagnosisCultivationMeasures
+} from '../features/diagnosis';
 
 // eslint-disable-next-line no-unused-vars
 const getCultivationMeasures = (result) => {

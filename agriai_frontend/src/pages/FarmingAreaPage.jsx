@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getAreas, deleteArea } from '../services/farmingAreaService';
 
-import AddFarmingAreaModal from '../features/farmingArea/components/AddFarmingAreaModal';
-import EditFarmingAreaModal from '../features/farmingArea/components/EditFarmingAreaModal';
+import { AddFarmingAreaModal, EditFarmingAreaModal } from '../features/farming-area';
+
 
 // Tọa độ trung tâm của các tỉnh/thành phố Việt Nam
 const PROVINCE_COORDS = [
