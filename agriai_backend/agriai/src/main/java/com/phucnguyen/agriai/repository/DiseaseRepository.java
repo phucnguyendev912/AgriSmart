@@ -12,13 +12,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DiseaseRepository extends JpaRepository<Disease, Integer> {
-    // Find by diseaseCode (case insensitive)
     Optional<Disease> findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(String diseaseCode);
 
-    // Find by diseaseNameEn (case insensitive)
     Optional<Disease> findByDiseaseNameEnIgnoreCaseAndIsDeleteFalse(String diseaseNameEn);
 
-    // Find by diseaseName (case insensitive)
     Optional<Disease> findByDiseaseNameIgnoreCaseAndIsDeleteFalse(String diseaseName);
 
     List<Disease> findByCropTypeIdAndIsDeleteFalse(Integer cropTypeId);

@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// Service to look up and group treatment plans for specified diseases.
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -37,7 +36,6 @@ public class TreatmentLookupService {
                 .toList();
     }
 
-    // Retrieves treatment plans for multiple disease IDs, grouped by disease ID.
     public Map<Integer, List<TreatmentPlan>> findByDiseaseIds(List<Integer> diseaseIds) {
         if (diseaseIds == null || diseaseIds.isEmpty()) {
             return Map.of();

@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// Service handling operations related to farming areas belonging to farmers
 @Service
 public class AreaInforService {
 

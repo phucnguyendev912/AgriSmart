@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.GetMapping;
 
-// Controller for managing user reviews and feedback on AI diagnosis results
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
@@ -19,7 +18,6 @@ public class DiagnoseReviewController {
 
     private final DiagnoseReviewService reviewService;
 
-    // Submit a review or feedback for a specific diagnosis session
     @PostMapping
     public ResponseEntity<DiagnoseReviewResponse> submitReview(
             Principal principal,
@@ -28,7 +26,6 @@ public class DiagnoseReviewController {
         return ResponseEntity.ok(reviewService.submitReview(email, request));
     }
 
-    // Get the review details of a specific diagnosis session by history ID
     @GetMapping("/{historyId}")
     public ResponseEntity<DiagnoseReviewResponse> getReview(@PathVariable Integer historyId) {
         Optional<DiagnoseReviewResponse> review = reviewService.getByHistoryId(historyId);
@@ -36,7 +33,6 @@ public class DiagnoseReviewController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Get all diagnosis reviews submitted by users
     @GetMapping("/all")
     public ResponseEntity<List<DiagnoseReviewResponse>> getAllReview() {
         return ResponseEntity.ok(reviewService.getAllReview());

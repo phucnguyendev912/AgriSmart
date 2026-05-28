@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// Service for managing chat messages inside a chat session.
 // It handles saving user/AI messages and retrieving chat history.
 @Service
 @Transactional
@@ -28,8 +27,6 @@ public class ChatMessageService {
         this.chatSessionService = chatSessionService;
     }
 
-    // Retrieves paginated chat messages for a specific session.
-    // Validates that the session belongs to the user and is not deleted.
     @Transactional(readOnly = true)
     public Page<ChatMessageResponse> getMessages(String email, Integer sessionId, Pageable pageable) {
         ChatSession session = chatSessionService.getSessionOrThrow(email, sessionId);
@@ -37,8 +34,6 @@ public class ChatMessageService {
                 pageable).map(ChatMessageResponse::fromEntity);
     }
 
-    // Retrieves the last N messages to provide context history for the AI model.
-    // Returns messages in chronological order (oldest first).
     @Transactional(readOnly = true)
     public List<ChatMessage> getRecentMessages(ChatSession session, int limit) {
         Pageable pageable = PageRequest.of(0, limit);

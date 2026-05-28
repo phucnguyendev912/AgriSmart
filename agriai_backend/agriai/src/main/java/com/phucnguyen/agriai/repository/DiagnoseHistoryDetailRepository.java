@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface DiagnoseHistoryDetailRepository extends JpaRepository<DiagnoseHistoryDetail, Integer> {
     List<DiagnoseHistoryDetail> findByDiagnoseHistoryIdAndIsDeleteFalse(Integer diagnoseHistoryId);
 
-    // --- Admin Dashboard Queries ---
 
     @Query("SELECT COUNT(d) FROM DiagnoseHistoryDetail d WHERE d.isDelete = false")
     long countTotalDiagnoses();

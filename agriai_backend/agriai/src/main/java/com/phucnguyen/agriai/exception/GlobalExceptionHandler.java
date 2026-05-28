@@ -33,79 +33,67 @@ public class GlobalExceptionHandler {
     private static final String INVALID_CREDENTIALS_MESSAGE = "Tài khoản hoặc mật khẩu không chính xác.";
     private static final String DISABLED_ACCOUNT_MESSAGE = "Tài khoản đã bị vô hiệu hóa.";
 
-    // Handle application-specific business exceptions (e.g. Auth, Diagnose, Area, Chat)
     @ExceptionHandler(AppException.class)
     public ResponseEntity<Map<String, Object>> handleAppException(AppException ex) {
         log.warn("[AppException] status={} message={}", ex.getStatus(), ex.getMessage());
         return buildError(ex.getStatus(), ex.getMessage());
     }
 
-    // Handle invalid username or password during login
     @ExceptionHandler({ BadCredentialsException.class, UsernameNotFoundException.class })
     public ResponseEntity<Map<String, Object>> handleBadCredentials(AuthenticationException ex) {
         return buildError(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS_MESSAGE);
     }
 
-    // Handle inactive accounts separately from invalid credentials
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<Map<String, Object>> handleDisabledAccount(DisabledException ex) {
         return buildError(HttpStatus.UNAUTHORIZED, DISABLED_ACCOUNT_MESSAGE);
     }
 
-    // Handle internal authentication failures without reporting them as wrong credentials
     @ExceptionHandler({ InternalAuthenticationServiceException.class, AuthenticationServiceException.class })
     public ResponseEntity<Map<String, Object>> handleAuthenticationService(AuthenticationException ex) {
         log.error("[AuthenticationServiceException] {}", ex.getMessage(), ex);
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
     }
 
-    // Handle other authentication errors
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex) {
         return buildError(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS_MESSAGE);
     }
 
-    // Handle access authorization issues (e.g. USER trying to call ADMIN endpoints)
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(
             org.springframework.security.access.AccessDeniedException ex) {
         return buildError(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này.");
     }
 
-    // Handle database integrity violations (e.g. duplicate email address on registration)
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
         log.warn("[DataIntegrityViolation] {}", ex.getMostSpecificCause().getMessage());
         return buildError(HttpStatus.CONFLICT, "Dữ liệu bị trùng lặp hoặc vi phạm ràng buộc của hệ thống.");
     }
 
-    // Handle file upload size limit exceeded errors (configured in spring.servlet.multipart.max-file-size)
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
         return buildError(HttpStatus.PAYLOAD_TOO_LARGE, INVALID_IMAGE_MESSAGE);
     }
 
-    // Handle invalid multipart file requests (e.g. missing file or wrong content-type)
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<Map<String, Object>> handleMultipart(MultipartException ex) {
         return buildError(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
     }
 
-    // Handle invalid JSON body formatting errors that cannot be parsed
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleNotReadable(
             org.springframework.http.converter.HttpMessageNotReadableException ex) {
         return buildError(HttpStatus.BAD_REQUEST, "Dữ liệu gửi lên không đọc được hoặc sai định dạng JSON.");
     }
 
-    // Handle missing required HTTP query parameters
     @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, Object>> handleMissingParam(
             org.springframework.web.bind.MissingServletRequestParameterException ex) {
         return buildError(HttpStatus.BAD_REQUEST, "Thiếu tham số bắt buộc: " + ex.getParameterName());
     }
 
-    // Handle validation constraints on DTO parameters marked with @Valid
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
@@ -126,21 +114,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
-    // Handle routing errors for requests to non-existent endpoints
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoResource(
             org.springframework.web.servlet.resource.NoResourceFoundException ex) {
         return buildError(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên yêu cầu.");
     }
 
-    // Handle unexpected runtime exceptions and Cloudinary upload errors
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
         log.error("[RuntimeException] {}", ex.getMessage(), ex);
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
     }
 
-    // Fallback to handle any other unexpected checked exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("[UnhandledException] {}", ex.getMessage(), ex);

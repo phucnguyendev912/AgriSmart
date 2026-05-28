@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DrugInteractionRepository extends JpaRepository<DrugInteraction, Integer> {
-    // get all drug interaction between ingredients
     @Query("SELECT di FROM DrugInteraction di WHERE di.isDelete = false " +
             "AND ((di.ingredientA.id IN :ids AND di.ingredientB.id IN :ids))")
     List<DrugInteraction> findInteractionsBetweenIngredients(@Param("ids") List<Integer> ingredientIds);

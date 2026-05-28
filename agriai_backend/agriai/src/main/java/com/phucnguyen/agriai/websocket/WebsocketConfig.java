@@ -40,7 +40,6 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    // Interceptor to authenticate WebSocket connections
     public void configureClientInboundChannel(
             ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {

@@ -1,45 +1,24 @@
 import { Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 
-/**
- * Returns background and ring colors for the cluster bubble based on marker count.
- * Green -> Low, Yellow -> Medium, Red -> High.
- * @param {number} count - Number of points in cluster.
- * @returns {{bg: string, ring: string}} CSS color values.
- */
 function getClusterColor(count) {
   if (count >= 50) return { bg: "#EF4444", ring: "#FCA5A5" }; // Red
   if (count >= 10) return { bg: "#F59E0B", ring: "#FDE68A" }; // Yellow
   return { bg: "#22C55E", ring: "#86EFAC" };                  // Green
 }
 
-/**
- * Calculates the bubble diameter based on count (min 36px, max 64px).
- * @param {number} count - Number of points in cluster.
- * @returns {number} Diameter in pixels.
- */
 function getClusterSize(count) {
   return Math.min(36 + Math.log2(count + 1) * 6, 64);
 }
 
-/**
- * ClusterMarker Component
- * Renders a custom cluster bubble on the map.
- * Clicking the bubble flies the map into the cluster's bounding area.
- *
- * @param {Object} props
- * @param {Object} props.cluster - GeoJSON Feature cluster from supercluster.
- * @param {Object} props.supercluster - Supercluster instance.
- */
 export default function ClusterMarker({ cluster, supercluster }) {
   const map = useMap();
 
-  const [lng, lat] = cluster.geometry.coordinates; // Coordinates are formatted as [lng, lat] by supercluster
+  const [lng, lat] = cluster.geometry.coordinates;
   const { point_count: count } = cluster.properties;
   const { bg, ring } = getClusterColor(count);
   const size = getClusterSize(count);
 
-  // Creates custom HTML div for the Leaflet cluster icon
   const icon = L.divIcon({
     html: `
       <div style="
@@ -69,7 +48,6 @@ export default function ClusterMarker({ cluster, supercluster }) {
     iconAnchor: L.point(size / 2, size / 2),
   });
 
-  // Zooms into the cluster area on click
   function handleClick() {
     const expansionZoom = Math.min(
       supercluster.getClusterExpansionZoom(cluster.id),

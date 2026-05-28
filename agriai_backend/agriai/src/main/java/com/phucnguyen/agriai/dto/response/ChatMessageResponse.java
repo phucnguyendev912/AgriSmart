@@ -14,14 +14,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// response for chat message
 public class ChatMessageResponse {
     private Integer id;
     private SenderType senderType;
     private String messageContent;
     private LocalDateTime createdAt;
 
-    // convert entity to response
     public static ChatMessageResponse fromEntity(ChatMessage message) {
         return ChatMessageResponse.builder()
                 .id(message.getId())

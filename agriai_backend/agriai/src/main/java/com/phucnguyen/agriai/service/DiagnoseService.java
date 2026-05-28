@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-// Service coordinating the crop diagnosis pipeline using vision analysis, weather data, and rule engine
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -49,7 +48,6 @@ public class DiagnoseService {
     private final DiagnoseHistoryPersistenceService historyPersistenceService;
     private final GeocodingService geocodingService;
 
-    // Main entry point to diagnose a crop image and return treatment guidelines
     public DiagnoseResponse diagnose(String email, DiagnoseRequest request) {
         DiagnosisValidationService.DiagnosisContext context = diagnosisValidationService.validate(email, request);
         boolean isAuthenticated = context.user() != null;
@@ -119,7 +117,6 @@ public class DiagnoseService {
                 .toList();
     }
 
-    // Fetch current weather data based on GPS coordinates safely
     private WeatherDTO fetchWeatherSafely(DiagnoseRequest request) {
         if (!request.hasGps()) {
             return null;
@@ -133,7 +130,6 @@ public class DiagnoseService {
         }
     }
 
-    // Run reverse geocoding asynchronously in the background
     private void runGeocodingInBackground(
             DiagnosisValidationService.DiagnosisContext context,
             DiagnoseRequest request) {
@@ -153,7 +149,6 @@ public class DiagnoseService {
         });
     }
 
-    // Mark the diagnosis history status as FAILED in database
     private void markHistoryFailed(DiagnoseHistory history) {
         if (history == null) {
             return;
@@ -163,7 +158,6 @@ public class DiagnoseService {
         diagnoseHistoryRepository.save(history);
     }
 
-    // Filter and group raw AI vision results to identify valid diseases
     private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults) {
         List<VisionResultDTO> safeResults = visionResults != null ? visionResults : List.of();
         boolean containsHealthyLabel = safeResults.stream()
@@ -196,7 +190,6 @@ public class DiagnoseService {
         return new DetectedDiseaseMatch(diseaseOptional.get(), result);
     }
 
-    // Normalize label string to lowercase and replace spaces with underscores
     private String normalizeLabel(String label) {
         return label.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }

@@ -6,8 +6,6 @@ import java.util.List;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-// Service to classify user agricultural queries into specific skills.
-// It prioritizes fast keyword matching first, falling back to LLM classification if needed.
 @Service
 public class IntentClassifier {
 
@@ -40,7 +38,6 @@ public class IntentClassifier {
         this.chatModel = chatModel;
     }
 
-    // Classifies the user query into an IntentResult.
     public IntentResult classify(String userQuery) {
         // Try keyword matching first to save tokens and improve response time.
         IntentResult keywordResult = classifyByKeyword(userQuery);
@@ -58,7 +55,6 @@ public class IntentClassifier {
         return keywordResult;
     }
 
-    // Scores each skill based on keyword matches and returns the highest scoring match.
     IntentResult classifyByKeyword(String userQuery) {
         String queryLower = userQuery.toLowerCase();
 
@@ -96,7 +92,6 @@ public class IntentClassifier {
         return new IntentResult(bestSkill, confidence, Source.KEYWORD);
     }
 
-    // Sends the query to the LLM for classification.
     IntentResult classifyByLLM(String userQuery) {
         if (chatModel == null) {
             return null;
@@ -121,7 +116,6 @@ public class IntentClassifier {
         return SkillDefinition.DISEASE;
     }
 
-    // Representation of the intent classification outcome.
     public record IntentResult(SkillDefinition primarySkill, Confidence confidence, Source source) {
     }
 

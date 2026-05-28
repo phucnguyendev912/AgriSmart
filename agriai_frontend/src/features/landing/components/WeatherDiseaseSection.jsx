@@ -9,19 +9,10 @@ import {
   findProvinceByName,
 } from '../../../utils/vietnamProvinces';
 
-/**
- * Skeleton loading placeholder component.
- */
 const Skeleton = ({ className }) => (
   <div className={`bg-slate-100 rounded-xl animate-pulse ${className}`} />
 );
 
-/**
- * Formats a numeric weather metric with a suffix.
- * @param {number|string} value - The metric value.
- * @param {string} suffix - The unit (e.g., °C, %).
- * @returns {string} Formatted string.
- */
 const formatMetric = (value, suffix) => {
   if (value === null || value === undefined || value === '') return '--';
   return `${Math.round(Number(value))}${suffix}`;
@@ -30,11 +21,6 @@ const formatMetric = (value, suffix) => {
 const STORAGE_KEY = 'agriai_selected_province_id';
 const GPS_STORAGE_KEY = 'agriai_last_gps_location';
 
-/**
- * Maps raw backend disease risk data to the frontend display model.
- * @param {Object} risk - Raw risk data from API.
- * @returns {Object} Formatted disease object.
- */
 const mapRiskToDisease = (risk) => ({
   id: risk.diseaseId || risk.conditionGroup || risk.diseaseName,
   name: risk.diseaseName || 'Bệnh cây trồng',
@@ -46,28 +32,19 @@ const mapRiskToDisease = (risk) => ({
     || 'Thời tiết hiện tại thuận lợi cho bệnh phát triển.',
 });
 
-/**
- * WeatherDiseaseSection Component
- * Displays local weather metrics and forecasts crop disease risks based
- * on temperature, humidity, and precipitation. Integrates GPS reverse geocoding.
- */
 const WeatherDiseaseSection = () => {
-  // Location permission and GPS tracking
   const { coords, gpsStatus, hasCoords, requestLocation } = useLocationPermission();
   
-  // Weather metrics and disease list state
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [weather, setWeather] = useState(null);
   const [diseases, setDiseases] = useState([]);
   const [selectedDisease, setSelectedDisease] = useState(null);
   
-  // Async UI status states
   const [isLocating, setIsLocating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
 
-  // Fetches weather metrics and disease risks from backend API using lat/lon coordinates
   const loadWeather = useCallback(async (province) => {
     setIsLoading(true);
     setError(null);
@@ -84,7 +61,6 @@ const WeatherDiseaseSection = () => {
     }
   }, []);
 
-  // Matches coordinates with a province using reverse geocoding, falls back to nearest province
   const applyCurrentLocation = useCallback(async (latitude, longitude) => {
     const name = await reverseGeocode(latitude, longitude).catch(() => '');
     const province = findProvinceByName(name) || findNearestProvince(latitude, longitude);
@@ -97,7 +73,6 @@ const WeatherDiseaseSection = () => {
     setSelectedProvince({ ...province, lat: latitude, lon: longitude });
   }, []);
 
-  // Restores previously saved GPS coordinates or province ID, otherwise defaults to GPS/geolocation coordinates
   useEffect(() => {
     const savedGps = localStorage.getItem(GPS_STORAGE_KEY);
     if (savedGps) {
@@ -135,12 +110,10 @@ const WeatherDiseaseSection = () => {
     setSelectedProvince(DEFAULT_PROVINCE);
   }, [applyCurrentLocation, coords.latitude, coords.longitude, hasCoords]);
 
-  // Refetches weather and disease data whenever the selected province changes
   useEffect(() => {
     if (selectedProvince) loadWeather(selectedProvince);
   }, [selectedProvince, loadWeather]);
 
-  // Requests GPS access, reverse geocodes coordinates, and updates active province weather data
   const handleAllowLocation = async () => {
     setIsLocating(true);
     const result = await requestLocation();
@@ -151,7 +124,6 @@ const WeatherDiseaseSection = () => {
     setIsLocating(false);
   };
 
-  // Closes location permission modal and falls back to default province if none selected
   const handleContinueWithoutLocation = () => {
     if (!selectedProvince) {
       setSelectedProvince(DEFAULT_PROVINCE);

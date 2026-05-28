@@ -22,7 +22,6 @@ public class ChatQueryModeClassifier {
             "bị sao", "không biết bệnh gì", "có vết", "xuất hiện", "đang bị",
             "mới thấy", "phát hiện", "lá tôi", "bẹ tôi");
 
-    // Classifies the user query into either KNOWLEDGE_QUERY or DIAGNOSIS_CASE.
     public ChatQueryMode classify(String userQuery) {
         String lower = userQuery.toLowerCase();
 

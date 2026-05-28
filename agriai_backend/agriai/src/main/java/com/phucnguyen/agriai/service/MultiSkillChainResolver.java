@@ -7,17 +7,14 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 
-// Service to resolve whether a query needs chaining to a secondary skill (up to 2 skills maximum).
 @Service
 public class MultiSkillChainResolver {
 
-    // Pre-defined mapping of primary skills to their potential secondary skills.
     private static final Map<SkillDefinition, SkillDefinition> CHAIN_RULES = Map.of(
             SkillDefinition.DISEASE, SkillDefinition.TREATMENT,
             SkillDefinition.TREATMENT, SkillDefinition.CONFLICT
     );
 
-    // Keywords indicating that the user is interested in the secondary skill.
     private static final Map<SkillDefinition, List<String>> CHAIN_TRIGGERS = Map.of(
             SkillDefinition.DISEASE, List.of(
                     "trị", "thuốc", "phun", "chữa", "điều trị", "xử lý"),
@@ -25,7 +22,6 @@ public class MultiSkillChainResolver {
                     "trộn", "pha", "kết hợp", "xung đột", "phối hợp")
     );
 
-    // Resolves the list of skills (either one or two) to run based on the primary skill and user query keywords.
     public List<SkillDefinition> resolve(SkillDefinition primary, String userQuery) {
         List<SkillDefinition> skills = new ArrayList<>();
         skills.add(primary);

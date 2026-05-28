@@ -6,12 +6,12 @@ import { updateProfile } from '../services/userService';
 import { toast } from 'react-toastify';
 
 export default function ProfilePage() {
-  const { user, updateUserContext } = useAuth(); // useAuth: get user info and update profile context
-  const [fullName, setFullName] = useState(user?.fullName || ''); // useState: store full name input value
-  const [email] = useState(user?.email || ''); // useState: read-only email display
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || ''); // useState: store phone number input value
-  const [errors, setErrors] = useState({}); // useState: store form validation errors
-  const [isUpdating, setIsUpdating] = useState(false); // useState: track API update submission state
+  const { user, updateUserContext } = useAuth();
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email] = useState(user?.email || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [errors, setErrors] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const validate = () => {
     const newErrors = {};

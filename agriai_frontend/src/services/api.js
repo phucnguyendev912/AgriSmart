@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || '';
 
-// Common Axios instance for all internal API calls
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
@@ -16,10 +15,6 @@ const TOKEN_REFRESH_SKIP_PATHS = ['/api/auth/login', '/api/auth/refresh-token'];
 const shouldSkipTokenRefresh = (url = '') =>
   TOKEN_REFRESH_SKIP_PATHS.some((path) => url.includes(path));
 
-/**
- * Refreshes the authentication token using raw Axios to avoid circular dependency.
- * This is exported so authService can re-export if needed.
- */
 export const refreshToken = async () => {
   const response = await axios.post(
     `${API_URL}/api/auth/refresh-token`,
@@ -29,7 +24,6 @@ export const refreshToken = async () => {
   return response.data;
 };
 
-// Response interceptor: automatically refreshes token on 401 Unauthorized
 api.interceptors.response.use(
   (response) => response,
   async (error) => {

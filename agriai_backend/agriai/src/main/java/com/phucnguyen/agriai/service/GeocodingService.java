@@ -11,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-// Service for processing background geocoding requests.
-// It retrieves location names from coordinates and notifies users via WebSockets.
 @Slf4j
 @Service
 @RequiredArgsConstructor

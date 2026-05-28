@@ -12,7 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// response for soft delete chat session
 public class SoftDeleteChatSessionResponse {
     private Integer id;
     private Boolean isDelete;

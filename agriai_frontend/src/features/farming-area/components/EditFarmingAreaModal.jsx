@@ -31,17 +31,6 @@ const normalizeProvince = (provinceName) => {
 };
 
 
-/**
- * EditFarmingAreaModal Component
- * Modal dialog for editing an existing farming/cultivation area.
- * Keeps form state synchronized with the selected area details.
- *
- * @param {Object} props - Component properties.
- * @param {boolean} props.isOpen - Controls modal visibility.
- * @param {Function} props.onClose - Action callback to close the modal.
- * @param {Object} props.area - Current area details to edit.
- * @param {Function} props.onEditSuccess - Callback triggered after successful update.
- */
 const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
   const [formData, setFormData] = useState({
     areaName: '',
@@ -55,7 +44,6 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
   const [apiError, setApiError] = useState(null);
   const [showToast, setShowToast] = useState(false);
 
-  // Sync form data when selected area changes or modal opens
   useEffect(() => {
     if (isOpen && area) {
       setFormData({
@@ -72,7 +60,6 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
 
   if (!isOpen) return null;
 
-  // Validate form fields
   const validate = () => {
     const newErrors = {};
     if (!formData.areaName.trim()) newErrors.areaName = 'Vui lòng nhập tên vườn';
@@ -83,7 +70,6 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear validation error when field is edited
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
@@ -107,7 +93,6 @@ const EditFarmingAreaModal = ({ isOpen, onClose, area, onEditSuccess }) => {
           description: formData.description.trim(),
         });
 
-      // Show success toast then close modal and trigger callback
       setShowToast(true);
       setTimeout(() => {
         setShowToast(false);

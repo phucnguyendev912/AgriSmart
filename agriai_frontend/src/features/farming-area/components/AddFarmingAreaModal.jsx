@@ -17,16 +17,6 @@ const PROVINCES = [
   'Tuyên Quang', 'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái',
 ];
 
-/**
- * AddFarmingAreaModal Component
- * Modal dialog for farmers to create a new farming/cultivation area.
- * Provides inputs for area name, province selection, detailed address, size, and description.
- *
- * @param {Object} props - Component properties.
- * @param {boolean} props.isOpen - Controls modal visibility.
- * @param {Function} props.onClose - Action callback to close the modal.
- * @param {Function} props.onAddSuccess - Callback triggered after successful creation.
- */
 const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
     const [formData, setFormData] = useState({
         areaName: '',
@@ -51,7 +41,6 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
         setLoading(true);
 
         try {
-            // Submit area creation request
             const response = await createArea({
                 areaName: formData.areaName,
                 province: formData.province,
@@ -60,11 +49,9 @@ const AddFarmingAreaModal = ({ isOpen, onClose, onAddSuccess }) => {
                 description: formData.description
             });
 
-            // Close modal and trigger callback on success
             onAddSuccess(response.data);
             onClose();
         } catch (error) {
-            // Log error and notify user
             console.error('Failed to create new farming area:', error);
             setErrorText(error.response?.data?.message || 'Something went wrong. Please try again!');
         } finally {

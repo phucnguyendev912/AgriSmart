@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
-// Service implementation to retrieve current weather data from OpenWeatherMap API.
 @Service
 public class WeatherApiService implements WeatherPort {
 
@@ -17,7 +16,6 @@ public class WeatherApiService implements WeatherPort {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // Fetches current weather data (temperature, humidity, rainfall) for given coordinates.
     public WeatherDTO getCurrentWeather(Double latitude, Double longitude) {
         if (latitude == null || longitude == null)
             return null;
@@ -59,7 +57,6 @@ public class WeatherApiService implements WeatherPort {
         }
     }
 
-    // Safely converts an object to a Double value.
     private Double toDouble(Object obj) {
         if (obj instanceof Number)
             return ((Number) obj).doubleValue();
