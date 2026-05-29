@@ -25,5 +25,4 @@ public class DiagnoseController {
         String email = principal != null ? principal.getName() : null;
         return ResponseEntity.ok(diagnoseService.diagnose(email, request));
     }
-
 }
