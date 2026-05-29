@@ -13,6 +13,8 @@ body {
 
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  /* Ẩn icon (invisible) thay vì hiện text thô khi font chưa load */
+  font-display: block;
 }
 
 .bg-agricultural-blur {

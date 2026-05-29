@@ -121,7 +121,7 @@ const LoginPage = () => {
                 <label htmlFor="password" className="block text-[0.75rem] font-bold tracking-[0.05em] text-on-surface-variant uppercase">
                   MẬT KHẨU
                 </label>
-                <Link to="/forgot-password" className="text-[0.75rem] font-bold text-tertiary hover:underline">Quen mat khau?</Link>
+                <Link to="/forgot-password" className="text-[0.75rem] font-bold text-tertiary hover:underline">Quên mật khẩu?</Link>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

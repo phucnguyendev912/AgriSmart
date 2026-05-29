@@ -1,12 +1,9 @@
-tunnel: 9e26afd5-c5c6-4f02-bb55-615a7e949c97
+tunnel: 34137ba5-c38c-4c76-8e26-740b69fee2e8
 
-credentials-file: /etc/cloudflared/9e26afd5-c5c6-4f02-bb55-615a7e949c97.json
+credentials-file: /etc/cloudflared/34137ba5-c38c-4c76-8e26-740b69fee2e8.json
 
 ingress:
-  - hostname: phucblog.indevs.in
-    service: http://frontend:80
-
-  - hostname: admin.phucblog.indevs.in
-    service: http://admin-frontend:80
+  - hostname: agrismart.io.vn
+    service: http://localhost:3000
 
   - service: http_status:404
