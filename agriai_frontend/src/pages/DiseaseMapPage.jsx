@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Marker, useMap, useMapEvents } from "react-leaflet";
+import L from "leaflet";
 import { Link } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import SEO from "../components/common/SEO";
@@ -9,6 +10,21 @@ import { getMarkers, getDiseases } from "../services/diseaseMapService";
 
 const MARKER_COLOR = "#EF4444";
 
+// Pin icon cho Hoàng Sa & Trường Sa
+const islandPinIcon = new L.Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [20, 32],
+  iconAnchor: [10, 32],
+  popupAnchor: [0, -32],
+  shadowSize: [32, 32],
+});
+
+const ISLAND_PINS = [
+  { id: "hoang-sa", name: "Quần đảo Hoàng Sa", lat: 16.5, lng: 112.0 },
+  { id: "truong-sa", name: "Quần đảo Trường Sa", lat: 10.0, lng: 114.2 },
+];
 /**
  * DiseaseMapPage Component
  * Renders an interactive Leaflet map displaying clustered crop disease outbreak points.
@@ -199,9 +215,18 @@ export default function DiseaseMapPage() {
           scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
           />
+
+          {/* Pin markers for Hoàng Sa & Trường Sa */}
+          {ISLAND_PINS.map((island) => (
+            <Marker key={island.id} position={[island.lat, island.lng]} icon={islandPinIcon}>
+              <Popup>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>{island.name}</div>
+              </Popup>
+            </Marker>
+          ))}
 
           {/* Listen for map bounds and zoom changes */}
           <MapEventHandler onBoundsChange={handleBoundsChange} />
