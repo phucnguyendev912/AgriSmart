@@ -24,7 +24,10 @@ const SKILL_OPTIONS = [
 
 function formatRelativeTime(dateStr) {
   if (!dateStr) return '';
-  const diff = Date.now() - new Date(dateStr).getTime();
+  // Backend trả LocalDateTime không có timezone (VD: "2026-05-29T04:53:00")
+  // Append 'Z' để browser parse đúng là UTC, tránh lệch 7 tiếng (UTC+7)
+  const utcStr = dateStr.endsWith('Z') ? dateStr : dateStr + 'Z';
+  const diff = Date.now() - new Date(utcStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'Vừa xong';
   if (mins < 60) return `${mins} phút trước`;
@@ -199,13 +202,20 @@ const ChatBotWidget = () => {
           setSessions(refreshed.content);
         }
       } else {
-        setSessions((prev) =>
-          prev.map((s) =>
+        setSessions((prev) => {
+          const now = new Date().toISOString();
+          const updated = prev.map((s) =>
             s.id === sessionId
-              ? { ...s, lastMessage: messageContent, lastMessageAt: new Date().toISOString() }
+              ? { ...s, lastMessage: messageContent, lastMessageAt: now }
               : s,
-          ),
-        );
+          );
+          // Re-sort: session vừa nhắn lên đầu
+          return [...updated].sort((a, b) => {
+            const aTime = a.lastMessageAt || a.createdAt || '';
+            const bTime = b.lastMessageAt || b.createdAt || '';
+            return bTime.localeCompare(aTime);
+          });
+        });
       }
       userMessageCountRef.current += 1;
     } catch (error) {
@@ -411,7 +421,7 @@ const ChatBotWidget = () => {
                                     </p>
                                   )}
                                   <p className="text-[10px] text-slate-300 mt-1">
-                                    {formatRelativeTime(session.lastMessageAt || session.createdAt)}
+                                    {formatRelativeTime(session.lastMessageAt ?? session.createdAt)}
                                   </p>
                                 </button>
                               </li>
