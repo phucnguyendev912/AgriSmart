@@ -1,2 +1,0 @@
-- `[x]` Cập nhật `LocationPermissionContext.js` để tự động lấy lại vị trí nếu quyền đã được cấp (tránh tọa độ cũ bị kẹt).
-- `[x]` Cập nhật `DiagnosisPage.jsx` để ép lấy vị trí trước khi gọi API chẩn đoán (đảm bảo tọa độ được gửi lên Backend để hiện lên bản đồ).
