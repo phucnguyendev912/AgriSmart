@@ -10,8 +10,10 @@ skills/
 codebase-analysis/
 *.md
 !README.md
-!docs/**/*.md
 
+
+# ── Internal docs (local only) ───────────────────────────────
+docs/
 
 # ── Secrets & Environment ────────────────────────────────────
 .env

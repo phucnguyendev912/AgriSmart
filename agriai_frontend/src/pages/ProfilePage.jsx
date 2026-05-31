@@ -25,6 +25,12 @@ export default function ProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleCancel = () => {
+    setFullName(user?.fullName || '');
+    setPhoneNumber(user?.phoneNumber || '');
+    setErrors({});
+  };
+
   const handleUpdateProfile = async () => {
     if (!validate()) return;
     setIsUpdating(true);
@@ -63,31 +69,16 @@ export default function ProfilePage() {
             <section>
               <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-stone-200/40 overflow-hidden p-6 md:p-10">
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
-                  {/* Avatar Upload Zone */}
+                  {/* User Avatar & Name */}
                   <div className="flex flex-col items-center gap-4 shrink-0">
-                    <div className="relative group cursor-pointer">
-                      <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-surface-container-low ring-4 ring-primary/5">
-                        <img
-                          alt="Profile Avatar"
-                          className="w-full h-full object-cover"
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwkEWu0WqyU31yxNoHWyVC82LrK4BfXAIXw1A8-vz91lLgiACubnrtdJ7hgsI8ENOLmSZnoltZ6DFf_Kbv5xAw_KTR5OOvGsOCPtxNg2y_mogusneSgR1yaPNtxvc_wEGaPLGFDuzaB9cgmudQ5W0aP4oxpeDbDb7yiiApRffsFtO1PR42H5UnS7N-PGNduluQ42uMxPh05NMpi-Bx0YRBhtKs89D1aR5403FlbD4XKhw1UQL_QkoOl0FuzhIYvT1r36WpqrObgHSh"
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-primary/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-symbols-outlined text-white text-3xl">
-                          photo_camera
-                        </span>
-                      </div>
-                      <button className="absolute bottom-1 right-1 bg-primary text-white p-2.5 rounded-full shadow-xl hover:scale-110 transition-transform">
-                        <span className="material-symbols-outlined text-sm font-bold">
-                          edit
-                        </span>
-                      </button>
+                    <div className="w-36 h-36 rounded-full bg-primary/10 border-4 border-surface-container-low ring-4 ring-primary/5 flex items-center justify-center">
+                      <span className="text-5xl font-black text-primary select-none">
+                        {(user?.fullName || 'U').charAt(0).toUpperCase()}
+                      </span>
                     </div>
                     <div className="text-center">
-                      <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">
-                        Định dạng: JPG, PNG (Max 2MB)
-                      </span>
+                      <p className="text-lg font-black text-on-surface">{user?.fullName || ''}</p>
+                      <p className="text-xs text-stone-400 font-medium mt-0.5">{user?.email || ''}</p>
                     </div>
                   </div>
 
@@ -151,7 +142,7 @@ export default function ProfilePage() {
                         )}
                         {isUpdating ? 'Đang lưu...' : 'Lưu thay đổi'}
                       </button>
-                      <button className="text-stone-500 hover:text-on-surface font-bold px-8 py-4 rounded-xl transition-all border border-stone-200">
+                      <button onClick={handleCancel} className="text-stone-500 hover:text-on-surface font-bold px-8 py-4 rounded-xl transition-all border border-stone-200">
                         Hủy bỏ
                       </button>
                     </div>

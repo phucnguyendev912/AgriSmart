@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { Link } from 'react-router-dom';
 /**
  * Hero Component
  * Renders the landing page hero section with a background image, key value propositions,
@@ -14,16 +14,15 @@ const Hero = () => {
       </div>
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center text-white">
         <h1 className="text-5xl md:text-7xl font-black mb-8 leading-[1.1] max-w-5xl mx-auto">
-          AgriAI – AI Thông Minh Chẩn Đoán Bệnh Cây Trồng
+          AgriAI - Hệ thống AI chẩn đoán bệnh cây trồng
         </h1>
         <p className="text-xl md:text-2xl font-medium mb-12 opacity-90 max-w-3xl mx-auto">
-          Phát hiện sớm bệnh hại • Tiết kiệm chi phí • Tăng năng suất mùa vụ cho nông dân Việt Nam
+          Phát hiện sớm bệnh hại cây trồng • Tiết kiệm chi phí • Tăng năng suất mùa vụ
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
-          <button className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-primary text-white px-10 py-5 rounded-2xl font-bold text-lg hover:scale-105 transition-transform">
-            <span className="material-symbols-outlined">photo_camera</span>
-            <span>Chẩn đoán bệnh ngay</span>
-          </button>
+          <Link to="/diagnosis" className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-primary text-white px-10 py-5 rounded-2xl font-bold text-lg hover:scale-105 transition-transform">
+            Bắt đầu chẩn đoán ngay
+          </Link>
         </div>
         <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
           <div className="flex items-center space-x-2">

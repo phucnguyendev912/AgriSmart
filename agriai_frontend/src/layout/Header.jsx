@@ -76,12 +76,10 @@ const Header = () => {
                       </div>
                       <span className="text-[11px] text-slate-500 font-medium">{user.roleName === 'ADMIN' ? 'Quản trị viên' : user.roleName || 'Nông dân'}</span>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 p-0.5 border border-emerald-200 overflow-hidden">
-                      <img
-                        alt="User Avatar"
-                        className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-HzB5llkgxNuD6fzgclRP1bTG_KMneCUL1PLG4Hh-qPV-OUbfzaztaQjBE0h7MgNKMywkqcVdmFpLgc9Y74cxa5l_WN24P-4q8A8FoovU8_1VnIpAXSbvmH11MdDaYU3EgX_xytcYVWWE5gRWnl8OzQHv0YZShHFe6zkkqm6vpX4NskWq-KmFrjPEk7Lmr1LaJQ6A-F_leaShuV172MPr36sUvBQA8DdjX9nB3P2PlQ_cIAWUDdq1fl4qY7VWzS67ZVOGiFwnjXJD"
-                      />
+                    <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <span className="text-base font-black text-primary select-none">
+                        {(user.fullName || 'U').charAt(0).toUpperCase()}
+                      </span>
                     </div>
                   </button>
 
@@ -159,8 +157,10 @@ const Header = () => {
               {user ? (
                 <>
                   <div className="flex items-center gap-4 cursor-pointer" onClick={() => { setMobileMenuOpen(false); navigate('/profile'); }}>
-                    <div className="w-12 h-12 rounded-full bg-emerald-100 overflow-hidden border border-emerald-200">
-                      <img alt="User" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGCylb76Qsvb8OxUMlEuHy8SamqQ7iW5WE-xFJqb_gq9Gm9D7JCBBttf78D2ZxPtEWe9594tJnFS5AFhabyOnLpkY1INXLjpjflcU-2Z74kJD4NECQYzTA_XnTPwdCjCE7RxTVEIVc36R822j7BZvzI3KGNErbwbFz3j6wBqvIXZx1JZdYoKN1NJxm5dCO9MmJEc-3RlMClW0Z_yIx5MFHuhgSpmzUgzRWrNnRplCwhSqG3BNU9O-_v40qqTaIkXHb7d-7KlqTEX3e" />
+                    <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                      <span className="text-xl font-black text-primary select-none">
+                        {(user.fullName || 'U').charAt(0).toUpperCase()}
+                      </span>
                     </div>
                     <div>
                       <p className="font-bold text-slate-900 flex gap-1 items-center">{user.fullName || 'Người dùng'} <span className="material-symbols-outlined text-[14px]">edit</span></p>
