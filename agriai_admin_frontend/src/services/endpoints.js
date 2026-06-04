@@ -14,5 +14,13 @@ export const ENDPOINTS = {
   ADMIN_CROP_TYPES_SIMPLE: '/api/admin/crop-types/simple',
   ADMIN_CROP_TYPES: '/api/admin/crop-types',
   ADMIN_CROP_TYPES_STATS: '/api/admin/crop-types/stats',
+
+  // Treatment Plan endpoints
+  ADMIN_TREATMENT_PLANS: '/api/admin/treatment-plans',
+  ADMIN_TREATMENT_PLAN_STATS: '/api/admin/treatment-plans/stats',
+  ADMIN_TREATMENT_PLAN_BY_ID: (id) => `/api/admin/treatment-plans/${id}`,
+  ADMIN_TREATMENT_PLAN_DELETE: (id) => `/api/admin/treatment-plans/${id}/delete`,
+  ADMIN_TREATMENT_PLAN_DISEASES_SIMPLE: '/api/admin/treatment-plans/diseases/simple',
+  ADMIN_TREATMENT_PLAN_DRUGS_SIMPLE: '/api/admin/treatment-plans/drugs/simple',
 };
 

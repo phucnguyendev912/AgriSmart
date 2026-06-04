@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useCropTypes } from '../features/crop-types/useCropTypes';
 import CropTypeStats from '../features/crop-types/CropTypeStats';
 import CropTypeTable from '../features/crop-types/CropTypeTable';
@@ -13,7 +13,6 @@ const CropTypeManagementPage = () => {
     size,
     totalPages,
     totalElements,
-    filters,
     setPage,
     setSize,
     setFilters

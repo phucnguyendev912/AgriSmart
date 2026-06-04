@@ -30,10 +30,7 @@ public class TreatmentLookupService {
         if (diseaseId == null) {
             return List.of();
         }
-        return treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(diseaseId).stream()
-                .sorted(Comparator.comparing(TreatmentPlan::getIsRequired, Comparator.nullsLast(Boolean::compareTo))
-                        .reversed())
-                .toList();
+        return treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(diseaseId);
     }
 
     public Map<Integer, List<TreatmentPlan>> findByDiseaseIds(List<Integer> diseaseIds) {
