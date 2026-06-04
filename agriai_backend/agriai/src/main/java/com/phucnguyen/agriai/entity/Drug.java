@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@AttributeOverride(name = "isDelete", column = @Column(name = "is_deleted"))
 public class Drug extends BaseEntity {
 
     @Column(name = "drug_name", length = 150, nullable = false)
@@ -31,6 +32,6 @@ public class Drug extends BaseEntity {
     private Boolean isActive;
 
     @NotAudited
-    @OneToMany(mappedBy = "drug", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "drug", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DrugIngredient> ingredients;
 }

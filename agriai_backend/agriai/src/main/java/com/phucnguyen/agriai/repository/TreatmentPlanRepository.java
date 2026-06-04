@@ -32,5 +32,7 @@ public interface TreatmentPlanRepository extends JpaRepository<TreatmentPlan, In
             Pageable pageable);
 
     long countByIsDeleteFalse();
+
+    boolean existsByDrugIdAndIsDeleteFalse(Integer drugId);
 }
 
