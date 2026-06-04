@@ -78,7 +78,14 @@ function App() {
               />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/farming-areas" element={<FarmingAreaPage />} />
+              <Route
+                path="/farming-areas"
+                element={
+                  <RequireAuth message="Vui lòng đăng nhập để xem khu vực canh tác.">
+                    <FarmingAreaPage />
+                  </RequireAuth>
+                }
+              />
               <Route path="/diagnosis" element={<DiagnosisPage />} />
               <Route path="/history" element={<DiagnosisHistoryPage />} />
               <Route
