@@ -75,9 +75,6 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "safetyNotes", columnDefinition = "TEXT")
     private String safetyNotes;
 
-    @Column(name = "isRequired")
-    private Boolean isRequired;
-
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

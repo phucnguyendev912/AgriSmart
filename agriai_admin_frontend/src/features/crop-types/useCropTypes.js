@@ -50,6 +50,7 @@ export const useCropTypes = () => {
 
   // Initial load
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCropTypes();
     fetchStats();
   }, [fetchCropTypes, fetchStats]);
