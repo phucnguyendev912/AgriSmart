@@ -56,7 +56,7 @@ public class ChatbotService {
         String userText = request.getMessageContent().trim();
 
         
-        SessionContext ctx = self.loadHistoryAndSaveUser(email, sessionId, userText);
+        SessionContext ctx = self.loadHistoryAndSaveUser(email, sessionId, userText, request.getAttachmentId());
 
         
         String answer = buildContextAndGenerateWithHistory(userText, ctx.history(), request.getSelectedSkill());
@@ -74,10 +74,10 @@ public class ChatbotService {
     }
 
     @Transactional
-    protected SessionContext loadHistoryAndSaveUser(String email, Integer sessionId, String userText) {
+    protected SessionContext loadHistoryAndSaveUser(String email, Integer sessionId, String userText, Integer attachmentId) {
         ChatSession session = chatSessionService.getSessionOrThrow(email, sessionId);
         List<ChatMessage> history = chatMessageService.getRecentMessages(session, historySize);
-        ChatMessage userMessage = chatMessageService.saveUserMessage(session, userText);
+        ChatMessage userMessage = chatMessageService.saveUserMessage(session, userText, attachmentId);
         if (history.isEmpty()) {
             chatSessionService.updateTitleFromFirstMessage(session, userText);
         }

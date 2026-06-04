@@ -53,7 +53,8 @@ public class AuthService {
         User saved = userRepository.save(newUser);
         return UserResponse.builder().id(saved.getId()).fullName(saved.getFullName())
                 .email(saved.getEmail()).phoneNumber(saved.getPhoneNumber())
-                .role(saved.getRole().getRoleName()).build();
+                .role(saved.getRole().getRoleName())
+                .avatarUrl(saved.getAttachment() != null ? saved.getAttachment().getFileUrl() : null).build();
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -69,7 +70,8 @@ public class AuthService {
                 .refreshToken(jwtService.generateRefreshToken(springUser))
                 .user(UserResponse.builder().id(user.getId()).fullName(user.getFullName())
                         .email(user.getEmail()).phoneNumber(user.getPhoneNumber())
-                        .role(user.getRole() != null ? user.getRole().getRoleName() : "USER").build())
+                        .role(user.getRole() != null ? user.getRole().getRoleName() : "USER")
+                        .avatarUrl(user.getAttachment() != null ? user.getAttachment().getFileUrl() : null).build())
                 .build();
     }
 
@@ -93,7 +95,8 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .user(UserResponse.builder().id(user.getId()).fullName(user.getFullName())
                         .email(user.getEmail()).phoneNumber(user.getPhoneNumber())
-                        .role(user.getRole() != null ? user.getRole().getRoleName() : "USER").build())
+                        .role(user.getRole() != null ? user.getRole().getRoleName() : "USER")
+                        .avatarUrl(user.getAttachment() != null ? user.getAttachment().getFileUrl() : null).build())
                 .build();
     }
 
