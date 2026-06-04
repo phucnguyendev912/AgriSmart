@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -113,6 +115,17 @@ public class AdminDiseaseService {
         stats.put("totalCropTypes", totalCropTypes);
         
         return stats;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getSimpleDiseases() {
+        return diseaseRepository.findAll().stream()
+                .filter(d -> !d.getIsDelete())
+                .map(d -> Map.of(
+                        "id", (Object) d.getId(),
+                        "name", (Object) d.getDiseaseName()
+                ))
+                .collect(Collectors.toList());
     }
 
     private Disease getDiseaseEntityById(Integer id) {

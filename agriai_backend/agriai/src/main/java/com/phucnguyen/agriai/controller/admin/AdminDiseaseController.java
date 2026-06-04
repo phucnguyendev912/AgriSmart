@@ -80,4 +80,11 @@ public class AdminDiseaseController {
 
         return ResponseEntity.ok(cropTypes);
     }
+
+    @GetMapping("/diseases/simple")
+    public ResponseEntity<List<Map<String, Object>>> getSimpleDiseases() {
+        List<Map<String, Object>> diseases = adminDiseaseService.getSimpleDiseases();
+        return ResponseEntity.ok(diseases);
+    }
 }
+

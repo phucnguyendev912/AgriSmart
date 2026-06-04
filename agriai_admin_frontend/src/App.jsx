@@ -10,6 +10,9 @@ import CropTypeManagementPage from './pages/CropTypeManagementPage';
 import TreatmentPlanManagementPage from './pages/TreatmentPlanManagementPage';
 import DrugManagementPage from './pages/DrugManagementPage';
 import AttachmentManagementPage from './pages/AttachmentManagementPage';
+import IngredientManagementPage from './pages/IngredientManagementPage';
+import DrugInteractionManagementPage from './pages/DrugInteractionManagementPage';
+import WeatherConditionManagementPage from './pages/WeatherConditionManagementPage';
 
 function App() {
   return (
@@ -33,9 +36,10 @@ function App() {
             <Route path="diseases" element={<DiseaseManagementPage />} />
             <Route path="crop-types" element={<CropTypeManagementPage />} />
             <Route path="treatment-plans" element={<TreatmentPlanManagementPage />} />
-            <Route path="ingredients" element={<div className="p-8">Quản lý thành phần</div>} />
+            <Route path="ingredients" element={<IngredientManagementPage />} />
             <Route path="drugs" element={<DrugManagementPage />} />
-            <Route path="drug-interactions" element={<div className="p-8">Quản lý tương tác thuốc</div>} />
+            <Route path="drug-interactions" element={<DrugInteractionManagementPage />} />
+            <Route path="weather-conditions" element={<WeatherConditionManagementPage />} />
             <Route path="ai-performance" element={<div className="p-8">Quản lý hiệu suất AI</div>} />
             <Route path="diagnosis-reviews" element={<div className="p-8">Quản lý đánh giá chẩn đoán</div>} />
             <Route path="attachments" element={<AttachmentManagementPage />} />

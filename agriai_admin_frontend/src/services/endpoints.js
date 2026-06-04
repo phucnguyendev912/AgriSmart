@@ -9,6 +9,7 @@ export const ENDPOINTS = {
   ADMIN_DISEASE_STATS: '/api/admin/diseases/stats',
   ADMIN_DISEASE_BY_ID: (id) => `/api/admin/diseases/${id}`,
   ADMIN_DISEASE_DELETE: (id) => `/api/admin/diseases/${id}/delete`,
+  ADMIN_DISEASES_SIMPLE: '/api/admin/diseases/simple',
   
   // Crop Type endpoints
   ADMIN_CROP_TYPES_SIMPLE: '/api/admin/crop-types/simple',
@@ -34,5 +35,24 @@ export const ENDPOINTS = {
   ADMIN_ATTACHMENTS: '/api/admin/attachments',
   ADMIN_ATTACHMENT_DELETE: (id) => `/api/admin/attachments/${id}`,
   ADMIN_ATTACHMENT_RESTORE: (id) => `/api/admin/attachments/${id}/restore`,
+
+  // Ingredient endpoints
+  ADMIN_INGREDIENTS: '/api/admin/ingredients',
+  ADMIN_INGREDIENT_STATS: '/api/admin/ingredients/stats',
+  ADMIN_INGREDIENT_BY_ID: (id) => `/api/admin/ingredients/${id}`,
+  ADMIN_INGREDIENT_DELETE: (id) => `/api/admin/ingredients/${id}/delete`,
+
+  // Drug Interaction endpoints
+  ADMIN_DRUG_INTERACTIONS: '/api/admin/drug-interactions',
+  ADMIN_DRUG_INTERACTION_STATS: '/api/admin/drug-interactions/stats',
+  ADMIN_DRUG_INTERACTION_BY_ID: (id) => `/api/admin/drug-interactions/${id}`,
+  ADMIN_DRUG_INTERACTION_DELETE: (id) => `/api/admin/drug-interactions/${id}/delete`,
+
+  // Weather Condition endpoints
+  ADMIN_WEATHER_CONDITIONS: '/api/admin/weather-conditions',
+  ADMIN_WEATHER_CONDITION_STATS: '/api/admin/weather-conditions/stats',
+  ADMIN_WEATHER_CONDITION_BY_ID: (id) => `/api/admin/weather-conditions/${id}`,
+  ADMIN_WEATHER_CONDITION_DELETE: (id) => `/api/admin/weather-conditions/${id}/delete`,
 };
+
 

@@ -5,14 +5,13 @@ const menuItems = [
   { path: '/users', label: 'Quản lý người dùng', icon: 'group' },
   { path: '/diseases', label: 'Quản lý bệnh cây trồng', icon: 'coronavirus' },
   { path: '/crop-types', label: 'Quản lý loại cây trồng', icon: 'potted_plant' },
-  { path: '/treatment-plans', label: 'Quản lý Phác đồ điều trị', icon: 'medical_services' },
+  { path: '/treatment-plans', label: 'Quản lý phác đồ điều trị', icon: 'medical_services' },
   { path: '/drugs', label: 'Quản lý thuốc', icon: 'medication' },
-  { path: '/ingredients', label: 'Quản lý thành phần thuốc', icon: 'science' },
-  { path: '/active-ingredients', label: 'Quản lý hoạt chất', icon: 'biotech' },
-  { path: '/ingredient-interactions', label: 'Quản lý tương tác hoạt chất', icon: 'vaccines' },
+  { path: '/ingredients', label: 'Quản lý hoạt chất', icon: 'biotech' },
+  { path: '/drug-interactions', label: 'Quản lý tương tác hoạt chất', icon: 'vaccines' },
+  { path: '/weather-conditions', label: 'Điều kiện thời tiết gây bệnh', icon: 'thunderstorm' },
   { path: '/attachments', label: 'Quản lý tệp đính kèm', icon: 'attachment' },
-  { path: '/weather-risk-conditions', label: 'Quản lý điều kiện thời tiết nguy cơ gây bệnh', icon: 'thunderstorm' },
-  { path: '/diagnosis-reviews', label: 'Quản lý đánh giá kết quả chẩn đoán', icon: 'rate_review' },
+  { path: '/diagnosis-reviews', label: 'Đánh giá kết quả chẩn đoán', icon: 'rate_review' },
 ];
 
 const AdminSidebar = () => {
