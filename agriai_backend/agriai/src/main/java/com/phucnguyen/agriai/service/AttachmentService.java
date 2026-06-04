@@ -6,6 +6,8 @@ import com.phucnguyen.agriai.exception.AppException;
 import com.phucnguyen.agriai.port.ImageStoragePort;
 import com.phucnguyen.agriai.repository.AttachmentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,6 +104,27 @@ public class AttachmentService {
         attachmentRepository.save(attachment);
     }
 
+    @Transactional(readOnly = true)
+    public Page<AttachmentResponse> getAttachmentsForAdmin(
+            String search, String fileType, String category, Boolean isDelete, Pageable pageable) {
+        
+        String searchParam = (search == null || search.trim().isEmpty()) ? null : search.trim();
+        String fileTypeParam = (fileType == null || fileType.trim().isEmpty()) ? null : fileType.trim();
+        String categoryParam = (category == null || category.trim().isEmpty()) ? null : category.trim();
+
+        return attachmentRepository.findAllByFilter(searchParam, fileTypeParam, categoryParam, isDelete, pageable)
+                .map(this::toResponse);
+    }
+
+    public void restoreAttachment(Integer id) {
+        Attachment attachment = attachmentRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy tệp đính kèm với ID: " + id));
+        
+        attachment.setIsDelete(false);
+        attachment.setDeletedAt(null);
+        attachmentRepository.save(attachment);
+    }
+
     private String getFileExtension(String filename) {
         int lastIndexOf = filename.lastIndexOf(".");
         if (lastIndexOf == -1) {
@@ -137,6 +160,10 @@ public class AttachmentService {
                 .fileSize(attachment.getFileSize())
                 .mimeType(attachment.getMimeType())
                 .category(attachment.getCategory())
+                .referenceType(attachment.getReferenceType())
+                .referenceId(attachment.getReferenceId())
+                .createdAt(attachment.getCreatedAt())
+                .isDelete(attachment.getIsDelete())
                 .build();
     }
 }

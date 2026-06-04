@@ -9,7 +9,7 @@ import {
   fetchChatSessions,
   sendChatMessage,
 } from '../../../services/chatService';
-import { uploadAttachment } from '../../../services/attachmentService';
+
 import {
   createGreetingMessage,
   createUserMessage,
@@ -54,42 +54,9 @@ const ChatBotWidget = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
 
-  const [uploadedAttachment, setUploadedAttachment] = useState(null);
-  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Dung lượng tệp tối đa là 10MB.');
-      return;
-    }
 
-    const allowed = ['csv', 'xlsx', 'xls', 'pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'];
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (!allowed.includes(ext)) {
-      toast.error('Định dạng tệp không được hỗ trợ.');
-      return;
-    }
-
-    setIsUploadingAttachment(true);
-    try {
-      const response = await uploadAttachment(file, 'CHAT');
-      setUploadedAttachment(response.data);
-      toast.success('Tải tệp đính kèm thành công!');
-    } catch (error) {
-      console.error('Lỗi tải tệp lên chat:', error);
-      toast.error(error.response?.data?.message || 'Không thể tải tệp lên. Vui lòng thử lại.');
-    } finally {
-      setIsUploadingAttachment(false);
-      e.target.value = '';
-    }
-  };
-
-  const handleRemoveAttachment = () => {
-    setUploadedAttachment(null);
-  };
 
   const scrollRef = useRef(null);
   // Track how many user messages have been sent in the current session (avoids stale closure)
@@ -217,24 +184,16 @@ const ChatBotWidget = () => {
     const messageContent = (text || input).trim();
     if (!messageContent || isTyping) return;
 
-    const userMessage = {
-      ...createUserMessage(messageContent),
-      attachment: uploadedAttachment,
-    };
+    const userMessage = createUserMessage(messageContent);
     setMessages((prev) => [...prev, userMessage]);
     
-    const attachmentIdToSend = uploadedAttachment ? uploadedAttachment.id : null;
-    
     setInput('');
-    setUploadedAttachment(null); // Clear attachment preview
     setIsTyping(true);
 
     try {
       const sessionId = await ensureSession();
       const payload = { messageContent };
-      if (attachmentIdToSend) {
-        payload.attachmentId = attachmentIdToSend;
-      }
+
       if (selectedSkill) {
         payload.selectedSkill = selectedSkill;
       }
@@ -515,37 +474,7 @@ const ChatBotWidget = () => {
                             <div className="flex flex-col gap-2">
                               <p className="text-sm md:text-base leading-relaxed whitespace-pre-line">{message.text}</p>
                               
-                              {message.attachment && (
-                                <div className="mt-2 pt-2 border-t border-slate-300/40">
-                                  {message.attachment.fileType === 'IMAGE' ? (
-                                    <a 
-                                      href={message.attachment.fileUrl} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="block max-w-xs rounded-lg overflow-hidden border border-slate-300/40 hover:opacity-90 transition-opacity"
-                                    >
-                                      <img 
-                                        src={message.attachment.fileUrl} 
-                                        alt={message.attachment.fileName} 
-                                        className="w-full max-h-48 object-cover" 
-                                      />
-                                    </a>
-                                  ) : (
-                                    <a 
-                                      href={message.attachment.fileUrl} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="flex items-center gap-2 p-2.5 bg-white/60 hover:bg-white/80 rounded-xl border border-slate-300/40 transition-colors text-xs font-bold text-slate-700"
-                                    >
-                                      <span className="material-symbols-outlined text-slate-500">description</span>
-                                      <span className="truncate flex-1" title={message.attachment.fileName}>
-                                        {message.attachment.fileName}
-                                      </span>
-                                      <span className="material-symbols-outlined text-sm text-slate-400">download</span>
-                                    </a>
-                                  )}
-                                </div>
-                              )}
+
 
                               {message.sender === 'ai' && (
                                 <p className="text-[10px] text-on-surface-variant italic pt-2 border-t border-outline-variant/10">
@@ -590,25 +519,7 @@ const ChatBotWidget = () => {
 
                 {/* ── Input bar ── */}
                 <div className="p-4 md:p-6 bg-white border-t border-outline-variant/20 space-y-3">
-                  {/* Selected attachment preview */}
-                  {uploadedAttachment && (
-                    <div className="flex items-center gap-2 p-2 bg-slate-100 rounded-xl max-w-sm border border-slate-200 animate-in slide-in-from-bottom duration-200">
-                      <span className="material-symbols-outlined text-slate-500">
-                        {uploadedAttachment.fileType === 'IMAGE' ? 'image' : 'description'}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-slate-700 truncate">{uploadedAttachment.fileName}</p>
-                        <p className="text-[10px] text-slate-400">{(uploadedAttachment.fileSize / 1024).toFixed(1)} KB</p>
-                      </div>
-                      <button 
-                        type="button" 
-                        onClick={handleRemoveAttachment} 
-                        className="text-slate-400 hover:text-error transition-colors p-1 rounded-full hover:bg-slate-200 flex items-center justify-center"
-                      >
-                        <span className="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
-                  )}
+
 
                   {/* skill selector row */}
                   <div className="flex items-center gap-2">
@@ -625,27 +536,7 @@ const ChatBotWidget = () => {
 
                   {/* input + send */}
                   <div className="relative flex items-center gap-3">
-                    <button
-                      type="button"
-                      disabled={isTyping || isUploadingAttachment}
-                      onClick={() => document.getElementById('chat-file-input').click()}
-                      className="w-10 h-10 md:w-12 md:h-12 border border-slate-200 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-50 active:scale-95 transition-all shrink-0 disabled:opacity-50"
-                      title="Đính kèm tệp"
-                    >
-                      {isUploadingAttachment ? (
-                        <span className="material-symbols-outlined text-xl animate-spin">refresh</span>
-                      ) : (
-                        <span className="material-symbols-outlined text-xl">attach_file</span>
-                      )}
-                    </button>
-                    <input 
-                      id="chat-file-input"
-                      type="file"
-                      accept=".csv,.xlsx,.xls,.pdf,.docx,.doc,image/*"
-                      className="hidden"
-                      onChange={handleFileChange}
-                      disabled={isTyping || isUploadingAttachment}
-                    />
+
 
                     <input
                       disabled={isTyping}
@@ -658,7 +549,7 @@ const ChatBotWidget = () => {
                     />
                     <button
                       onClick={() => handleSend()}
-                      disabled={isTyping || isUploadingAttachment}
+                      disabled={isTyping}
                       className="w-10 h-10 md:w-12 md:h-12 bg-[#00A651] text-white rounded-full flex items-center justify-center hover:brightness-95 active:scale-95 transition-all shadow-lg shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>

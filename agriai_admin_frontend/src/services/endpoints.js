@@ -29,5 +29,10 @@ export const ENDPOINTS = {
   ADMIN_DRUG_BY_ID: (id) => `/api/admin/drugs/${id}`,
   ADMIN_DRUG_DELETE: (id) => `/api/admin/drugs/${id}/delete`,
   ADMIN_DRUG_INGREDIENTS_SIMPLE: '/api/admin/drugs/ingredients/simple',
+
+  // Attachment endpoints
+  ADMIN_ATTACHMENTS: '/api/admin/attachments',
+  ADMIN_ATTACHMENT_DELETE: (id) => `/api/admin/attachments/${id}`,
+  ADMIN_ATTACHMENT_RESTORE: (id) => `/api/admin/attachments/${id}/restore`,
 };
 

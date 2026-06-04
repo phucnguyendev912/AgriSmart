@@ -15,4 +15,8 @@ public class AttachmentResponse {
     private Long fileSize;
     private String mimeType;
     private String category;
+    private String referenceType;
+    private Integer referenceId;
+    private java.time.LocalDateTime createdAt;
+    private Boolean isDelete;
 }

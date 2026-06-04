@@ -12,12 +12,6 @@ const AdminHeader = () => {
           <input className="bg-transparent border-none focus:ring-0 text-sm ml-2 w-64 outline-none" placeholder="Tìm kiếm hệ thống..." type="text" />
         </div>
         <div className="flex items-center gap-4">
-          <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <span className="material-symbols-outlined text-slate-500" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>notifications</span>
-          </button>
-          <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <span className="material-symbols-outlined text-slate-500" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>settings</span>
-          </button>
           <div className="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-sm">
             A
           </div>

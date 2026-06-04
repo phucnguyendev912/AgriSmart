@@ -9,6 +9,7 @@ import DiseaseManagementPage from './pages/DiseaseManagementPage';
 import CropTypeManagementPage from './pages/CropTypeManagementPage';
 import TreatmentPlanManagementPage from './pages/TreatmentPlanManagementPage';
 import DrugManagementPage from './pages/DrugManagementPage';
+import AttachmentManagementPage from './pages/AttachmentManagementPage';
 
 function App() {
   return (
@@ -37,7 +38,7 @@ function App() {
             <Route path="drug-interactions" element={<div className="p-8">Quản lý tương tác thuốc</div>} />
             <Route path="ai-performance" element={<div className="p-8">Quản lý hiệu suất AI</div>} />
             <Route path="diagnosis-reviews" element={<div className="p-8">Quản lý đánh giá chẩn đoán</div>} />
-            <Route path="attachments" element={<div className="p-8">Quản lý tệp đính kèm</div>} />
+            <Route path="attachments" element={<AttachmentManagementPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
