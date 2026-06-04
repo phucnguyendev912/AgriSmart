@@ -25,13 +25,17 @@ class ChatMessageServiceTest {
     private ChatMessageRepository chatMessageRepository;
     @Mock
     private ChatSessionService chatSessionService;
+    @Mock
+    private com.phucnguyen.agriai.repository.AttachmentRepository attachmentRepository;
+    @Mock
+    private com.phucnguyen.agriai.service.AttachmentService attachmentService;
 
     private ChatMessageService chatMessageService;
     private ChatSession session;
 
     @BeforeEach
     void setUp() {
-        chatMessageService = new ChatMessageService(chatMessageRepository, chatSessionService);
+        chatMessageService = new ChatMessageService(chatMessageRepository, chatSessionService, attachmentRepository, attachmentService);
         session = ChatSession.builder().id(7).sessionTitle("Phiên").build();
     }
 

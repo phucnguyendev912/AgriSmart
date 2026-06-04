@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/common/SEO';
 import { updateProfile } from '../services/userService';
+import { uploadAttachment } from '../services/attachmentService';
 import { toast } from 'react-toastify';
 
 export default function ProfilePage() {
@@ -10,6 +11,9 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [email] = useState(user?.email || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
+  const [avatarAttachmentId, setAvatarAttachmentId] = useState(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [errors, setErrors] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -25,9 +29,39 @@ export default function ProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn tệp hình ảnh.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Dung lượng ảnh tối đa là 10MB.');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const response = await uploadAttachment(file, 'AVATAR');
+      const attachment = response.data;
+      setAvatarUrl(attachment.fileUrl);
+      setAvatarAttachmentId(attachment.id);
+      toast.success('Tải ảnh đại diện lên thành công! Nhấn lưu thay đổi để hoàn tất.');
+    } catch (error) {
+      console.error('Lỗi upload avatar:', error);
+      toast.error(error.response?.data?.message || 'Không thể tải ảnh lên. Vui lòng thử lại.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   const handleCancel = () => {
     setFullName(user?.fullName || '');
     setPhoneNumber(user?.phoneNumber || '');
+    setAvatarUrl(user?.avatarUrl || '');
+    setAvatarAttachmentId(null);
     setErrors({});
   };
 
@@ -35,9 +69,14 @@ export default function ProfilePage() {
     if (!validate()) return;
     setIsUpdating(true);
     try {
-      const response = await updateProfile({ fullName, phoneNumber });
+      const payload = { fullName, phoneNumber };
+      if (avatarAttachmentId) {
+        payload.avatarAttachmentId = avatarAttachmentId;
+      }
+      const response = await updateProfile(payload);
       updateUserContext(response.data);
       toast.success('Cập nhật thông tin thành công!');
+      setAvatarAttachmentId(null);
     } catch (error) {
       console.error('Lỗi khi cập nhật:', error);
       toast.error('Cập nhật thất bại. Vui lòng thử lại sau.');
@@ -71,11 +110,36 @@ export default function ProfilePage() {
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
                   {/* User Avatar & Name */}
                   <div className="flex flex-col items-center gap-4 shrink-0">
-                    <div className="w-36 h-36 rounded-full bg-primary/10 border-4 border-surface-container-low ring-4 ring-primary/5 flex items-center justify-center">
-                      <span className="text-5xl font-black text-primary select-none">
-                        {(user?.fullName || 'U').charAt(0).toUpperCase()}
-                      </span>
+                    <div 
+                      onClick={() => !isUploadingAvatar && document.getElementById('avatar-file-input').click()}
+                      className="w-36 h-36 rounded-full bg-primary/10 border-4 border-surface-container-low ring-4 ring-primary/5 flex items-center justify-center cursor-pointer overflow-hidden relative group transition-all hover:scale-[1.02]">
+                      {isUploadingAvatar ? (
+                        <div className="flex flex-col items-center justify-center text-primary">
+                          <span className="material-symbols-outlined text-3xl animate-spin">refresh</span>
+                          <span className="text-[10px] font-black tracking-wider uppercase mt-1">Đang tải...</span>
+                        </div>
+                      ) : avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-5xl font-black text-primary select-none group-hover:opacity-30 transition-opacity">
+                          {(fullName || 'U').charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      
+                      {!isUploadingAvatar && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                        </div>
+                      )}
                     </div>
+                    <input 
+                      id="avatar-file-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      disabled={isUploadingAvatar}
+                    />
                     <div className="text-center">
                       <p className="text-lg font-black text-on-surface">{user?.fullName || ''}</p>
                       <p className="text-xs text-stone-400 font-medium mt-0.5">{user?.email || ''}</p>

@@ -35,6 +35,7 @@ export const mapApiResponseToMessage = (response) => ({
   responseType: response.responseType,
   references: response.references || [],
   suggestedAction: response.suggestedAction || null,
+  attachment: response.attachment || null,
   createdAt: response.createdAt || new Date().toISOString(),
 });
 
@@ -45,5 +46,6 @@ export const mapHistoryMessageToMessage = (response) => ({
   responseType: response.senderType === 'AI' ? 'AGRI_KNOWLEDGE' : null,
   references: [],
   suggestedAction: null,
+  attachment: response.attachment || null,
   createdAt: response.createdAt,
 });

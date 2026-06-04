@@ -87,10 +87,14 @@ const Header = () => {
                       </div>
                       <span className="text-[11px] text-slate-500 font-medium">{user.roleName === 'ADMIN' ? 'Quản trị viên' : user.roleName || 'Nông dân'}</span>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <span className="text-base font-black text-primary select-none">
-                        {(user.fullName || 'U').charAt(0).toUpperCase()}
-                      </span>
+                    <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-base font-black text-primary select-none">
+                          {(user.fullName || 'U').charAt(0).toUpperCase()}
+                        </span>
+                      )}
                     </div>
                   </button>
 
@@ -178,10 +182,14 @@ const Header = () => {
               {user ? (
                 <>
                   <div className="flex items-center gap-4 cursor-pointer" onClick={() => { setMobileMenuOpen(false); navigate('/profile'); }}>
-                    <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                      <span className="text-xl font-black text-primary select-none">
-                        {(user.fullName || 'U').charAt(0).toUpperCase()}
-                      </span>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xl font-black text-primary select-none">
+                          {(user.fullName || 'U').charAt(0).toUpperCase()}
+                        </span>
+                      )}
                     </div>
                     <div>
                       <p className="font-bold text-slate-900 flex gap-1 items-center">{user.fullName || 'Người dùng'} <span className="material-symbols-outlined text-[14px]">edit</span></p>
