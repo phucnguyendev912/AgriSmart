@@ -118,13 +118,13 @@ public class AdminDrugInteractionService {
 
     private DrugInteraction getEntityById(Integer id) {
         return drugInteractionRepository.findById(id)
-                .filter(di -> !di.getIsDelete())
+                .filter(di -> !Boolean.TRUE.equals(di.getIsDelete()))
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy tương tác thuốc với ID: " + id));
     }
 
     private Ingredient getActiveIngredient(Integer id) {
         return ingredientRepository.findById(id)
-                .filter(i -> !i.getIsDelete())
+                .filter(i -> !Boolean.TRUE.equals(i.getIsDelete()))
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy hoạt chất với ID: " + id));
     }
 

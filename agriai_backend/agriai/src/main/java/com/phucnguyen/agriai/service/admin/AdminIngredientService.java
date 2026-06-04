@@ -29,9 +29,9 @@ public class AdminIngredientService {
     public Page<AdminIngredientResponse> getIngredients(String name, Pageable pageable) {
         Page<Ingredient> page;
         if (name != null && !name.trim().isEmpty()) {
-            page = ingredientRepository.findByIngredientNameContainingIgnoreCaseAndIsDeleteFalse(name.trim(), pageable);
+            page = ingredientRepository.findByNameNotDeleted("%" + name.trim().toLowerCase() + "%", pageable);
         } else {
-            page = ingredientRepository.findByIsDeleteFalse(pageable);
+            page = ingredientRepository.findAllNotDeleted(pageable);
         }
         return page.map(this::mapToResponse);
     }
@@ -44,13 +44,13 @@ public class AdminIngredientService {
     @Transactional(readOnly = true)
     public Map<String, Object> getIngredientStats() {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalIngredients", ingredientRepository.countByIsDeleteFalse());
+        stats.put("totalIngredients", ingredientRepository.countNotDeleted());
         return stats;
     }
 
     @Transactional
     public AdminIngredientResponse createIngredient(AdminCreateIngredientRequest request) {
-        if (ingredientRepository.existsByIngredientNameIgnoreCaseAndIsDeleteFalse(request.getIngredientName())) {
+        if (ingredientRepository.existsByNameNotDeleted(request.getIngredientName())) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Hoạt chất '" + request.getIngredientName() + "' đã tồn tại");
         }
 
@@ -68,7 +68,7 @@ public class AdminIngredientService {
         Ingredient ingredient = getEntityById(id);
 
         boolean nameChanged = !ingredient.getIngredientName().equalsIgnoreCase(request.getIngredientName());
-        if (nameChanged && ingredientRepository.existsByIngredientNameIgnoreCaseAndIsDeleteFalse(request.getIngredientName())) {
+        if (nameChanged && ingredientRepository.existsByNameNotDeleted(request.getIngredientName())) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Hoạt chất '" + request.getIngredientName() + "' đã tồn tại");
         }
 
@@ -100,7 +100,7 @@ public class AdminIngredientService {
 
     private Ingredient getEntityById(Integer id) {
         return ingredientRepository.findById(id)
-                .filter(i -> !i.getIsDelete())
+                .filter(i -> !Boolean.TRUE.equals(i.getIsDelete()))
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy hoạt chất với ID: " + id));
     }
 

@@ -29,9 +29,9 @@ public class AdminWeatherConditionService {
     public Page<AdminWeatherConditionResponse> getConditions(Integer diseaseId, Pageable pageable) {
         Page<DiseaseWeatherCondition> page;
         if (diseaseId != null) {
-            page = conditionRepository.findByDiseaseIdAndIsDeleteFalse(diseaseId, pageable);
+            page = conditionRepository.findByDiseaseIdNotDeleted(diseaseId, pageable);
         } else {
-            page = conditionRepository.findByIsDeleteFalse(pageable);
+            page = conditionRepository.findAllNotDeleted(pageable);
         }
         return page.map(this::mapToResponse);
     }
@@ -44,8 +44,8 @@ public class AdminWeatherConditionService {
     @Transactional(readOnly = true)
     public Map<String, Object> getConditionStats() {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalConditions", conditionRepository.countByIsDeleteFalse());
-        stats.put("activeConditions", conditionRepository.countByIsActiveTrueAndIsDeleteFalse());
+        stats.put("totalConditions", conditionRepository.countNotDeleted());
+        stats.put("activeConditions", conditionRepository.countActiveNotDeleted());
         return stats;
     }
 
@@ -109,13 +109,13 @@ public class AdminWeatherConditionService {
 
     private Disease getActiveDisease(Integer diseaseId) {
         return diseaseRepository.findById(diseaseId)
-                .filter(d -> !d.getIsDelete())
+                .filter(d -> !Boolean.TRUE.equals(d.getIsDelete()))
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy bệnh với ID: " + diseaseId));
     }
 
     private DiseaseWeatherCondition getEntityById(Integer id) {
         return conditionRepository.findById(id)
-                .filter(c -> !c.getIsDelete())
+                .filter(c -> !Boolean.TRUE.equals(c.getIsDelete()))
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy điều kiện thời tiết với ID: " + id));
     }
 

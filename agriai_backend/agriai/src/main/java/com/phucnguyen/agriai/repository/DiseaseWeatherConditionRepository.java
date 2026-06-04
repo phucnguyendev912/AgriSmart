@@ -4,6 +4,8 @@ import com.phucnguyen.agriai.entity.DiseaseWeatherCondition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,11 +17,16 @@ public interface DiseaseWeatherConditionRepository extends JpaRepository<Disease
 
     List<DiseaseWeatherCondition> findByIsActiveTrueAndIsDeleteFalse();
 
-    Page<DiseaseWeatherCondition> findByIsDeleteFalse(Pageable pageable);
+    @Query("SELECT c FROM DiseaseWeatherCondition c WHERE (c.isDelete = false OR c.isDelete IS NULL)")
+    Page<DiseaseWeatherCondition> findAllNotDeleted(Pageable pageable);
 
-    Page<DiseaseWeatherCondition> findByDiseaseIdAndIsDeleteFalse(Integer diseaseId, Pageable pageable);
+    @Query("SELECT c FROM DiseaseWeatherCondition c WHERE c.disease.id = :diseaseId AND (c.isDelete = false OR c.isDelete IS NULL)")
+    Page<DiseaseWeatherCondition> findByDiseaseIdNotDeleted(@Param("diseaseId") Integer diseaseId, Pageable pageable);
 
-    long countByIsDeleteFalse();
+    @Query("SELECT COUNT(c) FROM DiseaseWeatherCondition c WHERE (c.isDelete = false OR c.isDelete IS NULL)")
+    long countNotDeleted();
 
-    long countByIsActiveTrueAndIsDeleteFalse();
+    @Query("SELECT COUNT(c) FROM DiseaseWeatherCondition c WHERE c.isActive = true AND (c.isDelete = false OR c.isDelete IS NULL)")
+    long countActiveNotDeleted();
 }
+
