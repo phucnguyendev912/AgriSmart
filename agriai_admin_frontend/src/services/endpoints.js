@@ -12,5 +12,7 @@ export const ENDPOINTS = {
   
   // Crop Type endpoints
   ADMIN_CROP_TYPES_SIMPLE: '/api/admin/crop-types/simple',
+  ADMIN_CROP_TYPES: '/api/admin/crop-types',
+  ADMIN_CROP_TYPES_STATS: '/api/admin/crop-types/stats',
 };
 

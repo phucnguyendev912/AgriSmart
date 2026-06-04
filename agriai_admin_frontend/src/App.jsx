@@ -6,6 +6,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import DashboardPage from './pages/DashboardPage';
 import UserManagementPage from './pages/UserManagementPage';
 import DiseaseManagementPage from './pages/DiseaseManagementPage';
+import CropTypeManagementPage from './pages/CropTypeManagementPage';
 
 function App() {
   return (
@@ -27,7 +28,7 @@ function App() {
             <Route index element={<DashboardPage />} />
             <Route path="users" element={<UserManagementPage />} />
             <Route path="diseases" element={<DiseaseManagementPage />} />
-            <Route path="crop-types" element={<div className="p-8">Quản lý loại cây</div>} />
+            <Route path="crop-types" element={<CropTypeManagementPage />} />
             <Route path="treatment-plans" element={<div className="p-8">Quản lý phác đồ</div>} />
             <Route path="ingredients" element={<div className="p-8">Quản lý thành phần</div>} />
             <Route path="drugs" element={<div className="p-8">Quản lý thuốc</div>} />
