@@ -4,14 +4,15 @@ const menuItems = [
   { path: '/', label: 'Tổng quan', icon: 'dashboard' },
   { path: '/users', label: 'Quản lý người dùng', icon: 'group' },
   { path: '/diseases', label: 'Quản lý bệnh cây trồng', icon: 'coronavirus' },
-  { path: '/crop-types', label: 'Quản lý loại cây', icon: 'potted_plant' },
-  { path: '/treatment-plans', label: 'Quản lý phác đồ', icon: 'medical_services' },
-  { path: '/ingredients', label: 'Quản lý thành phần', icon: 'science' },
+  { path: '/crop-types', label: 'Quản lý loại cây trồng', icon: 'potted_plant' },
+  { path: '/treatment-plans', label: 'Quản lý Phác đồ điều trị', icon: 'medical_services' },
   { path: '/drugs', label: 'Quản lý thuốc', icon: 'medication' },
-  { path: '/drug-interactions', label: 'Quản lý tương tác thuốc', icon: 'vaccines' },
-  { path: '/ai-performance', label: 'Quản lý hiệu suất AI', icon: 'analytics' },
-  { path: '/diagnosis-reviews', label: 'Quản lý đánh giá chẩn đoán', icon: 'rate_review' },
+  { path: '/ingredients', label: 'Quản lý thành phần thuốc', icon: 'science' },
+  { path: '/active-ingredients', label: 'Quản lý hoạt chất', icon: 'biotech' },
+  { path: '/ingredient-interactions', label: 'Quản lý tương tác hoạt chất', icon: 'vaccines' },
   { path: '/attachments', label: 'Quản lý tệp đính kèm', icon: 'attachment' },
+  { path: '/weather-risk-conditions', label: 'Quản lý điều kiện thời tiết nguy cơ gây bệnh', icon: 'thunderstorm' },
+  { path: '/diagnosis-reviews', label: 'Quản lý đánh giá kết quả chẩn đoán', icon: 'rate_review' },
 ];
 
 const AdminSidebar = () => {
@@ -19,7 +20,7 @@ const AdminSidebar = () => {
     <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 border-r border-slate-200 dark:border-slate-800 flex-col pt-20 pb-6 bg-slate-50 dark:bg-slate-950 z-40 overflow-y-auto">
       <div className="px-6 mb-8 shrink-0">
         <p className="text-sm font-bold text-green-800 dark:text-green-400">Quản trị viên</p>
-        <p className="text-xs text-slate-500">Hệ thống AgriAI</p>
+        <p className="text-xs text-slate-500">Hệ thống AgriSmart</p>
       </div>
       <nav className="flex-1 px-4 space-y-1">
         {menuItems.map((item) => (

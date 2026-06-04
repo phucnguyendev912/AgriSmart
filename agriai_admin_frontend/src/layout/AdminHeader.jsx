@@ -4,7 +4,7 @@ const AdminHeader = () => {
   return (
     <header className="fixed top-0 w-full flex justify-between items-center px-6 h-16 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none border-b border-slate-200/50">
       <div className="flex items-center gap-4">
-        <span className="text-xl font-black text-green-800 dark:text-green-400 tracking-tighter">AgriAI</span>
+        <span className="text-xl font-black text-green-800 dark:text-green-400 tracking-tighter">AgriSmart</span>
       </div>
       <div className="flex items-center gap-6">
         <div className="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full">

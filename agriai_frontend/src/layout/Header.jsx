@@ -55,7 +55,18 @@ const Header = () => {
               >
                 Lịch sử chẩn đoán
               </button>
-              <Link className={linkClass('/farming-areas')} to="/farming-areas">Khu vực canh tác</Link>
+              <button
+                onClick={() => {
+                  if (!user) {
+                    toast.warning("🔒 Vui lòng đăng nhập để xem khu vực canh tác.", { position: "bottom-right", autoClose: 4000 });
+                  } else {
+                    navigate('/farming-areas');
+                  }
+                }}
+                className={linkClass('/farming-areas')}
+              >
+                Khu vực canh tác
+              </button>
               <Link className={`${linkClass('/warning-map')} flex items-center gap-1`} to="/warning-map">
                 <span className="material-symbols-outlined text-base">map</span>
                 Bản đồ dịch bệnh
@@ -143,9 +154,19 @@ const Header = () => {
             >
               Lịch sử chẩn đoán <span className="material-symbols-outlined text-sm">chevron_right</span>
             </div>
-            <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/farming-areas') ? 'text-primary' : 'text-slate-600'}`} to="/farming-areas" onClick={() => setMobileMenuOpen(false)}>
+            <div
+              className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 cursor-pointer ${isActive('/farming-areas') ? 'text-primary' : 'text-slate-600'}`}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (!user) {
+                  toast.warning("🔒 Vui lòng đăng nhập để xem khu vực canh tác.", { position: "bottom-right", autoClose: 4000 });
+                } else {
+                  navigate('/farming-areas');
+                }
+              }}
+            >
               Khu vực canh tác <span className="material-symbols-outlined text-sm">chevron_right</span>
-            </Link>
+            </div>
             <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/warning-map') ? 'text-primary' : 'text-slate-600'}`} to="/warning-map" onClick={() => setMobileMenuOpen(false)}>
               Bản đồ dịch bệnh <span className="material-symbols-outlined text-sm">chevron_right</span>
             </Link>
