@@ -46,7 +46,7 @@ const Header = () => {
               <button 
                 onClick={() => {
                   if (!user) {
-                    toast.info("Vui lòng đăng nhập để xem lịch sử chẩn đoán");
+                    toast.warning("🔒 Vui lòng đăng nhập để xem lịch sử chẩn đoán.", { position: "bottom-right", autoClose: 4000 });
                   } else {
                     navigate('/history');
                   }
@@ -146,7 +146,7 @@ const Header = () => {
               onClick={() => {
                 setMobileMenuOpen(false);
                 if (!user) {
-                  toast.info("Vui lòng đăng nhập để xem lịch sử chẩn đoán");
+                  toast.warning("🔒 Vui lòng đăng nhập để xem lịch sử chẩn đoán.", { position: "bottom-right", autoClose: 4000 });
                 } else {
                   navigate('/history');
                 }
