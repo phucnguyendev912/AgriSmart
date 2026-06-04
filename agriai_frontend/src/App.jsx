@@ -81,20 +81,38 @@ function App() {
               <Route
                 path="/farming-areas"
                 element={
-                  <RequireAuth message="Vui lòng đăng nhập để xem khu vực canh tác.">
+                  <RequireAuth>
                     <FarmingAreaPage />
                   </RequireAuth>
                 }
               />
               <Route path="/diagnosis" element={<DiagnosisPage />} />
-              <Route path="/history" element={<DiagnosisHistoryPage />} />
+              <Route
+                path="/history"
+                element={
+                  <RequireAuth>
+                    <DiagnosisHistoryPage />
+                  </RequireAuth>
+                }
+              />
               <Route
                 path="/history/:id"
-                element={<DiagnosisHistoryDetailPage />}
+                element={
+                  <RequireAuth>
+                    <DiagnosisHistoryDetailPage />
+                  </RequireAuth>
+                }
               />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/warning-map" element={<DiseaseMapPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
+              <Route
+                path="/profile"
+                element={
+                  <RequireAuth>
+                    <ProfilePage />
+                  </RequireAuth>
+                }
+              />
               <Route path="/about" element={<AboutPage />} />
             </Routes>
           </div>
