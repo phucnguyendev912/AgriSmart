@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@AttributeOverride(name = "isDelete", column = @Column(name = "is_deleted"))
 public class Ingredient extends BaseEntity {
     @Column(name = "ingredient_name", length = 255)
     private String ingredientName;
