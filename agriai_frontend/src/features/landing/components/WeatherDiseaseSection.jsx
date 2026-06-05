@@ -287,18 +287,6 @@ const WeatherDiseaseSection = () => {
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
-
-          <button
-            type="button"
-            onClick={() => setShowLocationModal(true)}
-            disabled={isLocating || isLoading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-base">
-              {isLocating ? 'progress_activity' : 'my_location'}
-            </span>
-            Dùng vị trí
-          </button>
         </div>
 
         {/* Weather conditions & disease warnings grid */}
