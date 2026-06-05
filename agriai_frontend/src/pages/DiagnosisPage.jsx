@@ -40,6 +40,7 @@ const DiagnosisPage = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
+    const [progress, setProgress] = useState(0);
 
     const [diagnosisCoords, setDiagnosisCoords] = useState({ latitude: null, longitude: null, accuracy: null, timestamp: null });
     const [checkingLocation, setCheckingLocation] = useState(true);
@@ -59,6 +60,36 @@ const DiagnosisPage = () => {
         };
         fetchCropTypes();
     }, []);
+
+    // Effect for the optimistic progress bar
+    useEffect(() => {
+        let interval;
+        if (loading) {
+            setProgress(0);
+            const totalDuration = 9000; // 9 seconds
+            const updateInterval = 50; // Update every 50ms
+            const targetProgress = 85;
+            const incrementPerUpdate = targetProgress / (totalDuration / updateInterval);
+
+            interval = setInterval(() => {
+                setProgress((prev) => {
+                    const next = prev + incrementPerUpdate;
+                    if (next >= targetProgress) {
+                        clearInterval(interval);
+                        return targetProgress;
+                    }
+                    return next;
+                });
+            }, updateInterval);
+        } else {
+            setProgress(0);
+            if (interval) clearInterval(interval);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [loading]);
 
     const fetchFreshLocation = useCallback(async () => {
         setCheckingLocation(true);
@@ -261,6 +292,42 @@ const DiagnosisPage = () => {
                                 <p className="text-sm font-bold text-on-surface-variant">Chọn ảnh và nhấn "Chẩn đoán ngay" để bắt đầu</p>
                             </div>
                         )}
+
+                        {/* Loading Progress */}
+                        {!result && loading && (
+                            <div className="bg-surface-container-lowest rounded-xl p-8 shadow-sm border border-surface-container-highest flex-grow flex flex-col items-center justify-center text-center">
+                                <div className="w-full max-w-md flex flex-col items-center">
+                                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 relative">
+                                        <span className="material-symbols-outlined text-primary text-3xl animate-pulse" style={{ animationDuration: '2s' }}>
+                                            biotech
+                                        </span>
+                                        <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" style={{ animationDuration: '1.5s' }}></div>
+                                    </div>
+                                    
+                                    <h3 className="text-lg font-bold text-on-surface mb-2">Đang phân tích hình ảnh...</h3>
+                                    <p className="text-sm text-on-surface-variant mb-8 text-center max-w-xs">
+                                        AI của AgriSmart đang quét các đặc điểm bệnh lý trên lá cây. Quá trình này có thể mất vài giây.
+                                    </p>
+                                    
+                                    <div className="w-full bg-surface-container-high h-3 rounded-full overflow-hidden shadow-inner relative">
+                                        <div 
+                                            className="h-full bg-primary rounded-full transition-all duration-75 ease-linear relative overflow-hidden"
+                                            style={{ width: `${progress}%` }}
+                                        >
+                                            <div 
+                                                className="absolute inset-0 bg-white/20 w-1/2" 
+                                                style={{ animation: 'shimmer 2s infinite' }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex justify-between w-full mt-2">
+                                        <span className="text-xs font-bold text-on-surface-variant">Tiến trình AI</span>
+                                        <span className="text-xs font-bold text-primary">{Math.floor(progress)}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -341,6 +408,10 @@ const DiagnosisPage = () => {
                 }
                 .animate-bounce-subtle {
                     animation: bounce-subtle 2s ease-in-out infinite;
+                }
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%) skewX(-20deg); }
+                    100% { transform: translateX(250%) skewX(-20deg); }
                 }
             `}</style>
         </div>

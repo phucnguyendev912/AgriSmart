@@ -41,12 +41,6 @@ const AdminSidebar = () => {
           </NavLink>
         ))}
       </nav>
-      <div className="px-6 pt-4 border-t border-slate-200 dark:border-slate-800 mt-4 shrink-0">
-        <button className="flex items-center gap-3 text-sm text-slate-500 hover:text-error transition-colors w-full text-left">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>logout</span>
-          <span>Đăng xuất</span>
-        </button>
-      </div>
     </aside>
   );
 };

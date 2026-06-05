@@ -37,8 +37,12 @@ export default function AdminLoginPage() {
       loginContext(userData);
       navigate('/');
     } catch (err) {
-      const msg = err.response?.data?.message || 'Email hoặc mật khẩu không đúng.';
-      setError(msg);
+      if (!err.response) {
+        setError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng hoặc thử lại sau.');
+      } else {
+        const msg = err.response?.data?.message || 'Email hoặc mật khẩu không đúng.';
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }

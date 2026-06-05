@@ -14,6 +14,8 @@ import IngredientManagementPage from './pages/IngredientManagementPage';
 import DrugInteractionManagementPage from './pages/DrugInteractionManagementPage';
 import WeatherConditionManagementPage from './pages/WeatherConditionManagementPage';
 
+import ReviewManagementPage from './pages/ReviewManagementPage';
+
 function App() {
   return (
     <AdminAuthProvider>
@@ -41,7 +43,7 @@ function App() {
             <Route path="drug-interactions" element={<DrugInteractionManagementPage />} />
             <Route path="weather-conditions" element={<WeatherConditionManagementPage />} />
             <Route path="ai-performance" element={<div className="p-8">Quản lý hiệu suất AI</div>} />
-            <Route path="diagnosis-reviews" element={<div className="p-8">Quản lý đánh giá chẩn đoán</div>} />
+            <Route path="diagnosis-reviews" element={<ReviewManagementPage />} />
             <Route path="attachments" element={<AttachmentManagementPage />} />
           </Route>
         </Routes>

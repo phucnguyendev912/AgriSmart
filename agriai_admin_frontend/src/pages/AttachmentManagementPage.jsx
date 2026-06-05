@@ -22,7 +22,6 @@ const AttachmentManagementPage = () => {
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
-    deleted: 0,
   });
 
   // Upload modal state
@@ -81,16 +80,14 @@ const AttachmentManagementPage = () => {
   // Fetch stats count using filtered requests
   const fetchStats = useCallback(async () => {
     try {
-      const [totalRes, activeRes, deletedRes] = await Promise.all([
+      const [totalRes, activeRes] = await Promise.all([
         getAttachments({ page: 0, size: 1 }),
         getAttachments({ page: 0, size: 1, isDelete: false }),
-        getAttachments({ page: 0, size: 1, isDelete: true }),
       ]);
       
       setStats({
         total: totalRes.totalElements,
         active: activeRes.totalElements,
-        deleted: deletedRes.totalElements,
       });
     } catch (err) {
       console.error('Lỗi khi tải thống kê tệp đính kèm:', err);
@@ -266,7 +263,7 @@ const AttachmentManagementPage = () => {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         <div className="bento-card p-6 rounded-2xl bg-white border border-outline-variant/15 shadow-sm flex items-center gap-5">
           <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <span className="material-symbols-outlined text-2xl">folder</span>
@@ -284,16 +281,6 @@ const AttachmentManagementPage = () => {
           <div>
             <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Đang hoạt động</p>
             <h3 className="text-2xl font-black text-emerald-700 mt-1">{stats.active}</h3>
-          </div>
-        </div>
-
-        <div className="bento-card p-6 rounded-2xl bg-white border border-outline-variant/15 shadow-sm flex items-center gap-5">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-            <span className="material-symbols-outlined text-2xl">delete_sweep</span>
-          </div>
-          <div>
-            <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Đã xóa mềm</p>
-            <h3 className="text-2xl font-black text-rose-700 mt-1">{stats.deleted}</h3>
           </div>
         </div>
       </div>

@@ -202,8 +202,8 @@ const Header = () => {
                 </>
               ) : (
                 <div className="flex gap-4 w-full">
-                  <Link to="/login" className="flex-1 text-center text-sm font-bold text-slate-900 bg-slate-100 py-3 rounded-lg">Đăng nhập</Link>
-                  <Link to="/register" className="flex-1 text-center text-sm font-bold text-white bg-primary py-3 rounded-lg">Đăng ký</Link>
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center text-sm font-bold text-slate-900 bg-slate-100 py-3 rounded-lg">Đăng nhập</Link>
+                  <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center text-sm font-bold text-white bg-primary py-3 rounded-lg">Đăng ký</Link>
                 </div>
               )}
             </div>

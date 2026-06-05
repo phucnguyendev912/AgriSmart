@@ -20,6 +20,8 @@ public interface DiagnoseReviewRepository extends JpaRepository<DiagnoseReview, 
 
     List<DiagnoseReview> findAllByOrderByCreatedAtDesc();
 
+    @Query("SELECT r FROM DiagnoseReview r WHERE (r.isDelete = false OR r.isDelete IS NULL)")
+    org.springframework.data.domain.Page<DiagnoseReview> findAllNotDeleted(Pageable pageable);
 
     @Query("SELECT COUNT(r) FROM DiagnoseReview r WHERE r.isDelete = false")
     long countTotalReviews();
