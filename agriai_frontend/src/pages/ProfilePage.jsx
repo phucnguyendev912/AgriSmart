@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/common/SEO';
@@ -16,6 +16,12 @@ export default function ProfilePage() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [errors, setErrors] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    setFullName(user?.fullName || '');
+    setPhoneNumber(user?.phoneNumber || '');
+    setErrors({});
+  }, [user]);
 
   const validate = () => {
     const newErrors = {};
@@ -176,7 +182,7 @@ export default function ProfilePage() {
                         <input
                           className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface focus:ring-4 focus:ring-primary/10 transition-all font-semibold opacity-70 cursor-not-allowed"
                           type="email"
-                          value={email}
+                          value={user?.email || ''}
                           disabled
                         />
                       </div>
