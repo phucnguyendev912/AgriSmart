@@ -22,12 +22,6 @@ public class DiseaseMapController {
     private final DiseaseMapService diseaseMapService;
     private final DiseaseRepository diseaseRepository;
 
-    /**
-     * GET /api/map/markers
-     *
-     * @param days      Số ngày lọc dữ liệu (mặc định 30)
-     * @param diseaseId ID loại bệnh (tuỳ chọn)
-     */
     @GetMapping("/markers")
     public ResponseEntity<List<MapMarkerResponse>> getMarkers(
             @RequestParam(defaultValue = "30") int days,

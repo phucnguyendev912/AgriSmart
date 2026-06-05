@@ -19,4 +19,5 @@ public class ProfileUpdateRequest {
     @Pattern(regexp = "^\\d{10}$", message = "Số điện thoại phải gồm 10 chữ số")
     private String phoneNumber;
 
+    private Integer avatarAttachmentId;
 }

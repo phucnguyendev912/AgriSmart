@@ -1,5 +1,14 @@
 import React from 'react';
 
+/**
+ * DiagnoseWeatherAlertsPanel Component
+ * Displays weather-related risks for specific diseases and generic weather alerts
+ * that could affect pesticide efficacy or safety.
+ * 
+ * @param {Object} props - Component properties.
+ * @param {Array} props.weatherAlerts - Violated weather conditions for treatment.
+ * @param {Array} props.diseaseWeatherRisks - Environmental risk factors matched for diseases.
+ */
 const DiagnoseWeatherAlertsPanel = ({ weatherAlerts, diseaseWeatherRisks }) => {
     const risks = diseaseWeatherRisks || [];
     const violated = (weatherAlerts || []).filter(a => a.violated);

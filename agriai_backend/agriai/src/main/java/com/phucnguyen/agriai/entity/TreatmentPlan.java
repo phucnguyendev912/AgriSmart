@@ -4,7 +4,7 @@ import com.phucnguyen.agriai.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import com.phucnguyen.agriai.entity.enums.DosageType;
+import com.phucnguyen.agriai.enums.DosageType;
 import java.math.BigDecimal;
 
 @Entity
@@ -25,12 +25,10 @@ public class TreatmentPlan extends BaseEntity {
 
 
 
-    // ── NEW: Drug FK ─────────────────────────────────────────────────────────
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "drug_id")
     private Drug drug;
 
-    // ── NEW: Chuẩn hoá liều lượng ────────────────────────────────────────────
     @Enumerated(EnumType.STRING)
     @Column(name = "dosage_type", length = 20)
     private DosageType dosageType;           // PER_HA | PER_TANK | PER_AREA
@@ -50,11 +48,9 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "dosage_area_unit", length = 20)
     private String dosageAreaUnit;       // ha, 1000m2
 
-    // ── NEW: UI display ──────────────────────────────────────────────────────
     @Column(name = "mixing_instruction", columnDefinition = "TEXT")
     private String mixingInstruction;
 
-    // ── NEW: Lịch phun ───────────────────────────────────────────────────────
     @Column(name = "water_volume_min", precision = 10, scale = 2)
     private BigDecimal waterVolumeMin;
 
@@ -70,7 +66,6 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "spray_interval", length = 100)
     private String sprayInterval;
 
-    // ── Fields giữ nguyên ────────────────────────────────────────────────────
     @Column(name = "applicationMethod", columnDefinition = "TEXT")
     private String applicationMethod;
 
@@ -80,10 +75,6 @@ public class TreatmentPlan extends BaseEntity {
     @Column(name = "safetyNotes", columnDefinition = "TEXT")
     private String safetyNotes;
 
-    @Column(name = "isRequired")
-    private Boolean isRequired;
-
-    // ── NEW: Metadata ────────────────────────────────────────────────────────
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

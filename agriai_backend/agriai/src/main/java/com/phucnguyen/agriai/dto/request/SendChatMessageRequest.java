@@ -22,4 +22,6 @@ public class SendChatMessageRequest {
 
     // optional: skill hint from frontend dropdown; null means use intent classifier fallback
     private SkillDefinition selectedSkill;
+
+    private Integer attachmentId;
 }

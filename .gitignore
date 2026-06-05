@@ -10,8 +10,10 @@ skills/
 codebase-analysis/
 *.md
 !README.md
-!docs/**/*.md
 
+
+# ── Internal docs (local only) ───────────────────────────────
+docs/
 
 # ── Secrets & Environment ────────────────────────────────────
 .env
@@ -81,3 +83,5 @@ agriai_backend/**/application-local.properties
 # ══════════════════════════════════════════════════════════════
 docker/volumes/
 .docker/
+cloudflared/
+

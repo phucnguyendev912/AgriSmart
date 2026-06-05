@@ -12,9 +12,7 @@ public class JacksonConfig {
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        // Register JavaTimeModule to handle Java 8 Date/Time types
         mapper.registerModule(new JavaTimeModule());
-        // Disable writing dates as timestamps for better readability
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper;
     }

@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:18-alpine
     container_name: agriai-db
     restart: unless-stopped
     environment:
@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - agriai_postgres_data:/var/lib/postgresql
+      - agriai_postgres18_data:/var/lib/postgresql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -32,7 +32,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       AUTH_COOKIE_SECURE: "false"
       AUTH_COOKIE_SAME_SITE: Lax
-      VISION_AI_URL: http://host.docker.internal:8010/predict
+      VISION_AI_URL: ${VISION_AI_URL:-http://host.docker.internal:8010/predict}
       SKILLS_BASE_PATH: /app/skills
       JWT_SECRET: ${JWT_SECRET}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
@@ -44,6 +44,10 @@ services:
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
       WEATHER_API_KEY: ${WEATHER_API_KEY}
+      CHATBOT_MAX_CONTEXT_CHARS: ${CHATBOT_MAX_CONTEXT_CHARS:-3000}
+      CHATBOT_HISTORY_SIZE: ${CHATBOT_HISTORY_SIZE:-6}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./skills:/app/skills:ro
     ports:
@@ -61,5 +65,28 @@ services:
     ports:
       - "3000:80"
 
+  admin-frontend:
+    build:
+      context: ./agriai_admin_frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    container_name: agriai-admin-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3001:80"
+# Cloudflared
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+
+    command: tunnel run
+
+    volumes:
+      - ./cloudflared:/etc/cloudflared
 volumes:
-  agriai_postgres_data:
+  agriai_postgres18_data:
+
+

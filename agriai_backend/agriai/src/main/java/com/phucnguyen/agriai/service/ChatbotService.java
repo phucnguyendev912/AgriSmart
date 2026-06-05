@@ -46,30 +46,22 @@ public class ChatbotService {
     @Value("${agriai.chatbot.history-size:6}")
     private int historySize;
 
-    // disease names aligned with SKILL.md knowledge base — used for follow-up
-    // enrichment
     private static final List<String> DISEASE_KEYWORDS = List.of(
             "đạo ôn", "khô vằn", "bạc lá", "lem lép hạt", "vàng lùn",
             "lùn xoắn lá", "sọc vi khuẩn", "đốm nâu", "cháy bìa lá", "tungro");
 
-    // queries shorter than this (chars) are treated as follow-up without disease
-    // subject
     private static final int SHORT_QUERY_THRESHOLD = 25;
 
-
-    // handle chat for session — multi-turn with conversation history
-    // DB connection is NOT held during the AI call (expensive network call).
-    // Steps: (1) read+save in TX → (2) call AI with no TX → (3) save AI reply in TX
     public ChatResponse chatForSession(String email, Integer sessionId, SendChatMessageRequest request) {
         String userText = request.getMessageContent().trim();
 
-        // TX 1: load history + save user message → commit → release connection
-        SessionContext ctx = self.loadHistoryAndSaveUser(email, sessionId, userText);
+        
+        SessionContext ctx = self.loadHistoryAndSaveUser(email, sessionId, userText, request.getAttachmentId());
 
-        // AI call — no DB connection held here
+        
         String answer = buildContextAndGenerateWithHistory(userText, ctx.history(), request.getSelectedSkill());
 
-        // TX 2: save AI reply → commit → release connection
+       
         ChatMessage aiMessage = self.saveAiResponse(ctx.session(), answer);
 
         return ChatResponse.builder()
@@ -81,12 +73,11 @@ public class ChatbotService {
                 .build();
     }
 
-    /** TX 1 — read history + persist user message, then release connection. */
     @Transactional
-    protected SessionContext loadHistoryAndSaveUser(String email, Integer sessionId, String userText) {
+    protected SessionContext loadHistoryAndSaveUser(String email, Integer sessionId, String userText, Integer attachmentId) {
         ChatSession session = chatSessionService.getSessionOrThrow(email, sessionId);
         List<ChatMessage> history = chatMessageService.getRecentMessages(session, historySize);
-        ChatMessage userMessage = chatMessageService.saveUserMessage(session, userText);
+        ChatMessage userMessage = chatMessageService.saveUserMessage(session, userText, attachmentId);
         if (history.isEmpty()) {
             chatSessionService.updateTitleFromFirstMessage(session, userText);
         }
@@ -94,7 +85,7 @@ public class ChatbotService {
         return new SessionContext(session, history);
     }
 
-    /** TX 2 — persist AI reply, then release connection. */
+    // TX 2 — persist AI reply, then release connection.
     @Transactional
     protected ChatMessage saveAiResponse(ChatSession session, String answer) {
         ChatMessage aiMessage = chatMessageService.saveAiMessage(session, answer);
@@ -102,7 +93,7 @@ public class ChatbotService {
         return aiMessage;
     }
 
-    /** Lightweight value holder — no need for a full DTO. */
+    // Lightweight value holder — no need for a full DTO.
     protected record SessionContext(ChatSession session, List<ChatMessage> history) {
     }
 

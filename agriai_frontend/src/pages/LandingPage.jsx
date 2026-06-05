@@ -1,11 +1,15 @@
 import React from 'react';
-import Hero from '../features/landing/components/Hero';
-import Features from '../features/landing/components/Features';
+import { Hero, Features } from '../features/landing';
 import SEO from '../components/common/SEO';
 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * LandingPage Component
+ * The initial landing/welcome page. Redirects authenticated users to the home dashboard
+ * and displays SEO metadata along with Hero and Features sections for guest visitors.
+ */
 const LandingPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();

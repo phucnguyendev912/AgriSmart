@@ -1,0 +1,81 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: agriai-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - agriai_postgres18_data:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: phucnguyendev912/agriai-backend:latest
+    container_name: agriai-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
+      AUTH_COOKIE_SAME_SITE: Lax
+      VISION_AI_URL: ${VISION_AI_URL:-http://host.docker.internal:8010/predict}
+      SKILLS_BASE_PATH: /app/skills
+      JWT_SECRET: ${JWT_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      WEATHER_API_KEY: ${WEATHER_API_KEY}
+      CHATBOT_MAX_CONTEXT_CHARS: ${CHATBOT_MAX_CONTEXT_CHARS:-3000}
+      CHATBOT_HISTORY_SIZE: ${CHATBOT_HISTORY_SIZE:-6}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./skills:/app/skills:ro
+
+  frontend:
+    image: phucnguyendev912/agriai-frontend:latest
+    container_name: agriai-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  admin-frontend:
+    image: phucnguyendev912/agriai-admin-frontend:latest
+    container_name: agriai-admin-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  nginx-gateway:
+    image: nginx:alpine
+    container_name: nginx-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx_gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx_gateway/certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend
+      - admin-frontend
+      - backend
+
+volumes:
+  agriai_postgres18_data:

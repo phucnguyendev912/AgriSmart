@@ -1,19 +1,42 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Marker, useMap, useMapEvents } from "react-leaflet";
+import L from "leaflet";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import "leaflet/dist/leaflet.css";
 import SEO from "../components/common/SEO";
-import ClusterMarker from "../features/map/components/ClusterMarker";
-import { useMapClusters } from "../features/map/hooks/useMapClusters";
+import { ClusterMarker, useMapClusters } from "../features/map";
+
+import { getMarkers, getDiseases } from "../services/diseaseMapService";
 
 const MARKER_COLOR = "#EF4444";
 
-const API_BASE = process.env.REACT_APP_API_URL ?? "http://localhost:8080";
+// Pin icon cho Hoàng Sa & Trường Sa
+const islandPinIcon = new L.Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [20, 32],
+  iconAnchor: [10, 32],
+  popupAnchor: [0, -32],
+  shadowSize: [32, 32],
+});
 
-// -------------------------------------------------------------------
-// Component con: lắng nghe zoom/bounds và đẩy lên parent
-// -------------------------------------------------------------------
+const ISLAND_PINS = [
+  { id: "hoang-sa", name: "Quần đảo Hoàng Sa", lat: 16.5, lng: 112.0 },
+  { id: "truong-sa", name: "Quần đảo Trường Sa", lat: 10.0, lng: 114.2 },
+];
+/**
+ * DiseaseMapPage Component
+ * Renders an interactive Leaflet map displaying clustered crop disease outbreak points.
+ * Provides custom filtering by disease type and time period.
+ */
+
+/**
+ * MapEventHandler Helper Component
+ * Listens to map bounds and zoom level changes, lifting state changes up to the parent component.
+ * @param {Object} props - Component properties.
+ * @param {Function} props.onBoundsChange - Callback triggered on map view change.
+ */
 function MapEventHandler({ onBoundsChange }) {
   const map = useMap();
 
@@ -30,7 +53,7 @@ function MapEventHandler({ onBoundsChange }) {
     zoomend: update,
   });
 
-  // Gọi lần đầu khi map ready
+  // Call initially when the map is ready
   useEffect(() => {
     update();
   }, [update]);
@@ -47,8 +70,8 @@ export default function DiseaseMapPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Cluster state — khởi tạo sẵn bbox Việt Nam [west, south, east, north]
-  // để supercluster có thể tính clusters ngay từ đầu, không cần chờ map event
+  // Cluster state: initializes default bounding box for Vietnam [west, south, east, north]
+  // so supercluster can calculate clusters immediately without waiting for map events.
   const [mapState, setMapState] = useState({
     bounds: [102.14, 8.18, 109.46, 23.39],
     zoom: 6,
@@ -58,7 +81,7 @@ export default function DiseaseMapPage() {
     setMapState({ bounds, zoom });
   }, []);
 
-  // Tính clusters từ markers + bounds/zoom hiện tại
+  // Calculate clusters from current markers and bounds/zoom
   const { clusters, supercluster } = useMapClusters(
     markers,
     mapState.bounds,
@@ -71,7 +94,7 @@ export default function DiseaseMapPage() {
     try {
       const params = { days };
       if (diseaseId) params.diseaseId = diseaseId;
-      const res = await axios.get(`${API_BASE}/api/map/markers`, { params });
+      const res = await getMarkers(params);
       setMarkers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setError("Không thể tải dữ liệu bản đồ. Vui lòng thử lại.");
@@ -84,27 +107,31 @@ export default function DiseaseMapPage() {
   useEffect(() => { fetchMarkers(); }, [fetchMarkers]);
 
   useEffect(() => {
-    const fetchDiseases = async () => {
+    const fetchDiseasesList = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/map/diseases`);
+        const res = await getDiseases();
         setDiseasesList(res.data);
       } catch (err) {
         console.error("Lỗi khi tải danh sách bệnh", err);
       }
     };
-    fetchDiseases();
+    fetchDiseasesList();
   }, []);
 
   const formatDate = (iso) => {
     if (!iso) return "—";
-    return new Date(iso).toLocaleString("vi-VN", {
+    // Backend trả về LocalDateTime không có timezone (ví dụ: "2026-05-23T16:30:00").
+    // Một số browser parse chuỗi này là UTC → lệch 7h so với giờ Việt Nam.
+    // Gắn "+07:00" để đảm bảo luôn được hiểu đúng là giờ Việt Nam (UTC+7).
+    const normalized = iso.endsWith("Z") || iso.includes("+") ? iso : iso + "+07:00";
+    return new Date(normalized).toLocaleString("vi-VN", {
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface text-on-surface">
+    <div className="flex flex-col min-h-screen bg-surface text-on-surface pt-20">
       <SEO
         title="Bản đồ cảnh báo dịch bệnh cây trồng"
         description="Theo dõi phân bố dịch bệnh cây trồng theo thời gian thực trên bản đồ tương tác."
@@ -180,7 +207,7 @@ export default function DiseaseMapPage() {
       )}
 
       {/* Map */}
-      <div className="flex-1 relative" style={{ minHeight: "500px" }}>
+      <div className="flex-1 relative z-10" style={{ minHeight: "500px" }}>
         <MapContainer
           center={[16.047079, 108.20623]}
           zoom={6}
@@ -188,14 +215,23 @@ export default function DiseaseMapPage() {
           scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
           />
 
-          {/* Lắng nghe thay đổi bounds/zoom */}
+          {/* Pin markers for Hoàng Sa & Trường Sa */}
+          {ISLAND_PINS.map((island) => (
+            <Marker key={island.id} position={[island.lat, island.lng]} icon={islandPinIcon}>
+              <Popup>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>{island.name}</div>
+              </Popup>
+            </Marker>
+          ))}
+
+          {/* Listen for map bounds and zoom changes */}
           <MapEventHandler onBoundsChange={handleBoundsChange} />
 
-          {/* Render clusters hoặc điểm đơn */}
+          {/* Render map cluster bubbles or single marker points */}
           {clusters.map((point) => {
             const [lng, lat] = point.geometry.coordinates;
             const isCluster = point.properties.cluster;
@@ -210,7 +246,7 @@ export default function DiseaseMapPage() {
               );
             }
 
-            // Điểm đơn — giữ nguyên CircleMarker style cũ
+            // Single point marker - keep original Leaflet CircleMarker styles
             const m = point.properties;
             return (
               <CircleMarker

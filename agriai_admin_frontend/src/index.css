@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body bg-background text-on-surface;
+    background-color: #f8f9fa;
+  }
+}
+
+@layer components {
+  .glass-header {
+    backdrop-filter: blur(12px);
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .bento-card {
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+  }
+  
+  .bento-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Ẩn nút hiện mật khẩu mặc định của Edge/IE */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

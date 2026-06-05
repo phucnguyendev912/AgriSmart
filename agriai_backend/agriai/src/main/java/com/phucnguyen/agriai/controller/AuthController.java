@@ -27,10 +27,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResponse lr = authService.login(request);
+        // Set short-lived access token in HttpOnly cookie (1 hour)
         Cookie access = new Cookie("accessToken", lr.getToken());
         access.setHttpOnly(true);
         access.setPath("/");
         access.setMaxAge(3600);
+        // Set long-lived refresh token in HttpOnly cookie (7 days)
         Cookie refresh = new Cookie("refreshToken", lr.getRefreshToken());
         refresh.setHttpOnly(true);
         refresh.setPath("/");
@@ -38,8 +40,8 @@ public class AuthController {
         response.addCookie(access);
         response.addCookie(refresh);
         return ResponseEntity.ok(LoginResponse.builder()
-                .user(lr.getUser())
-                .build());
+                 .user(lr.getUser())
+                 .build());
     }
 
     @PostMapping("/refresh-token")
@@ -48,6 +50,7 @@ public class AuthController {
         if (refreshToken == null)
             return ResponseEntity.status(401).build();
         LoginResponse lr = authService.refreshToken(refreshToken);
+        // Issue a new short-lived access token cookie
         Cookie access = new Cookie("accessToken", lr.getToken());
         access.setHttpOnly(true);
         access.setPath("/");

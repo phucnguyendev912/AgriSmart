@@ -9,6 +9,7 @@ import com.phucnguyen.agriai.entity.DiagnoseHistory;
 import com.phucnguyen.agriai.entity.Disease;
 import com.phucnguyen.agriai.enums.Status;
 import com.phucnguyen.agriai.exception.AppException;
+import com.phucnguyen.agriai.mapper.DiseaseMapper;
 import com.phucnguyen.agriai.port.GuidancePort;
 import com.phucnguyen.agriai.port.ImageStoragePort;
 import com.phucnguyen.agriai.port.VisionDetectionPort;
@@ -25,11 +26,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@Transactional(noRollbackFor = AppException.class)
 @RequiredArgsConstructor
 public class DiagnoseService {
 
@@ -51,11 +50,17 @@ public class DiagnoseService {
 
     public DiagnoseResponse diagnose(String email, DiagnoseRequest request) {
         DiagnosisValidationService.DiagnosisContext context = diagnosisValidationService.validate(email, request);
-        DiagnoseHistory history = createPendingHistoryIfAuthenticated(context, request);
+        boolean isAuthenticated = context.user() != null;
+
+        long startTotal = System.currentTimeMillis();
+        long stepStart;
 
         try {
+            stepStart = System.currentTimeMillis();
             String imageUrl = imageStoragePort.upload(request.getImage());
+            log.info("TIME_TRACK: upload() took {} ms", (System.currentTimeMillis() - stepStart));
 
+            stepStart = System.currentTimeMillis();
             CompletableFuture<List<VisionResultDTO>> visionFuture = CompletableFuture.supplyAsync(
                     () -> visionDetectionPort.detect(imageUrl));
             CompletableFuture<WeatherDTO> weatherFuture = CompletableFuture.supplyAsync(
@@ -63,59 +68,53 @@ public class DiagnoseService {
 
             List<VisionResultDTO> visionResults = visionFuture.join();
             WeatherDTO weather = weatherFuture.join();
+            log.info("TIME_TRACK: vision + weather (parallel) took {} ms", (System.currentTimeMillis() - stepStart));
+
             DiagnosisAnalysis analysis = analyzeVisionResults(visionResults);
 
+            stepStart = System.currentTimeMillis();
             RuleEngineService.RuleEngineResult ruleResult = analysis.detectedDiseases().isEmpty()
                     ? RuleEngineService.RuleEngineResult.empty()
-                    : ruleEngineService.process(
-                            analysis.detectedDiseases().stream()
-                                    .map(match -> new DiseaseContextDTO(
-                                            match.disease().getId(),
-                                            match.disease().getDiseaseName(),
-                                            match.visionResult() != null ? match.visionResult().getSeverity() : null))
-                                    .toList(),
-                            weather);
+                    : ruleEngineService.process(toDiseaseContexts(analysis), weather);
+            log.info("TIME_TRACK: ruleEngineService() took {} ms", (System.currentTimeMillis() - stepStart));
 
+            stepStart = System.currentTimeMillis();
             DiagnoseResponse response = diagnoseResponseBuilder.buildResponse(
-                    history != null ? history.getId() : null,
+                    null,
                     imageUrl,
                     weather,
                     request.hasGps(),
                     analysis,
                     ruleResult);
             response.setUserGuidance(guidancePort.generateGuidance(response));
+            log.info("TIME_TRACK: buildResponse & guidance() took {} ms", (System.currentTimeMillis() - stepStart));
 
-            if (history != null) {
-                historyPersistenceService.updateHistory(history, imageUrl, weather, Status.COMPLETED);
-                historyPersistenceService.saveDetails(history, response, analysis);
+            if (isAuthenticated) {
+                stepStart = System.currentTimeMillis();
+                DiagnoseHistory history = historyPersistenceService.saveCompletedHistory(
+                        context, request, imageUrl, weather, response, analysis);
+                log.info("TIME_TRACK: saveCompletedHistory (DB WRITES) took {} ms",
+                        (System.currentTimeMillis() - stepStart));
+                response.setId(history.getId());
                 runGeocodingInBackground(context, request);
             }
 
+            log.info("TIME_TRACK: TOTAL DIAGNOSE TOOK {} ms", (System.currentTimeMillis() - startTotal));
             return response;
         } catch (Exception exception) {
-            markHistoryFailed(history);
-            log.error("Lỗi khi chẩn đoán (ID: {}): {}",
-                    history != null ? history.getId() : null,
-                    exception.getMessage(),
-                    exception);
+            log.error("Lỗi khi chẩn đoán: {}", exception.getMessage(), exception);
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
         }
     }
 
-    private DiagnoseHistory createPendingHistoryIfAuthenticated(
-            DiagnosisValidationService.DiagnosisContext context,
-            DiagnoseRequest request) {
-        if (context.user() == null) {
-            return null;
-        }
-
-        return diagnoseHistoryRepository.save(DiagnoseHistory.builder()
-                .user(context.user())
-                .cropType(context.cropType())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
-                .status(Status.PENDING)
-                .build());
+    private List<DiseaseContextDTO> toDiseaseContexts(DiagnosisAnalysis analysis) {
+        return analysis.detectedDiseases().stream()
+                .map(match -> new DiseaseContextDTO(
+                        match.disease().getId(),
+                        match.disease().getDiseaseName(),
+                        match.visionResult() != null ? match.visionResult().getSeverity() : null,
+                        match.visionResult() != null ? match.visionResult().getConfidence() : null))
+                .toList();
     }
 
     private WeatherDTO fetchWeatherSafely(DiagnoseRequest request) {
@@ -182,6 +181,7 @@ public class DiagnoseService {
         return new DiagnosisAnalysis(healthy, detectedDiseases.isEmpty(), detectedDiseases);
     }
 
+    // Map a vision prediction result to a database Disease entity match
     private DetectedDiseaseMatch toDetectedDiseaseMatch(VisionResultDTO result) {
         Optional<Disease> diseaseOptional = diseaseMapper.findDisease(result.getLabel());
         if (diseaseOptional.isEmpty()) {

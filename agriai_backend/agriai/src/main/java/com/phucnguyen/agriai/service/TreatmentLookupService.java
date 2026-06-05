@@ -30,13 +30,9 @@ public class TreatmentLookupService {
         if (diseaseId == null) {
             return List.of();
         }
-        return treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(diseaseId).stream()
-                .sorted(Comparator.comparing(TreatmentPlan::getIsRequired, Comparator.nullsLast(Boolean::compareTo))
-                        .reversed())
-                .toList();
+        return treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(diseaseId);
     }
 
-    // Lấy plans cho nhiều diseases cùng lúc, trả về Map<diseaseId, plans>
     public Map<Integer, List<TreatmentPlan>> findByDiseaseIds(List<Integer> diseaseIds) {
         if (diseaseIds == null || diseaseIds.isEmpty()) {
             return Map.of();
@@ -45,7 +41,7 @@ public class TreatmentLookupService {
         List<TreatmentPlan> allPlans = treatmentPlanRepository
                 .findByDiseaseIdInAndIsDeleteFalse(diseaseIds);
 
-        // Group theo diseaseId, giữ thứ tự insert (LinkedHashMap)
+        // Group plans by disease ID using a LinkedHashMap to preserve query order.
         return allPlans.stream()
                 .filter(plan -> plan.getDisease() != null)
                 .collect(Collectors.groupingBy(

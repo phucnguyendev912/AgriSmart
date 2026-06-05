@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Handles session creation, retrieval, soft deleting, and automatic title generation.
 @Service
 @Transactional
 public class ChatSessionService {
@@ -26,13 +27,11 @@ public class ChatSessionService {
     private final ChatSessionRepository chatSessionRepository;
     private final UserRepository userRepository;
 
-    // constructor
     public ChatSessionService(ChatSessionRepository chatSessionRepository, UserRepository userRepository) {
         this.chatSessionRepository = chatSessionRepository;
         this.userRepository = userRepository;
     }
 
-    // create session
     public ChatSessionResponse createSession(String email, CreateChatSessionRequest request) {
         User user = getUserByEmail(email);
         ChatSession session = ChatSession.builder()
@@ -43,7 +42,6 @@ public class ChatSessionService {
         return ChatSessionResponse.fromEntity(saved);
     }
 
-    // get all sessions of a user
     @Transactional(readOnly = true)
     public Page<ChatSessionResponse> getSessions(String email, Pageable pageable) {
         User user = getUserByEmail(email);
@@ -52,14 +50,14 @@ public class ChatSessionService {
                 .map(ChatSessionResponse::fromEntity);
     }
 
-    // get a session by id and user id
+    // Finds a session by its ID and the owner's email, or throws an exception if not found or deleted.
     @Transactional(readOnly = true)
     public ChatSession getSessionOrThrow(String email, Integer sessionId) {
         User user = getUserByEmail(email);
         return getSessionByUser(user.getId(), sessionId);
     }
 
-    // soft delete session
+    // Soft deletes a chat session by setting the delete flag and deletion timestamp.
     public SoftDeleteChatSessionResponse softDeleteSession(String email, Integer sessionId) {
         ChatSession session = getSessionOrThrow(email, sessionId);
         session.setIsDelete(true);
@@ -72,14 +70,13 @@ public class ChatSessionService {
                 .build();
     }
 
-    // update last message
     public ChatSession updateLastMessage(ChatSession session, String lastMessage, LocalDateTime timestamp) {
         session.setLastMessage(lastMessage);
         session.setLastMessageAt(timestamp);
         return chatSessionRepository.save(session);
     }
 
-    // update session title from the first user message — only when title is still default
+    // Automatically updates the session title using the first message, if the title is still the default.
     public ChatSession updateTitleFromFirstMessage(ChatSession session, String firstMessage) {
         if (!DEFAULT_TITLE.equals(session.getSessionTitle())) {
             return session; // custom title already set — do not overwrite
@@ -89,7 +86,7 @@ public class ChatSessionService {
     }
 
 
-    // get user by email
+    // Helper method to retrieve user profile by email or throw unauthorized/not found error.
     private User getUserByEmail(String email) {
         if (email == null || email.isBlank()) {
             throw new AppException(HttpStatus.UNAUTHORIZED, "Nguoi dung chua dang nhap.");
@@ -98,13 +95,13 @@ public class ChatSessionService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay nguoi dung."));
     }
 
-    // get a session by id and user id
+    // Helper method to retrieve a non-deleted session by user ID and session ID.
     private ChatSession getSessionByUser(Integer userId, Integer sessionId) {
         return chatSessionRepository.findByIdAndUserIdAndIsDeleteFalse(sessionId, userId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay phien chat."));
     }
 
-    // resolve title to default title if null or blank
+    // Resolves the session title, defaulting to a standard placeholder if empty.
     private String resolveTitle(CreateChatSessionRequest request) {
         if (request == null || request.getSessionTitle() == null || request.getSessionTitle().isBlank()) {
             return DEFAULT_TITLE;
@@ -112,7 +109,8 @@ public class ChatSessionService {
         return request.getSessionTitle().trim();
     }
 
-    // create a short, stable title without making an extra AI call
+    // Generates a short title from the first message without calling the AI model.
+    // Truncates long messages gracefully at a word boundary to avoid cut-off words.
     private String generateTitle(String message) {
         if (message == null || message.isBlank()) {
             return DEFAULT_TITLE;

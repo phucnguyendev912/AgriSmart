@@ -13,10 +13,8 @@ const GlobalNotificationListener = () => {
     useEffect(() => {
         if (!user) return;
 
-        // Ensure proper connection to the Spring Boot backend
-        // Note: SockJS automatically forwards HttpOnly cookies for validation in Spring Security.
         const stompClient = new Client({
-            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+            webSocketFactory: () => new SockJS('/ws'),
             reconnectDelay: 5000,
             onConnect: () => {
                 console.log('Connected to WebSocket for Notifications');

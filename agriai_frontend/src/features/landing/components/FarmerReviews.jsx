@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { getAllReviews } from '../../../services/diagnosisService';
 
+/**
+ * FarmerStories Component
+ * Fetches and displays recent user feedback and experience ratings about AgriAI's diagnosis accuracy.
+ */
 const FarmerStories = () => {
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
-        const response = await fetch(`${API_URL}/api/reviews/all`);
-        const data = await response.json();
+        const response = await getAllReviews();
+        const data = response.data;
         if (data && Array.isArray(data)) {
            setReviews(data);
         } else if (data && Array.isArray(data.content)) {
@@ -52,7 +56,7 @@ const FarmerStories = () => {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900 text-xs">{item.userName || 'Nhà nông'}</p>
-                  <p className="text-[10px] text-slate-500">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</p>
+                  <p className="text-[10px] text-slate-500">{item.createdAt ? new Date(item.createdAt.endsWith('Z') || item.createdAt.includes('+') ? item.createdAt : item.createdAt + '+07:00').toLocaleDateString('vi-VN') : ''}</p>
                 </div>
               </div>
             </div>

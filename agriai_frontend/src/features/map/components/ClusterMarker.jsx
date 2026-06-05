@@ -1,39 +1,24 @@
 import { Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 
-/**
- * Trả về màu bubble cluster theo số lượng điểm bên trong.
- * Xanh → ít,  Vàng → trung bình,  Đỏ → nhiều
- */
 function getClusterColor(count) {
-  if (count >= 50) return { bg: "#EF4444", ring: "#FCA5A5" }; // đỏ
-  if (count >= 10) return { bg: "#F59E0B", ring: "#FDE68A" }; // vàng
-  return { bg: "#22C55E", ring: "#86EFAC" };                  // xanh
+  if (count >= 50) return { bg: "#EF4444", ring: "#FCA5A5" }; // Red
+  if (count >= 10) return { bg: "#F59E0B", ring: "#FDE68A" }; // Yellow
+  return { bg: "#22C55E", ring: "#86EFAC" };                  // Green
 }
 
-/**
- * Tính kích thước bubble theo số điểm (min 36px, max 64px).
- */
 function getClusterSize(count) {
   return Math.min(36 + Math.log2(count + 1) * 6, 64);
 }
 
-/**
- * Component render cluster bubble trên map.
- * Click → zoom vào vùng cluster đó.
- *
- * @param {object} cluster      - GeoJSON Feature cluster từ supercluster
- * @param {object} supercluster - Supercluster instance
- */
 export default function ClusterMarker({ cluster, supercluster }) {
   const map = useMap();
 
-  const [lng, lat] = cluster.geometry.coordinates; // supercluster: [lng, lat]
+  const [lng, lat] = cluster.geometry.coordinates;
   const { point_count: count } = cluster.properties;
   const { bg, ring } = getClusterColor(count);
   const size = getClusterSize(count);
 
-  // Tạo div icon tuỳ chỉnh cho cluster bubble
   const icon = L.divIcon({
     html: `
       <div style="
@@ -58,7 +43,7 @@ export default function ClusterMarker({ cluster, supercluster }) {
         ${count}
       </div>
     `,
-    className: "",                          // xoá class mặc định của Leaflet
+    className: "",                          // Clears default Leaflet CSS classes
     iconSize: L.point(size, size),
     iconAnchor: L.point(size / 2, size / 2),
   });

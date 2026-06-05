@@ -1,7 +1,20 @@
 import React from 'react';
 
 /**
- * Panel upload ảnh, preview ảnh và nút chẩn đoán.
+ * DiagnoseUploadPanel Component
+ * Provides UI controls for uploading crop images, previewing selected images,
+ * initiating diagnostic analysis, and indicating GPS/location services status.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Function} props.onFileChange - Handler for file input change.
+ * @param {Function} props.onDiagnose - Handler to submit image for diagnosis.
+ * @param {boolean} props.loading - Indicates if diagnostic API call is running.
+ * @param {File} props.selectedFile - Currently selected image file.
+ * @param {string} props.previewUrl - Object URL for previewing selected image.
+ * @param {string} props.error - Diagnostic error message, if any.
+ * @param {boolean} props.checkingLocation - Indicates if geolocation lookup is in progress.
+ * @param {boolean} props.hasLocation - Indicates if fresh GPS coordinates are available.
+ * @param {string} props.locationError - Geolocation error message, if any.
  */
 const DiagnoseUploadPanel = ({
     onFileChange,
@@ -10,7 +23,8 @@ const DiagnoseUploadPanel = ({
     selectedFile,
     previewUrl,
     error,
-    gpsStatus
+    checkingLocation,
+    hasLocation
 }) => {
     const isUploadDisabled = loading;
 
@@ -80,10 +94,10 @@ const DiagnoseUploadPanel = ({
                     )}
                 </button>
 
-                {gpsStatus === 'denied' && (
+                {!checkingLocation && !hasLocation && (
                     <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm font-medium flex items-start gap-2">
-                        <span className="material-symbols-outlined text-base mt-0.5">location_off</span>
-                        <span>Không có dữ liệu vị trí. Một số cảnh báo thời tiết có thể không chính xác</span>
+                        <span className="material-symbols-outlined text-base mt-0.5 text-amber-600">location_off</span>
+                        <span>Không lấy được vị trí hiện tại, chẩn đoán vẫn tiếp tục nhưng thiếu dữ liệu thời tiết/khu vực</span>
                     </div>
                 )}
 

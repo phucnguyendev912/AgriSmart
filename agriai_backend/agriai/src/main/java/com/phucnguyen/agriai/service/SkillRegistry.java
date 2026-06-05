@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-// loads and caches skill markdown files from disk
 @Service
 public class SkillRegistry {
 
@@ -30,7 +29,6 @@ public class SkillRegistry {
         this.basePath = basePath;
     }
 
-    // preload all skills at startup
     @PostConstruct
     public void preload() {
         for (SkillDefinition skill : SkillDefinition.values()) {
@@ -40,28 +38,20 @@ public class SkillRegistry {
         }
     }
 
-    // return cached markdown content
     public String getSkillContent(SkillDefinition skill) {
-        return contentCache.computeIfAbsent(skill, s -> {
-            String content = readFile(s);
-            keywordCache.computeIfAbsent(s, k -> parseKeywords(content));
-            return content;
-        });
+        return contentCache.computeIfAbsent(skill, this::readFile);
     }
 
-    // return cached keywords parsed from ## Keywords section
     public List<String> getSkillKeywords(SkillDefinition skill) {
         return keywordCache.computeIfAbsent(skill, s -> parseKeywords(getSkillContent(s)));
     }
 
-    // clear cache and reload from disk
     public void reloadAll() {
         contentCache.clear();
         keywordCache.clear();
         preload();
     }
 
-    // parse "## Keywords" section → list of trimmed keywords
     List<String> parseKeywords(String markdown) {
         Matcher matcher = KEYWORDS_PATTERN.matcher(markdown);
         if (!matcher.find()) {
@@ -74,7 +64,6 @@ public class SkillRegistry {
                 .toList();
     }
 
-    // read file skill
     private String readFile(SkillDefinition skill) {
         Path filePath = skill.getFilePath(basePath);
         try {

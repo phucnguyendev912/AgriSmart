@@ -21,6 +21,7 @@ public class DiagnosisValidationService {
     private final UserRepository userRepository;
     private final CropTypeRepository cropTypeRepository;
 
+    // Validate incoming request parameters, crop type existence, and optional user authentication
     public DiagnosisContext validate(String email, DiagnoseRequest request) {
         validateImage(request.getImage());
         if (request.getCropTypeId() == null) {
@@ -28,9 +29,9 @@ public class DiagnosisValidationService {
         }
 
         CropType cropType = cropTypeRepository.findById(request.getCropTypeId())
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Khong tim thay loai cay trong."));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy loại cây trồng."));
         if (Boolean.TRUE.equals(cropType.getIsDelete()) || !Boolean.TRUE.equals(cropType.getIsActive())) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Loai cay trong khong hoat dong.");
+            throw new AppException(HttpStatus.BAD_REQUEST, "Loại cây trồng không hoạt động.");
         }
 
         User user = null;
@@ -41,6 +42,7 @@ public class DiagnosisValidationService {
         return new DiagnosisContext(user, cropType);
     }
 
+    // Validate the uploaded image file (null check, empty check, and mimetype verification)
     private void validateImage(MultipartFile image) {
         if (image == null || image.isEmpty()) {
             throw new AppException(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
@@ -51,6 +53,7 @@ public class DiagnosisValidationService {
         }
     }
 
+    // Context class carrying authenticated user and selected crop type details
     public record DiagnosisContext(User user, CropType cropType) {
     }
 }

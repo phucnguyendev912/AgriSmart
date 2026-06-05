@@ -1,6 +1,7 @@
 import React from 'react';
 import { buildTreatmentPrograms } from '../utils/diagnosisDisplay';
 
+// Labels mapped to program decision codes for user readability.
 const REASON_LABELS = {
     MIX_COMPATIBLE: 'Các hoạt chất tương thích, có thể phun chung',
     CONFLICT_SEPARATED: 'Tách lịch phun do xung đột hoạt chất',
@@ -9,6 +10,15 @@ const REASON_LABELS = {
     RANKED_TREATMENTS: 'Xếp hạng phác đồ theo dữ liệu thuốc và hướng dẫn sử dụng'
 };
 
+/**
+ * DiagnoseSprayProgramsPanel Component
+ * Displays recommended treatment plans, active ingredient details, usage guidelines,
+ * and safety notes grouped by scheduling phases or compatibility reasons.
+ *
+ * @param {Object} props - Component properties.
+ * @param {Array} props.sprayPrograms - Pre-computed scheduling programs.
+ * @param {Array} props.treatments - Treatment detail data for each disease.
+ */
 const DiagnoseSprayProgramsPanel = ({ sprayPrograms, treatments }) => {
     const displayPrograms = buildTreatmentPrograms(sprayPrograms, treatments);
     if (displayPrograms.length === 0) return null;
@@ -57,20 +67,30 @@ const DiagnoseSprayProgramsPanel = ({ sprayPrograms, treatments }) => {
                         )}
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {(program.treatments || []).map((t, tIdx) => (
+                            {[...(program.treatments || [])].sort((a, b) => (b.recommended === true ? 1 : 0) - (a.recommended === true ? 1 : 0)).map((t, tIdx) => (
                                 <div key={t.treatmentPlanId || tIdx} className="bg-white dark:bg-slate-800 rounded-xl border border-surface-container-highest overflow-hidden shadow-sm flex flex-col h-full">
-                                    <div className="px-5 py-4 bg-surface-container-low border-b border-surface-container-highest flex flex-col gap-3 flex-grow-0">
+                                    <div className="px-5 py-4 bg-surface-container-low border-b border-surface-container-highest flex flex-col gap-3 flex-grow-0 relative">
+                                        {t.recommended && (
+                                            <div className="absolute top-0 right-0 bg-primary text-on-primary px-3 py-1 rounded-bl-xl rounded-tr-xl shadow-sm z-10 flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[14px]">stars</span>
+                                                <span className="text-[10px] font-black uppercase tracking-wider">Khuyến nghị</span>
+                                            </div>
+                                        )}
                                         {t.diseaseName && (
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="text-[10px] font-black text-primary uppercase tracking-wider bg-primary/10 px-2 py-1 rounded-md">{t.diseaseName}</span>
+                                            <div className={`flex flex-col gap-0.5 bg-primary/5 px-3 py-2 rounded-lg border border-primary/10 mb-1 ${t.recommended ? 'mr-28' : ''}`}>
+                                                <span className="text-sm md:text-base font-black text-primary tracking-wide">
+                                                    {t.diseaseName}
+                                                </span>
+                                                {t.diseaseNameEn && (
+                                                    <span className="text-xs font-semibold text-on-surface-variant italic">
+                                                        {t.diseaseNameEn}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                                             <div className="flex flex-col gap-1.5 min-w-0">
                                                 <span className="font-bold text-on-surface text-lg break-words leading-tight">{t.treatmentName || t.drugName || 'Phác đồ điều trị'}</span>
-                                                <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                                                    {t.recommended && <span className="text-[10px] px-2 py-0.5 rounded-full font-black uppercase bg-primary-container text-on-primary-container">Khuyến nghị</span>}
-                                                </div>
                                             </div>
                                             {(t.displayDosage || t.dosage) && (
                                                 <span className="text-[#2E7D32] font-black text-lg whitespace-nowrap">{t.displayDosage || t.dosage}</span>
@@ -140,16 +160,20 @@ const DiagnoseSprayProgramsPanel = ({ sprayPrograms, treatments }) => {
                                                 <p className="text-sm font-bold text-amber-700 dark:text-amber-400">{t.safetyNotes}</p>
                                             </div>
                                         )}
-
-
                                     </div>
-
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
             ))}
+
+            <div className="mt-2 p-3.5 bg-surface-container-low rounded-xl border border-surface-container-highest flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-on-surface-variant mt-0.5 text-[18px]">info</span>
+                <p className="text-sm text-on-surface-variant italic font-medium">
+                    Thông tin chỉ mang tính chất tham khảo.
+                </p>
+            </div>
         </div>
     );
 };

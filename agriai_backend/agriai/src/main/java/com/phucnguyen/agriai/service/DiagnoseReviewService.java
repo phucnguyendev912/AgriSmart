@@ -27,6 +27,7 @@ public class DiagnoseReviewService {
     private final DiagnoseHistoryRepository historyRepository;
     private final UserRepository userRepository;
 
+    // Submit or update a diagnosis feedback review
     public DiagnoseReviewResponse submitReview(String email, DiagnoseReviewRequest request) {
         if (email == null || email.isBlank()) {
             throw new AppException(HttpStatus.UNAUTHORIZED, "Bạn cần đăng nhập để đánh giá.");
@@ -56,11 +57,13 @@ public class DiagnoseReviewService {
         return toResponse(saved);
     }
 
+    // Fetch a feedback review by diagnosis history ID
     @Transactional(readOnly = true)
     public Optional<DiagnoseReviewResponse> getByHistoryId(Integer historyId) {
         return reviewRepository.findByHistoryId(historyId).map(this::toResponse);
     }
 
+    // Map DiagnoseReview entity to response DTO
     private DiagnoseReviewResponse toResponse(DiagnoseReview review) {
         return DiagnoseReviewResponse.builder()
                 .id(review.getId())
@@ -73,6 +76,7 @@ public class DiagnoseReviewService {
                 .build();
     }
 
+    // Get all feedback reviews ordered by creation date descending
     public List<DiagnoseReviewResponse> getAllReview() {
         return reviewRepository.findAllByOrderByCreatedAtDesc().stream().map(this::toResponse)
                 .collect(Collectors.toList());

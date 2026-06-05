@@ -60,7 +60,7 @@ class ChatbotServiceTest {
 
     private void givenSessionExists(ChatSession session) {
         when(chatSessionService.getSessionOrThrow(anyString(), anyInt())).thenReturn(session);
-        when(chatMessageService.saveUserMessage(eq(session), anyString()))
+        when(chatMessageService.saveUserMessage(eq(session), anyString(), any()))
                 .thenReturn(ChatMessage.builder().id(1).messageContent("msg")
                         .senderType(SenderType.USER).createdAt(LocalDateTime.now()).build());
         when(chatMessageService.saveAiMessage(eq(session), anyString()))
@@ -95,7 +95,7 @@ class ChatbotServiceTest {
 
         assertEquals(sessionId, response.getSessionId());
         assertEquals(2, response.getMessageId());
-        verify(chatMessageService).saveUserMessage(eq(session), anyString());
+        verify(chatMessageService).saveUserMessage(eq(session), anyString(), any());
         verify(chatMessageService).saveAiMessage(eq(session), anyString());
         verify(chatSessionService, times(2)).updateLastMessage(eq(session), anyString(), any());
     }

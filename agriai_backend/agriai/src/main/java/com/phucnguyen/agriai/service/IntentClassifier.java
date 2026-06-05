@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-// classifies user query into one of 4 skills (keyword-first, LLM fallback)
 @Service
 public class IntentClassifier {
 
@@ -26,8 +25,7 @@ public class IntentClassifier {
             Câu hỏi: %s
             """;
 
-    // check order: CONFLICT first (most specific) → TREATMENT → CULTIVATION →
-    // DISEASE (broadest)
+    // Search order priority: CONFLICT (most specific) -> TREATMENT -> CULTIVATION -> DISEASE (broadest).
     private static final SkillDefinition[] PRIORITY_ORDER = {
             SkillDefinition.CONFLICT,
             SkillDefinition.TREATMENT,
@@ -40,25 +38,23 @@ public class IntentClassifier {
         this.chatModel = chatModel;
     }
 
-    // classify user query → IntentResult
     public IntentResult classify(String userQuery) {
-        // try keyword matching first (fast, no token cost)
+        // Try keyword matching first to save tokens and improve response time.
         IntentResult keywordResult = classifyByKeyword(userQuery);
         if (keywordResult.confidence() == Confidence.HIGH) {
             return keywordResult;
         }
 
-        // try LLM if keyword is ambiguous
+        // Fall back to LLM classification if the keywords are ambiguous.
         IntentResult llmResult = classifyByLLM(userQuery);
         if (llmResult != null) {
             return llmResult;
         }
 
-        // fallback: return keyword result (even if MEDIUM/LOW)
+        // Ultimate fallback to the keyword result if the LLM classification fails.
         return keywordResult;
     }
 
-    // score each skill by keyword hits from SKILL.md, return best match
     IntentResult classifyByKeyword(String userQuery) {
         String queryLower = userQuery.toLowerCase();
 
@@ -83,7 +79,7 @@ public class IntentClassifier {
             }
         }
 
-        // determine confidence based on score gap
+        // Determine classification confidence based on the score gap.
         Confidence confidence;
         if (bestScore == 0) {
             confidence = Confidence.LOW;
@@ -96,7 +92,6 @@ public class IntentClassifier {
         return new IntentResult(bestSkill, confidence, Source.KEYWORD);
     }
 
-    // call LLM to classify query
     IntentResult classifyByLLM(String userQuery) {
         if (chatModel == null) {
             return null;
@@ -121,7 +116,6 @@ public class IntentClassifier {
         return SkillDefinition.DISEASE;
     }
 
-    // result of intent classification
     public record IntentResult(SkillDefinition primarySkill, Confidence confidence, Source source) {
     }
 

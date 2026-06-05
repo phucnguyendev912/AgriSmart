@@ -18,9 +18,6 @@ public class DiagnoseController {
     @Autowired
     private DiagnoseService diagnoseService;
 
-    /**
-     * POST /api/diagnosis — Chẩn đoán bệnh (multipart form data)
-     */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DiagnoseResponse> diagnose(
             Principal principal,
@@ -28,5 +25,4 @@ public class DiagnoseController {
         String email = principal != null ? principal.getName() : null;
         return ResponseEntity.ok(diagnoseService.diagnose(email, request));
     }
-
 }

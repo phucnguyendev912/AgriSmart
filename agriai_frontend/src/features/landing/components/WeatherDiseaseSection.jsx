@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { fetchWeatherDiseaseRisks, reverseGeocode } from '../../../services/weatherApi';
+import { fetchWeatherDiseaseRisks, reverseGeocode } from '../../../services/weatherService';
+import LocationPermissionModal from '../../../components/ui/LocationPermissionModal';
+import { useLocationPermission } from '../../../context/LocationPermissionContext';
 import {
   DEFAULT_PROVINCE,
   VIETNAM_PROVINCES,
@@ -19,30 +21,29 @@ const formatMetric = (value, suffix) => {
 const STORAGE_KEY = 'agriai_selected_province_id';
 const GPS_STORAGE_KEY = 'agriai_last_gps_location';
 
-const isMediumRisk = (risk) => {
-  const group = risk?.conditionGroup || '';
-  return group.toUpperCase().includes('MEDIUM');
-};
-
 const mapRiskToDisease = (risk) => ({
   id: risk.diseaseId || risk.conditionGroup || risk.diseaseName,
   name: risk.diseaseName || 'Bệnh cây trồng',
   nameEn: risk.diseaseCode,
   icon: 'bug_report',
-  risk: isMediumRisk(risk) ? 'MEDIUM' : 'HIGH',
+  matchedConditions: risk.matchedConditions || [],
   description: risk.recommendationNotes
     || (risk.matchedConditions || []).join(', ')
     || 'Thời tiết hiện tại thuận lợi cho bệnh phát triển.',
 });
 
 const WeatherDiseaseSection = () => {
+  const { coords, gpsStatus, hasCoords, requestLocation } = useLocationPermission();
+  
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [weather, setWeather] = useState(null);
   const [diseases, setDiseases] = useState([]);
   const [selectedDisease, setSelectedDisease] = useState(null);
-  const [isLocating, setIsLocating] = useState(false); // false vì sẽ check localStorage trước
+  
+  const [isLocating, setIsLocating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   const loadWeather = useCallback(async (province) => {
     setIsLoading(true);
@@ -60,7 +61,18 @@ const WeatherDiseaseSection = () => {
     }
   }, []);
 
-  // Mount: đọc localStorage trước, chỉ geolocate nếu chưa có
+  const applyCurrentLocation = useCallback(async (latitude, longitude) => {
+    const name = await reverseGeocode(latitude, longitude).catch(() => '');
+    const province = findProvinceByName(name) || findNearestProvince(latitude, longitude);
+    localStorage.setItem(STORAGE_KEY, province.id);
+    localStorage.setItem(GPS_STORAGE_KEY, JSON.stringify({
+      latitude,
+      longitude,
+      provinceId: province.id,
+    }));
+    setSelectedProvince({ ...province, lat: latitude, lon: longitude });
+  }, []);
+
   useEffect(() => {
     const savedGps = localStorage.getItem(GPS_STORAGE_KEY);
     if (savedGps) {
@@ -80,50 +92,44 @@ const WeatherDiseaseSection = () => {
       }
     }
 
+    if (hasCoords) {
+      applyCurrentLocation(coords.latitude, coords.longitude)
+        .catch(() => setSelectedProvince(DEFAULT_PROVINCE));
+      return;
+    }
+
     const savedId = localStorage.getItem(STORAGE_KEY);
     if (savedId) {
       const saved = VIETNAM_PROVINCES.find((p) => p.id === Number(savedId));
       if (saved) {
         setSelectedProvince(saved);
-        return; // bỏ qua geolocate
+        return;
       }
     }
 
-    // Chưa có → geolocate lần đầu
-    if (!navigator.geolocation) {
-      setSelectedProvince(DEFAULT_PROVINCE);
-      return;
-    }
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords: { latitude, longitude } }) => {
-        try {
-          const name = await reverseGeocode(latitude, longitude).catch(() => '');
-          const province = findProvinceByName(name) || findNearestProvince(latitude, longitude);
-          localStorage.setItem(STORAGE_KEY, province.id);
-          localStorage.setItem(GPS_STORAGE_KEY, JSON.stringify({
-            latitude,
-            longitude,
-            provinceId: province.id,
-          }));
-          setSelectedProvince({ ...province, lat: latitude, lon: longitude });
-        } catch {
-          setSelectedProvince(DEFAULT_PROVINCE);
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      () => {
-        setSelectedProvince(DEFAULT_PROVINCE);
-        setIsLocating(false);
-      },
-      { timeout: 8000 }
-    );
-  }, []);
+    setSelectedProvince(DEFAULT_PROVINCE);
+  }, [applyCurrentLocation, coords.latitude, coords.longitude, hasCoords]);
 
   useEffect(() => {
     if (selectedProvince) loadWeather(selectedProvince);
   }, [selectedProvince, loadWeather]);
+
+  const handleAllowLocation = async () => {
+    setIsLocating(true);
+    const result = await requestLocation();
+    if (result.ok) {
+      await applyCurrentLocation(result.coords.latitude, result.coords.longitude);
+      setShowLocationModal(false);
+    }
+    setIsLocating(false);
+  };
+
+  const handleContinueWithoutLocation = () => {
+    if (!selectedProvince) {
+      setSelectedProvince(DEFAULT_PROVINCE);
+    }
+    setShowLocationModal(false);
+  };
 
   const metrics = weather ? [
     {
@@ -151,10 +157,6 @@ const WeatherDiseaseSection = () => {
       border: 'border-emerald-100',
     },
   ] : null;
-
-  const highCount = diseases.filter((d) => d.risk === 'HIGH').length;
-  const highRiskDiseases = diseases.filter((d) => d.risk === 'HIGH');
-  const mediumRiskDiseases = diseases.filter((d) => d.risk !== 'HIGH');
 
   const renderWeatherContext = () => {
     if (isLoading) {
@@ -210,66 +212,38 @@ const WeatherDiseaseSection = () => {
     );
   };
 
-  const renderHighRiskCard = (disease) => (
+  const renderDiseaseCard = (disease) => (
     <div
       key={disease.id}
-      className="relative overflow-hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-4 shadow-sm"
+      className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 shadow-sm"
     >
-      <div className="absolute left-0 inset-y-0 w-1.5 bg-red-500" />
+      <div className="absolute left-0 inset-y-0 w-1.5 bg-primary rounded-l-2xl" />
       <div className="flex items-start gap-3 pl-1">
-        <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-          <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+        <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <span
+            className="material-symbols-outlined text-[22px]"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
             {disease.icon}
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-black text-slate-900">{disease.name}</span>
-            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-red-600">
-              NGUY CƠ CAO
-            </span>
-          </div>
-          <h3 className="text-base font-black leading-snug text-slate-950 md:text-lg">
-            {disease.name} có nguy cơ bùng phát
-          </h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+          <span className="text-sm font-bold text-slate-900">{disease.name}</span>
+          {disease.nameEn && (
+            <span className="ml-2 text-xs text-slate-400 font-medium">{disease.nameEn}</span>
+          )}
+          <p className="mt-1 text-sm leading-relaxed text-slate-600 line-clamp-2">
             {disease.description}
           </p>
           <button
             type="button"
             onClick={() => setSelectedDisease(disease)}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-red-700 active:scale-95"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3.5 py-1.5 text-xs font-bold text-primary transition hover:bg-primary/10 active:scale-95"
           >
-            Chi tiết bệnh
-            <span className="material-symbols-outlined text-base">info</span>
+            Xem chi tiết bệnh
+            <span className="material-symbols-outlined text-base">arrow_forward</span>
           </button>
         </div>
-      </div>
-    </div>
-  );
-
-  const renderMediumRiskRow = (disease) => (
-    <div
-      key={disease.id}
-      className="relative flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5"
-    >
-      <div className="absolute left-0 inset-y-0 w-1 rounded-l-xl bg-amber-400" />
-      <span
-        className="material-symbols-outlined mt-0.5 shrink-0 text-lg text-amber-600"
-        style={{ fontVariationSettings: "'FILL' 1" }}
-      >
-        {disease.icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="mb-0.5 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-bold text-slate-800">{disease.name}</span>
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-700">
-            TRUNG BÌNH
-          </span>
-        </div>
-        <p className="text-xs leading-relaxed text-slate-500">
-          {disease.description}
-        </p>
       </div>
     </div>
   );
@@ -278,10 +252,11 @@ const WeatherDiseaseSection = () => {
     <section className="px-6 md:px-12 py-8 max-w-7xl mx-auto">
       <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
         <span className="w-8 h-1 bg-primary rounded-full inline-block" />
-        Thời tiết & Cảnh báo bệnh
+        Thời tiết &amp; Cảnh báo bệnh
       </h2>
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        {/* Header: chọn tỉnh */}
         <div className="flex items-center gap-3 px-5 py-3 bg-slate-50/70 border-b border-slate-100">
           <span
             className="material-symbols-outlined text-primary text-lg shrink-0"
@@ -312,14 +287,9 @@ const WeatherDiseaseSection = () => {
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
-
-          {highCount > 0 && !isLoading && (
-            <span className="ml-auto text-xs font-bold px-3 py-1 bg-red-50 text-red-600 border border-red-100 rounded-full shrink-0">
-              {highCount} nguy cơ cao
-            </span>
-          )}
         </div>
 
+        {/* Weather conditions & disease warnings grid */}
         <div className="grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-100">
           <div className="md:col-span-1 p-3 md:p-4 flex flex-col gap-2">
             <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
@@ -335,16 +305,15 @@ const WeatherDiseaseSection = () => {
 
             {isLoading && (
               <div className="flex flex-col gap-2">
-                <Skeleton className="h-28" />
-                <Skeleton className="h-14" />
-                <Skeleton className="h-14" />
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
               </div>
             )}
 
             {!isLoading && diseases.length > 0 && (
               <div className="flex flex-col gap-2.5">
-                {highRiskDiseases.map(renderHighRiskCard)}
-                {mediumRiskDiseases.map(renderMediumRiskRow)}
+                {diseases.map(renderDiseaseCard)}
               </div>
             )}
 
@@ -368,6 +337,7 @@ const WeatherDiseaseSection = () => {
         </div>
       </div>
 
+      {/* Disease details modal */}
       {selectedDisease && (
         <div
           className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 px-4 py-6 backdrop-blur-sm"
@@ -379,17 +349,18 @@ const WeatherDiseaseSection = () => {
           }}
         >
           <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+            {/* Modal header */}
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
               <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
                     {selectedDisease.icon}
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-red-600">
-                    {selectedDisease.risk === 'HIGH' ? 'NGUY CƠ CAO' : 'TRUNG BÌNH'}
-                  </p>
                   <h3 id="disease-detail-title" className="text-xl font-black text-slate-950">
                     {selectedDisease.name}
                   </h3>
@@ -408,18 +379,43 @@ const WeatherDiseaseSection = () => {
               </button>
             </div>
 
-            <div className="space-y-5 px-5 py-5">
+            {/* Modal body */}
+            <div className="space-y-5 px-5 py-5 overflow-y-auto max-h-[65vh]">
+              {/* Recommendations and guidelines */}
               <div>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-400">Bệnh này là gì?</p>
+                <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                  Khuyến nghị
+                </p>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
                   {selectedDisease.description}
                 </p>
               </div>
 
+              {/* Associated weather conditions */}
+              {selectedDisease.matchedConditions && selectedDisease.matchedConditions.length > 0 && (
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                    Điều kiện thời tiết liên quan
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {selectedDisease.matchedConditions.map((cond) => (
+                      <span
+                        key={cond}
+                        className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-semibold text-amber-700"
+                      >
+                        <span className="material-symbols-outlined text-sm">wb_sunny</span>
+                        {cond}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Local weather parameters */}
               {metrics && (
                 <div>
                   <p className="text-xs font-black uppercase tracking-widest text-slate-400">
-                    Điều kiện liên quan hiện tại
+                    Thời tiết khu vực hiện tại
                   </p>
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     {metrics.map((m) => (
@@ -438,6 +434,18 @@ const WeatherDiseaseSection = () => {
           </div>
         </div>
       )}
+
+      <LocationPermissionModal
+        open={showLocationModal}
+        loading={isLocating || gpsStatus === 'requesting'}
+        blocked={gpsStatus === 'unsupported'}
+        denied={gpsStatus === 'denied'}
+        title="Dùng vị trí hiện tại?"
+        description="Vị trí hiện tại giúp hệ thống tải thời tiết và cảnh báo bệnh theo đúng khu vực của bạn."
+        onAllow={handleAllowLocation}
+        onContinue={handleContinueWithoutLocation}
+        onClose={handleContinueWithoutLocation}
+      />
     </section>
   );
 };

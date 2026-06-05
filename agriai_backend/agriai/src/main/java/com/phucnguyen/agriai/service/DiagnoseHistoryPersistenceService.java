@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.phucnguyen.agriai.dto.request.DiagnoseRequest;
 
 @Slf4j
 @Service
@@ -37,13 +38,43 @@ public class DiagnoseHistoryPersistenceService {
     private final DiagnoseResponseBuilder diagnoseResponseBuilder;
     private final ObjectMapper objectMapper;
 
+    // Service handling persistence of diagnosis history, details, and treatment recommendations
+
+    // Create and save diagnosis history record along with details
+    public DiagnoseHistory saveCompletedHistory(
+            DiagnosisValidationService.DiagnosisContext context,
+            DiagnoseRequest request,
+            String imageUrl, 
+            WeatherDTO weather, 
+            DiagnoseResponse response,
+            DiagnoseService.DiagnosisAnalysis analysis) {
+            
+        DiagnoseHistory history = DiagnoseHistory.builder()
+                .user(context.user())
+                .cropType(context.cropType())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .originalImageUrl(imageUrl)
+                .weatherData(writeJson(weather))
+                .status(Status.COMPLETED)
+                .build();
+                
+        history = diagnoseHistoryRepository.save(history);
+        saveDetails(history, response, analysis);
+        return history;
+    }
+    
+    // Fallback for marking history as failed if it was already created (e.g., error during save)
+    // In the new flow, we only save on success, so this might only be used if we want to save failed requests later.
     public void updateHistory(DiagnoseHistory history, String imageUrl, WeatherDTO weather, Status status) {
-        history.setOriginalImageUrl(imageUrl);
-        history.setWeatherData(writeJson(weather));
+        if (history == null) return;
+        if (imageUrl != null) history.setOriginalImageUrl(imageUrl);
+        if (weather != null) history.setWeatherData(writeJson(weather));
         history.setStatus(status);
         diagnoseHistoryRepository.save(history);
     }
 
+    // Save diagnosis details and recommendations for each detected disease
     public void saveDetails(
             DiagnoseHistory history,
             DiagnoseResponse response,
@@ -62,6 +93,7 @@ public class DiagnoseHistoryPersistenceService {
         }
 
         // Save detail per disease + treatment recommendations
+        List<DiagnoseHistoryDetail> details = new ArrayList<>();
         for (DiagnoseService.DetectedDiseaseMatch match : analysis.detectedDiseases()) {
             DiagnoseHistoryDetail detail = DiagnoseHistoryDetail.builder()
                     .diagnoseHistory(history)
@@ -74,18 +106,31 @@ public class DiagnoseHistoryPersistenceService {
                     .treatmentData(writeJson(buildSnapshot(response, match.disease().getId())))
                     .cultivationData(response.getUserGuidance())
                     .build();
-            diagnoseHistoryDetailRepository.save(detail);
+            details.add(detail);
+        }
 
-            // Save treatment recommendations for this disease
-            saveTreatmentRecommendations(detail, match.disease().getId(), response.getTreatments());
+        // Batch save all details
+        List<DiagnoseHistoryDetail> savedDetails = diagnoseHistoryDetailRepository.saveAll(details);
+
+        // Batch save all recommendations
+        List<DiagnoseTreatmentRecommendation> allRecommendations = new ArrayList<>();
+        for (int i = 0; i < savedDetails.size(); i++) {
+            DiagnoseHistoryDetail savedDetail = savedDetails.get(i);
+            Integer diseaseId = analysis.detectedDiseases().get(i).disease().getId();
+            buildTreatmentRecommendations(savedDetail, diseaseId, response.getTreatments(), allRecommendations);
+        }
+
+        if (!allRecommendations.isEmpty()) {
+            recommendationRepository.saveAll(allRecommendations);
         }
     }
 
-    // Lưu từng treatment recommendation vào bảng relational
-    private void saveTreatmentRecommendations(
+    // Build treatment recommendations for batch saving
+    private void buildTreatmentRecommendations(
             DiagnoseHistoryDetail detail,
             Integer diseaseId,
-            List<TreatmentDTO> allTreatments) {
+            List<TreatmentDTO> allTreatments,
+            List<DiagnoseTreatmentRecommendation> outputList) {
         if (allTreatments == null || allTreatments.isEmpty()) {
             return;
         }
@@ -94,11 +139,6 @@ public class DiagnoseHistoryPersistenceService {
                 .filter(t -> Objects.equals(t.getDiseaseId(), diseaseId))
                 .toList();
 
-        if (relatedTreatments.isEmpty())
-            return;
-
-        List<DiagnoseTreatmentRecommendation> recommendations = new ArrayList<>();
-
         for (TreatmentDTO treatment : relatedTreatments) {
             if (treatment.getTreatmentPlanId() == null)
                 continue;
@@ -106,18 +146,15 @@ public class DiagnoseHistoryPersistenceService {
             TreatmentPlan planRef = treatmentPlanRepository
                     .getReferenceById(treatment.getTreatmentPlanId());
 
-            recommendations.add(DiagnoseTreatmentRecommendation.builder()
+            outputList.add(DiagnoseTreatmentRecommendation.builder()
                     .diagnoseHistoryDetail(detail)
                     .treatmentPlan(planRef)
                     .rankScore(Boolean.TRUE.equals(treatment.getRecommended()) ? 1 : 0)
                     .build());
         }
-
-        if (!recommendations.isEmpty()) {
-            recommendationRepository.saveAll(recommendations);
-        }
     }
 
+    // Serialize an object to JSON string
     private String writeJson(Object value) {
         if (value == null)
             return null;
@@ -129,6 +166,7 @@ public class DiagnoseHistoryPersistenceService {
         }
     }
 
+    // Build a snapshot of the diagnosis response for audit/history
     private DiagnosisDetailSnapshotDTO buildSnapshot(DiagnoseResponse response, Integer diseaseId) {
         List<TreatmentDTO> treatments = response.getTreatments() != null
                 ? response.getTreatments().stream()
@@ -147,6 +185,7 @@ public class DiagnoseHistoryPersistenceService {
                 .build();
     }
 
+    // Parse severity string to SeverityLevel enum
     private SeverityLevel parseSeverity(String value) {
         if (value == null || value.isBlank())
             return null;
@@ -157,6 +196,7 @@ public class DiagnoseHistoryPersistenceService {
         }
     }
 
+    // Get the first warning from the warnings list
     private String firstWarning(List<String> warnings) {
         return warnings != null && !warnings.isEmpty() ? warnings.get(0) : null;
     }

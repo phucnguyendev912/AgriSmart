@@ -1,24 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import SEO from '../components/common/SEO';
+import { useLocationPermission } from '../context/LocationPermissionContext';
+import { getCropTypes, submitDiagnosis } from '../services/diagnosisService';
 
-// Diagnosis sub-components
-import DiagnoseUploadPanel from '../features/diagnosis/components/DiagnoseUploadPanel';
-import DiagnoseWeatherCards from '../features/diagnosis/components/DiagnoseWeatherCards';
-import DiagnoseResultPanel from '../features/diagnosis/components/DiagnoseResultPanel';
-import DiagnoseSprayProgramsPanel from '../features/diagnosis/components/DiagnoseSprayProgramsPanel';
-import DiagnoseInteractionWarnings from '../features/diagnosis/components/DiagnoseInteractionWarnings';
-import DiagnoseCultivationMeasures from '../features/diagnosis/components/DiagnoseCultivationMeasures';
-import DiagnoseAIGuidance from '../features/diagnosis/components/DiagnoseAIGuidance';
-import DiagnosisRatingModal from '../features/diagnosis/components/DiagnosisRatingModal';
-import { getCultivationMeasures as getDiagnosisCultivationMeasures } from '../features/diagnosis/utils/diagnosisDisplay';
+import {
+    DiagnoseUploadPanel,
+    DiagnoseWeatherCards,
+    DiagnoseResultPanel,
+    DiagnoseSprayProgramsPanel,
+    DiagnoseInteractionWarnings,
+    DiagnoseCultivationMeasures,
+    DiagnoseAIGuidance,
+    DiagnosisRatingModal,
+    getCultivationMeasures as getDiagnosisCultivationMeasures
+} from '../features/diagnosis';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-
-/** Trả về danh sách biện pháp canh tác từ kết quả chẩn đoán */
 // eslint-disable-next-line no-unused-vars
 const getCultivationMeasures = (result) => {
     if (!result) return [];
@@ -31,56 +30,121 @@ const getCultivationMeasures = (result) => {
 };
 
 const DiagnosisPage = () => {
-    // === STATE ===
-    const { user } = useAuth(); // useAuth: lấy thông tin xác thực của người dùng từ Context toàn cục.
-    const [cropTypes, setCropTypes] = useState([]); // useState: lưu danh sách loại cây trồng tải về từ API.
-    const [selectedCropTypeId, setSelectedCropTypeId] = useState(''); // useState: lưu ID loại cây người dùng đang chọn.
-    const [selectedFile, setSelectedFile] = useState(null); // useState: lưu file ảnh người dùng đã chọn để chẩn đoán.
-    const [previewUrl, setPreviewUrl] = useState(null); // useState: lưu URL xem trước ảnh được tạo từ file đã chọn.
-    const [loading, setLoading] = useState(false); // useState: trạng thái đang gọi API chẩn đoán.
-    const [result, setResult] = useState(null); // useState: lưu kết quả chẩn đoán trả về từ backend.
-    const [error, setError] = useState(''); // useState: lưu thông báo lỗi nếu chẩn đoán thất bại.
-    const [gpsStatus, setGpsStatus] = useState('pending'); // useState: trạng thái quyền GPS (pending/granted/denied).
-    const [coords, setCoords] = useState({ latitude: null, longitude: null }); // useState: lưu tọa độ GPS của người dùng.
+    const { user } = useAuth();
+    const { gpsStatus, coords, requestLocation } = useLocationPermission();
 
-    // Rating modal state
-    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false); // useState: kiểm soát hiển thị modal đánh giá kết quả.
-    const [showToast, setShowToast] = useState(false); // useState: điều khiển hiển thị thông báo cảm ơn sau khi đánh giá.
+    const [cropTypes, setCropTypes] = useState([]);
+    const [selectedCropTypeId, setSelectedCropTypeId] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState(null);
+    const [error, setError] = useState('');
+    const [progress, setProgress] = useState(0);
 
-    // === FETCH CROP TYPES ===
-    // useEffect: tự động tải danh sách loại cây trồng khi component mount.
+    const [diagnosisCoords, setDiagnosisCoords] = useState({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+    const [checkingLocation, setCheckingLocation] = useState(true);
+    const locationPromiseRef = useRef(null);
+
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+
     useEffect(() => {
         const fetchCropTypes = async () => {
             try {
-                const res = await axios.get(`${API_URL}/api/crop-types`, {
-                    withCredentials: true
-                });
+                const res = await getCropTypes();
                 setCropTypes(res.data);
             } catch (err) {
-                console.error('Lỗi tải danh sách cây trồng:', err);
+                console.error('Failed to load crop types:', err);
             }
         };
         fetchCropTypes();
     }, []);
 
-    // === REQUEST GPS ===
-    // useEffect: yêu cầu quyền truy cập GPS một lần khi component mount.
+    // Effect for the optimistic progress bar
     useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    setCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-                    setGpsStatus('granted');
-                },
-                () => setGpsStatus('denied'),
-                { timeout: 10000 }
-            );
-        } else {
-            setGpsStatus('denied');
-        }
-    }, []);
+        let interval;
+        if (loading) {
+            setProgress(0);
+            const totalDuration = 9000; // 9 seconds
+            const updateInterval = 50; // Update every 50ms
+            const targetProgress = 85;
+            const incrementPerUpdate = targetProgress / (totalDuration / updateInterval);
 
-    // === HANDLE FILE SELECT ===
+            interval = setInterval(() => {
+                setProgress((prev) => {
+                    const next = prev + incrementPerUpdate;
+                    if (next >= targetProgress) {
+                        clearInterval(interval);
+                        return targetProgress;
+                    }
+                    return next;
+                });
+            }, updateInterval);
+        } else {
+            setProgress(0);
+            if (interval) clearInterval(interval);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [loading]);
+
+    const fetchFreshLocation = useCallback(async () => {
+        setCheckingLocation(true);
+
+        const promise = requestLocation({
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 15000,
+        });
+        locationPromiseRef.current = promise;
+
+        try {
+            const res = await promise;
+            if (res.ok && res.coords) {
+                setDiagnosisCoords({
+                    latitude: res.coords.latitude,
+                    longitude: res.coords.longitude,
+                    accuracy: res.coords.accuracy,
+                    timestamp: res.coords.timestamp,
+                });
+            } else {
+                setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+            }
+        } catch (err) {
+            console.error('Lỗi khi lấy vị trí định vị:', err);
+            setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+        } finally {
+            setCheckingLocation(false);
+        }
+    }, [requestLocation]);
+
+    useEffect(() => {
+        fetchFreshLocation();
+    }, [fetchFreshLocation]);
+
+    // Sync with global GPS status changes (e.g. user toggles settings in browser)
+    useEffect(() => {
+        if (gpsStatus === 'denied' || gpsStatus === 'unsupported') {
+            setDiagnosisCoords({ latitude: null, longitude: null, accuracy: null, timestamp: null });
+            setCheckingLocation(false);
+        } else if (gpsStatus === 'granted') {
+            if (coords.latitude && coords.longitude) {
+                setDiagnosisCoords({
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    accuracy: coords.accuracy,
+                    timestamp: coords.timestamp,
+                });
+                setCheckingLocation(false);
+            } else {
+                fetchFreshLocation();
+            }
+        }
+    }, [gpsStatus, coords, fetchFreshLocation]);
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -91,8 +155,7 @@ const DiagnosisPage = () => {
         }
     };
 
-    // === HANDLE DIAGNOSE ===
-    const handleDiagnose = async () => {
+    const submitDiagnose = async () => {
         if (!selectedFile) { setError('Vui lòng chọn ảnh trước.'); return; }
         if (!selectedCropTypeId) { setError('Vui lòng chọn loại cây trồng trước khi chẩn đoán'); return; }
 
@@ -100,19 +163,38 @@ const DiagnosisPage = () => {
         setError('');
         setResult(null);
 
+        let finalCoords = diagnosisCoords;
+
+        // Wait for pending location check before submitting
+        if (checkingLocation && locationPromiseRef.current) {
+            try {
+                const res = await locationPromiseRef.current;
+                if (res.ok && res.coords) {
+                    finalCoords = {
+                        latitude: res.coords.latitude,
+                        longitude: res.coords.longitude,
+                        accuracy: res.coords.accuracy,
+                        timestamp: res.coords.timestamp,
+                    };
+                    setDiagnosisCoords(finalCoords);
+                }
+            } catch (err) {
+                console.error('Lỗi khi chờ GPS:', err);
+            }
+        }
+
         const formData = new FormData();
         formData.append('image', selectedFile);
         formData.append('cropTypeId', selectedCropTypeId);
-        if (coords.latitude) formData.append('latitude', coords.latitude);
-        if (coords.longitude) formData.append('longitude', coords.longitude);
+        if (finalCoords.latitude !== null && finalCoords.latitude !== undefined) {
+            formData.append('latitude', finalCoords.latitude);
+        }
+        if (finalCoords.longitude !== null && finalCoords.longitude !== undefined) {
+            formData.append('longitude', finalCoords.longitude);
+        }
 
         try {
-            const res = await axios.post(`${API_URL}/api/diagnosis`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                withCredentials: true
-            });
+            const res = await submitDiagnosis(formData);
             setResult(res.data);
             if (!user) {
                 toast.info('Vui lòng đăng nhập để có thể xem lại kết quả chẩn đoán sau khi chẩn đoán.');
@@ -125,16 +207,22 @@ const DiagnosisPage = () => {
         }
     };
 
-    // === HANDLE OPEN RATING MODAL ===
+    const handleDiagnose = async () => {
+        await submitDiagnose();
+    };
+
     const handleOpenRating = () => {
         if (!user) {
             toast.error('Vui lòng đăng nhập để đánh giá kết quả.');
             return;
         }
+        if (!result?.id) {
+            toast.info('Vui lòng chờ kết quả được lưu xong trước khi đánh giá.');
+            return;
+        }
         setIsRatingModalOpen(true);
     };
 
-    // === HANDLE RATING SUCCESS ===
     const handleRatingSuccess = () => {
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
@@ -170,16 +258,7 @@ const DiagnosisPage = () => {
                                 ))}
                             </select>
                         </div>
-                        {gpsStatus === 'granted' && (
-                            <div className="hidden md:flex items-center gap-1 text-xs text-emerald-600 font-bold">
-                                <span className="material-symbols-outlined text-sm">location_on</span> GPS bật
-                            </div>
-                        )}
-                        {gpsStatus === 'denied' && (
-                            <div className="hidden md:flex items-center gap-1 text-xs text-on-surface-variant font-bold">
-                                <span className="material-symbols-outlined text-sm">location_off</span> GPS tắt
-                            </div>
-                        )}
+
                     </div>
                 </div>
 
@@ -196,7 +275,8 @@ const DiagnosisPage = () => {
                         selectedFile={selectedFile}
                         previewUrl={previewUrl}
                         error={error}
-                        gpsStatus={gpsStatus}
+                        checkingLocation={checkingLocation}
+                        hasLocation={Boolean(diagnosisCoords.latitude && diagnosisCoords.longitude)}
                     />
 
                     {/* Right side: Weather + Results */}
@@ -212,6 +292,42 @@ const DiagnosisPage = () => {
                                 <p className="text-sm font-bold text-on-surface-variant">Chọn ảnh và nhấn "Chẩn đoán ngay" để bắt đầu</p>
                             </div>
                         )}
+
+                        {/* Loading Progress */}
+                        {!result && loading && (
+                            <div className="bg-surface-container-lowest rounded-xl p-8 shadow-sm border border-surface-container-highest flex-grow flex flex-col items-center justify-center text-center">
+                                <div className="w-full max-w-md flex flex-col items-center">
+                                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 relative">
+                                        <span className="material-symbols-outlined text-primary text-3xl animate-pulse" style={{ animationDuration: '2s' }}>
+                                            biotech
+                                        </span>
+                                        <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" style={{ animationDuration: '1.5s' }}></div>
+                                    </div>
+                                    
+                                    <h3 className="text-lg font-bold text-on-surface mb-2">Đang phân tích hình ảnh...</h3>
+                                    <p className="text-sm text-on-surface-variant mb-8 text-center max-w-xs">
+                                        AI của AgriSmart đang quét các đặc điểm bệnh lý trên lá cây. Quá trình này có thể mất vài giây.
+                                    </p>
+                                    
+                                    <div className="w-full bg-surface-container-high h-3 rounded-full overflow-hidden shadow-inner relative">
+                                        <div 
+                                            className="h-full bg-primary rounded-full transition-all duration-75 ease-linear relative overflow-hidden"
+                                            style={{ width: `${progress}%` }}
+                                        >
+                                            <div 
+                                                className="absolute inset-0 bg-white/20 w-1/2" 
+                                                style={{ animation: 'shimmer 2s infinite' }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex justify-between w-full mt-2">
+                                        <span className="text-xs font-bold text-on-surface-variant">Tiến trình AI</span>
+                                        <span className="text-xs font-bold text-primary">{Math.floor(progress)}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -220,7 +336,10 @@ const DiagnosisPage = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         {/* Left: Technical panels */}
                         <div className="lg:col-span-8 space-y-6">
-                            <DiagnoseSprayProgramsPanel sprayPrograms={result.sprayPrograms} treatments={result.treatments} />
+                            <DiagnoseSprayProgramsPanel
+                                sprayPrograms={result.sprayPrograms}
+                                treatments={result.treatments}
+                            />
                             <DiagnoseInteractionWarnings interactionWarnings={result.interactionWarnings} />
                             <DiagnoseCultivationMeasures measures={getDiagnosisCultivationMeasures(result)} />
 
@@ -228,7 +347,7 @@ const DiagnosisPage = () => {
                             <div className="flex justify-center mt-8">
                                 <button
                                     onClick={handleOpenRating}
-                                    className="px-6 py-3 bg-secondary-container text-on-secondary-container rounded-full font-bold shadow-sm flex items-center gap-2 hover:brightness-105 active:scale-95 transition-all"
+                                    className="bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-bold shadow-sm flex items-center gap-2 hover:brightness-105 active:scale-95 transition-all"
                                 >
                                     <span className="material-symbols-outlined text-xl">rate_review</span>
                                     Đánh giá kết quả chẩn đoán
@@ -289,6 +408,10 @@ const DiagnosisPage = () => {
                 }
                 .animate-bounce-subtle {
                     animation: bounce-subtle 2s ease-in-out infinite;
+                }
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%) skewX(-20deg); }
+                    100% { transform: translateX(250%) skewX(-20deg); }
                 }
             `}</style>
         </div>

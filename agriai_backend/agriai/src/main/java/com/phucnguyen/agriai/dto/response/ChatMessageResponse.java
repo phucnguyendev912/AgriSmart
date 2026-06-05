@@ -14,20 +14,28 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// response for chat message
 public class ChatMessageResponse {
     private Integer id;
     private SenderType senderType;
     private String messageContent;
     private LocalDateTime createdAt;
+    private AttachmentResponse attachment;
 
-    // convert entity to response
     public static ChatMessageResponse fromEntity(ChatMessage message) {
         return ChatMessageResponse.builder()
                 .id(message.getId())
                 .senderType(message.getSenderType())
                 .messageContent(message.getMessageContent())
                 .createdAt(message.getCreatedAt())
+                .attachment(message.getAttachment() != null ? AttachmentResponse.builder()
+                        .id(message.getAttachment().getId())
+                        .fileName(message.getAttachment().getFileName())
+                        .fileUrl(message.getAttachment().getFileUrl())
+                        .fileType(message.getAttachment().getFileType())
+                        .fileSize(message.getAttachment().getFileSize())
+                        .mimeType(message.getAttachment().getMimeType())
+                        .category(message.getAttachment().getCategory())
+                        .build() : null)
                 .build();
     }
 }

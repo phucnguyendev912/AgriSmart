@@ -1,5 +1,11 @@
 import React from 'react';
 
+/**
+ * ChatReferences Component
+ * Renders list of document sources or references cited in AI chatbot answers.
+ * @param {Object} props - Component props.
+ * @param {Object[]} props.references - Array of reference objects.
+ */
 const ChatReferences = ({ references }) => (
   <div className="flex flex-wrap gap-2">
     {references.map((reference, index) => (

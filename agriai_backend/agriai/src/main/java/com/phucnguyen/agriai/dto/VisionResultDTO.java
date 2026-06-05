@@ -7,7 +7,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// retrun result from model
 public class VisionResultDTO {
     private String label;
     private Double confidence;

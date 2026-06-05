@@ -2,18 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/common/SEO';
-import axios from 'axios';
+import { updateProfile } from '../services/userService';
+import { uploadAttachment } from '../services/attachmentService';
 import { toast } from 'react-toastify';
 
 export default function ProfilePage() {
-  const { user, updateUserContext } = useAuth(); // useAuth: lấy thông tin người dùng và cập nhật hồ sơ.
-  const [fullName, setFullName] = useState(user?.fullName || ''); // useState: lưu giá trị họ tên trong form chỉnh sửa hồ sơ.
-  const [email] = useState(user?.email || ''); // useState: hiển thị email chỉ đọc (không cho phép chỉnh sửa).
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || ''); // useState: lưu số điện thoại trong form cập nhật.
-  const [errors, setErrors] = useState({}); // useState: lưu các lỗi validate của form trước khi gửi lên server.
-  const [isUpdating, setIsUpdating] = useState(false); // useState: trạng thái đang gửi yêu cầu cập nhật hồ sơ lên API.
-
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+  const { user, updateUserContext } = useAuth();
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email] = useState(user?.email || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
+  const [avatarAttachmentId, setAvatarAttachmentId] = useState(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     setFullName(user?.fullName || '');
@@ -33,21 +35,54 @@ export default function ProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn tệp hình ảnh.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Dung lượng ảnh tối đa là 10MB.');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const response = await uploadAttachment(file, 'AVATAR');
+      const attachment = response.data;
+      setAvatarUrl(attachment.fileUrl);
+      setAvatarAttachmentId(attachment.id);
+      toast.success('Tải ảnh đại diện lên thành công! Nhấn lưu thay đổi để hoàn tất.');
+    } catch (error) {
+      console.error('Lỗi upload avatar:', error);
+      toast.error(error.response?.data?.message || 'Không thể tải ảnh lên. Vui lòng thử lại.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFullName(user?.fullName || '');
+    setPhoneNumber(user?.phoneNumber || '');
+    setAvatarUrl(user?.avatarUrl || '');
+    setAvatarAttachmentId(null);
+    setErrors({});
+  };
+
   const handleUpdateProfile = async () => {
     if (!validate()) return;
     setIsUpdating(true);
     try {
-      const response = await axios.put(
-        `${API_URL}/api/users/profile`,
-        { fullName, phoneNumber },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const payload = { fullName, phoneNumber };
+      if (avatarAttachmentId) {
+        payload.avatarAttachmentId = avatarAttachmentId;
+      }
+      const response = await updateProfile(payload);
       updateUserContext(response.data);
       toast.success('Cập nhật thông tin thành công!');
+      setAvatarAttachmentId(null);
     } catch (error) {
       console.error('Lỗi khi cập nhật:', error);
       toast.error('Cập nhật thất bại. Vui lòng thử lại sau.');
@@ -79,31 +114,41 @@ export default function ProfilePage() {
             <section>
               <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-stone-200/40 overflow-hidden p-6 md:p-10">
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
-                  {/* Avatar Upload Zone */}
+                  {/* User Avatar & Name */}
                   <div className="flex flex-col items-center gap-4 shrink-0">
-                    <div className="relative group cursor-pointer">
-                      <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-surface-container-low ring-4 ring-primary/5">
-                        <img
-                          alt="Profile Avatar"
-                          className="w-full h-full object-cover"
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwkEWu0WqyU31yxNoHWyVC82LrK4BfXAIXw1A8-vz91lLgiACubnrtdJ7hgsI8ENOLmSZnoltZ6DFf_Kbv5xAw_KTR5OOvGsOCPtxNg2y_mogusneSgR1yaPNtxvc_wEGaPLGFDuzaB9cgmudQ5W0aP4oxpeDbDb7yiiApRffsFtO1PR42H5UnS7N-PGNduluQ42uMxPh05NMpi-Bx0YRBhtKs89D1aR5403FlbD4XKhw1UQL_QkoOl0FuzhIYvT1r36WpqrObgHSh"
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-primary/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-symbols-outlined text-white text-3xl">
-                          photo_camera
+                    <div 
+                      onClick={() => !isUploadingAvatar && document.getElementById('avatar-file-input').click()}
+                      className="w-36 h-36 rounded-full bg-primary/10 border-4 border-surface-container-low ring-4 ring-primary/5 flex items-center justify-center cursor-pointer overflow-hidden relative group transition-all hover:scale-[1.02]">
+                      {isUploadingAvatar ? (
+                        <div className="flex flex-col items-center justify-center text-primary">
+                          <span className="material-symbols-outlined text-3xl animate-spin">refresh</span>
+                          <span className="text-[10px] font-black tracking-wider uppercase mt-1">Đang tải...</span>
+                        </div>
+                      ) : avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-5xl font-black text-primary select-none group-hover:opacity-30 transition-opacity">
+                          {(fullName || 'U').charAt(0).toUpperCase()}
                         </span>
-                      </div>
-                      <button className="absolute bottom-1 right-1 bg-primary text-white p-2.5 rounded-full shadow-xl hover:scale-110 transition-transform">
-                        <span className="material-symbols-outlined text-sm font-bold">
-                          edit
-                        </span>
-                      </button>
+                      )}
+                      
+                      {!isUploadingAvatar && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                        </div>
+                      )}
                     </div>
+                    <input 
+                      id="avatar-file-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      disabled={isUploadingAvatar}
+                    />
                     <div className="text-center">
-                      <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">
-                        Định dạng: JPG, PNG (Max 2MB)
-                      </span>
+                      <p className="text-lg font-black text-on-surface">{user?.fullName || ''}</p>
+                      <p className="text-xs text-stone-400 font-medium mt-0.5">{user?.email || ''}</p>
                     </div>
                   </div>
 
@@ -167,7 +212,7 @@ export default function ProfilePage() {
                         )}
                         {isUpdating ? 'Đang lưu...' : 'Lưu thay đổi'}
                       </button>
-                      <button className="text-stone-500 hover:text-on-surface font-bold px-8 py-4 rounded-xl transition-all border border-stone-200">
+                      <button onClick={handleCancel} className="text-stone-500 hover:text-on-surface font-bold px-8 py-4 rounded-xl transition-all border border-stone-200">
                         Hủy bỏ
                       </button>
                     </div>

@@ -14,6 +14,7 @@ public class CropTypeService {
     @Autowired
     private CropTypeRepository cropTypeRepository;
 
+    // Get list of active and non-deleted crop types
     public List<CropTypeResponse> getAvailableCropTypes() {
         return cropTypeRepository.findByIsActiveTrueAndIsDeleteFalse()
                 .stream()
@@ -21,6 +22,7 @@ public class CropTypeService {
                 .collect(Collectors.toList());
     }
 
+    // Map CropType entity to response DTO
     private CropTypeResponse toResponse(CropType cropType) {
         return CropTypeResponse.builder()
                 .id(cropType.getId())

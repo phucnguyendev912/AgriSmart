@@ -18,10 +18,10 @@ public class CloudinaryService implements ImageStoragePort {
     @Override
     public String upload(MultipartFile file) {
         try {
-            // Upload ảnh lên Cloudinary
+            // Upload file to Cloudinary with auto resource type detection
             @SuppressWarnings("unchecked")
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            // Trả về URL ảnh
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
+            // Return the image URL
             return uploadResult.get("url").toString();
         } catch (Exception e) {
             throw new RuntimeException("Cloudinary upload failed: " + e.getMessage(), e);

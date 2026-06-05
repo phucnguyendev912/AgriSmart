@@ -7,10 +7,8 @@ import com.phucnguyen.agriai.enums.SeverityLevel;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
-/**
- * Xây dựng DiagnoseResponse từ kết quả phân tích Vision và Rule Engine.
- * Không tương tác với database.
- */
+// Builder class to construct DiagnoseResponse from vision analysis and rule engine results.
+// Does not interact with the database.
 @Component
 public class DiagnoseResponseBuilder {
 
@@ -50,16 +48,14 @@ public class DiagnoseResponseBuilder {
         }
 
         DiseaseResultDTO toDiseaseResult(DiagnoseService.DetectedDiseaseMatch match) {
-                String diseaseName = match.disease().getDiseaseNameEn() != null
-                                && !match.disease().getDiseaseNameEn().isBlank()
-                                                ? match.disease().getDiseaseNameEn() + " ("
-                                                                + match.disease().getDiseaseName() + ")"
-                                                : match.disease().getDiseaseName();
+                String diseaseName = match.disease().getDiseaseName();
+                String diseaseNameEn = match.disease().getDiseaseNameEn();
 
                 return DiseaseResultDTO.builder()
                                 .diseaseId(match.disease().getId())
                                 .diseaseCode(match.disease().getDiseaseCode())
                                 .diseaseName(diseaseName)
+                                .diseaseNameEn(diseaseNameEn)
                                 .confidence(match.visionResult().getConfidence())
                                 .severity(resolveSeverity(match))
                                 .build();

@@ -1,12 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import FarmerStories from '../features/landing/components/FarmerReviews';
-import WeatherDiseaseSection from '../features/landing/components/WeatherDiseaseSection';
+import { FarmerReviews as FarmerStories, WeatherDiseaseSection } from '../features/landing';
 
+/**
+ * HomePage Component
+ * Renders the primary landing experience, including a hero section,
+ * quick access features (AI Diagnosis, Weather, Chatbot, Disease Map),
+ * and links to sub-modules.
+ */
 const HomePage = () => {
   return (
     <>
-      {/* Main Content Canvas */}
       <main className="pt-20 min-h-screen bg-surface">
         {/* Hero Section */}
         <section className="relative h-[550px] flex items-center overflow-hidden">
@@ -22,7 +26,7 @@ const HomePage = () => {
           <div className="relative z-10 px-6 md:px-12 max-w-6xl mx-auto text-on-primary w-full text-center md:text-left">
             <span className="tracking-widest text-primary-fixed uppercase font-bold mb-4 block text-sm">CÔNG NGHỆ VÌ NHÀ NÔNG</span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tighter mb-6">
-              AgriAI - AI Chẩn Đoán Bệnh Cây Trồng Và Gợi Ý Giải Pháp Nông Nghiệp Thông Minh
+              Hệ thống AI chẩn đoán bệnh cây trồng-AgriSmart
             </h1>
             <p className="text-lg md:text-xl opacity-90 mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed">
               Giúp nông dân Việt Nam phát hiện bệnh sớm, giảm thiểu thiệt hại, tăng năng suất mùa vụ bằng công nghệ thị giác máy tính tiên tiến nhất.
@@ -61,9 +65,9 @@ const HomePage = () => {
                 <span className="text-emerald-600 font-bold mb-2 text-sm uppercase tracking-wide">CÔNG NGHỆ LÕI</span>
                 <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-4">Chẩn đoán bệnh AI</h3>
                 <p className="text-slate-600 mb-8">Chụp ảnh lá cây bị bệnh, hệ thống AI sẽ phân tích và đưa ra kết quả chính xác sau 3 giây kèm theo phác đồ điều trị chi tiết.</p>
-                <button className="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all">
+                <Link to="/diagnosis" className="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all">
                   Khám phá ngay <span className="material-symbols-outlined">arrow_forward</span>
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -131,31 +135,6 @@ const HomePage = () => {
         <WeatherDiseaseSection />
 
         <FarmerStories />
-        {/* Final CTA */}
-        <section className="px-6 md:px-12 py-16 max-w-7xl mx-auto">
-          <div className="bg-primary rounded-3xl p-8 md:p-16 text-center relative overflow-hidden">
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-5xl font-black text-on-primary mb-6">Sẵn sàng bảo vệ mùa vụ?</h2>
-              <p className="text-primary-fixed-dim text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">
-                Tham gia cùng cộng đồng hàng ngàn nông dân Việt Nam hiện đại, ứng dụng AI để canh tác thông minh và bền vững hơn.
-              </p>
-              <button className="bg-white text-primary hover:bg-surface-bright px-12 py-5 rounded-full font-black text-lg transition-all shadow-xl hover:-translate-y-1 active:translate-y-0">
-                Bắt đầu chẩn đoán miễn phí
-              </button>
-
-              <div className="mt-10 flex flex-wrap justify-center gap-6 md:gap-10 text-on-primary/70 text-sm font-medium">
-                {['Không phí duy trì', 'Cập nhật bệnh mới 24/7', 'Hỗ trợ đa nền tảng'].map((item) => (
-                  <div key={item} className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-sm">check_circle</span>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-primary-container rounded-full opacity-20 blur-3xl"></div>
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary-container rounded-full opacity-20 blur-3xl"></div>
-          </div>
-        </section>
       </main>
 
 

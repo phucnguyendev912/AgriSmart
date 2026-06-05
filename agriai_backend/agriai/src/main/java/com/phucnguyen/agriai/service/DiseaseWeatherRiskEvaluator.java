@@ -23,8 +23,10 @@ public class DiseaseWeatherRiskEvaluator {
 
     private final DiseaseWeatherConditionRepository conditionRepository;
 
+    // Group key mapping disease ID and condition group label
     record GroupKey(Integer diseaseId, String conditionGroup) {}
 
+    // Evaluate weather risk for a list of specific disease IDs
     public List<DiseaseWeatherRiskDTO> evaluate(List<Integer> diseaseIds, WeatherDTO weather) {
         if (diseaseIds == null || diseaseIds.isEmpty() || weather == null) {
             return List.of();
@@ -36,6 +38,7 @@ public class DiseaseWeatherRiskEvaluator {
         return evaluateConditions(allConditions, weather);
     }
 
+    // Evaluate risk for all active diseases in the system
     public List<DiseaseWeatherRiskDTO> evaluateAll(WeatherDTO weather) {
         if (weather == null) {
             return List.of();
@@ -44,6 +47,7 @@ public class DiseaseWeatherRiskEvaluator {
         return evaluateConditions(conditionRepository.findByIsActiveTrueAndIsDeleteFalse(), weather);
     }
 
+    // Process list of conditions against current weather context
     private List<DiseaseWeatherRiskDTO> evaluateConditions(
             List<DiseaseWeatherCondition> allConditions, WeatherDTO weather) {
         if (allConditions == null || allConditions.isEmpty()) return List.of();
@@ -62,7 +66,7 @@ public class DiseaseWeatherRiskEvaluator {
         return deduplicateByDisease(matchedRisks);
     }
 
-    // A group matches when at least one condition matches current weather.
+    // Evaluate a single condition group; matches when at least one condition criteria is met
     private Optional<DiseaseWeatherRiskDTO> evaluateGroup(
             List<DiseaseWeatherCondition> conditions, WeatherDTO weather) {
 
@@ -94,6 +98,7 @@ public class DiseaseWeatherRiskEvaluator {
                 .build());
     }
 
+    // Deduplicate risks keeping the highest priority risk per disease
     private List<DiseaseWeatherRiskDTO> deduplicateByDisease(List<DiseaseWeatherRiskDTO> risks) {
         Map<Integer, DiseaseWeatherRiskDTO> byDisease = new LinkedHashMap<>();
 
@@ -104,6 +109,7 @@ public class DiseaseWeatherRiskEvaluator {
         return new ArrayList<>(byDisease.values());
     }
 
+    // Compare and pick preferred risk record based on priority and match count
     private DiseaseWeatherRiskDTO choosePreferredRisk(
             DiseaseWeatherRiskDTO current,
             DiseaseWeatherRiskDTO candidate) {
@@ -119,6 +125,7 @@ public class DiseaseWeatherRiskEvaluator {
         return candidateMatches > currentMatches ? candidate : current;
     }
 
+    // Resolve risk priority level based on condition group name (High > Medium > Low)
     private int riskPriority(DiseaseWeatherRiskDTO risk) {
         String group = risk.getConditionGroup() != null ? risk.getConditionGroup().toUpperCase() : "";
         if (group.contains("HIGH")) return 2;
@@ -126,6 +133,7 @@ public class DiseaseWeatherRiskEvaluator {
         return 0;
     }
 
+    // Determine if weather factor value satisfies condition operator threshold
     private boolean isConditionMatch(DiseaseWeatherCondition condition, Double actualValue) {
         BigDecimal actual = BigDecimal.valueOf(actualValue);
         Operator operator = condition.getOperator();
@@ -145,6 +153,7 @@ public class DiseaseWeatherRiskEvaluator {
         };
     }
 
+    // Format condition match details to a user-friendly string
     private String formatConditionDescription(DiseaseWeatherCondition condition, Double actualValue) {
         String factorName = condition.getWeatherFactor().displayName;
 

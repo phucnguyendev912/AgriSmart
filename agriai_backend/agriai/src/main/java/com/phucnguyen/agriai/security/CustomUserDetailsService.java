@@ -18,21 +18,23 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     @Override
-    // @Transactional để tránh lỗi LazyInitializationException khi truy cập
-    // user.getRole() trong SecurityContext
+    // @Transactional to prevent LazyInitializationException when loading
+    // user.getRole() in SecurityContext
     @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản: " + email));
 
-        if (user.getIsActive() != null && !user.getIsActive()) {
-            throw new UsernameNotFoundException("Tài khoản đã bị vô hiệu hóa.");
+        if (Boolean.TRUE.equals(user.getIsDelete())) {
+            throw new UsernameNotFoundException("Không tìm thấy tài khoản: " + email);
         }
 
         String roleName = user.getRole() != null ? user.getRole().getRoleName() : "USER";
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPasswordHash(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName)));
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getEmail())
+                .password(user.getPasswordHash())
+                .disabled(Boolean.FALSE.equals(user.getIsActive()))
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName)))
+                .build();
     }
 }
