@@ -6,6 +6,8 @@ import com.phucnguyen.agriai.entity.DrugInteraction;
 import com.phucnguyen.agriai.entity.Ingredient;
 import com.phucnguyen.agriai.entity.TreatmentPlan;
 import com.phucnguyen.agriai.repository.DrugInteractionRepository;
+import com.phucnguyen.agriai.entity.Drug;
+import com.phucnguyen.agriai.entity.DrugIngredient;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,8 +38,12 @@ class DrugInteractionCheckerTest {
         ingA = Ingredient.builder().id(1).ingredientName("Tricyclazole").build();
         ingB = Ingredient.builder().id(2).ingredientName("Validamycin").build();
         Disease d = Disease.builder().id(10).diseaseName("Dao on").build();
-        planA = TreatmentPlan.builder().id(100).disease(d).ingredient(ingA).build();
-        planB = TreatmentPlan.builder().id(101).disease(d).ingredient(ingB).build();
+        
+        Drug drugA = Drug.builder().id(1).ingredients(List.of(DrugIngredient.builder().ingredient(ingA).build())).build();
+        Drug drugB = Drug.builder().id(2).ingredients(List.of(DrugIngredient.builder().ingredient(ingB).build())).build();
+        
+        planA = TreatmentPlan.builder().id(100).disease(d).drug(drugA).build();
+        planB = TreatmentPlan.builder().id(101).disease(d).drug(drugB).build();
     }
 
     // --- buildInteractionWarnings ---

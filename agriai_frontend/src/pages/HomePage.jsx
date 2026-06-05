@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import FarmerStories from '../features/landing/components/FarmerReviews';
+import WeatherDiseaseSection from '../features/landing/components/WeatherDiseaseSection';
 
 const HomePage = () => {
   return (
@@ -94,29 +95,40 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-8 bg-surface-container-high rounded-xl p-8 md:p-10 flex flex-col md:flex-row gap-8 items-center border border-slate-200">
+            <div className="col-span-12 lg:col-span-8 bg-surface-container-high rounded-xl p-8 md:p-10 flex flex-col md:flex-row gap-8 items-center border border-slate-200 group hover:border-primary/40 transition-colors">
               <div className="flex-1">
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Nông nghiệp bền vững</h3>
-                <p className="text-slate-600 mb-6">Cung cấp các kiến thức và giải pháp giúp nông dân canh tác an toàn, thân thiện với môi trường và tối ưu hóa lợi nhuận lâu dài.</p>
-                <div className="flex gap-2">
-                  <span className="bg-white px-3 py-1 rounded-full text-xs font-bold text-primary">VIETGAP</span>
-                  <span className="bg-white px-3 py-1 rounded-full text-xs font-bold text-primary">AN TOÀN</span>
-                  <span className="bg-white px-3 py-1 rounded-full text-xs font-bold text-primary">BỀN VỮNG</span>
-                </div>
+                <span className="text-rose-500 font-bold mb-2 text-sm uppercase tracking-wide block">CẢNH BÁO SỚM</span>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Bản đồ dịch bệnh</h3>
+                <p className="text-slate-600 mb-6">Theo dõi tình hình dịch bệnh cây trồng theo thời gian thực trên bản đồ tương tác. Cập nhật liên tục từ cộng đồng nông dân và các trạm quan trắc.</p>
+                <Link
+                  to="/warning-map"
+                  className="inline-flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all"
+                >
+                  Xem bản đồ <span className="material-symbols-outlined">arrow_forward</span>
+                </Link>
               </div>
-              <div className="w-full md:w-72 h-44 bg-white rounded-lg shadow-sm border overflow-hidden relative">
-                <img
-                  alt="Sustainable Farming"
-                  className="w-full h-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU67ueXqwIk9QeelmrCMfV5DwYB5DBDMv_NVyHlM_rwFcD4tzCXxnw-ifQvbMd5WfQ63o5ra2ElIZ8EcRgqKFtFe5U9mle0aGek27q_4LOIXGXeeQrEUUrNfP6mAXu9rewxWF1tb0YNFJpTbHhZW0LwCy4O-ZAvFbmsQIVgPWT3hXJuJ5Yp1oLo7x713a01NBf99VcHlR_il9S5mqMBCjd4pOhj-lkxILp0DxReC8Mfc7Em76BZEJPzYBaJ-LVK3RMhIiqMZBU-gI6"
-                />
-                <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary text-4xl">eco</span>
+              <div className="w-full md:w-72 h-44 bg-white rounded-lg shadow-sm border overflow-hidden relative shrink-0">
+                {/* Map preview with disease markers */}
+                <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center relative">
+                  <span className="material-symbols-outlined text-[80px] text-teal-300">map</span>
+                  {/* simulated outbreak dots */}
+                  <span className="absolute top-6 left-12 w-3 h-3 bg-rose-500 rounded-full animate-ping opacity-75"></span>
+                  <span className="absolute top-6 left-12 w-3 h-3 bg-rose-500 rounded-full"></span>
+                  <span className="absolute top-16 right-14 w-2 h-2 bg-amber-400 rounded-full animate-ping opacity-75"></span>
+                  <span className="absolute top-16 right-14 w-2 h-2 bg-amber-400 rounded-full"></span>
+                  <span className="absolute bottom-10 left-20 w-3 h-3 bg-rose-400 rounded-full animate-ping opacity-60"></span>
+                  <span className="absolute bottom-10 left-20 w-3 h-3 bg-rose-400 rounded-full"></span>
+                  <div className="absolute bottom-2 right-2 flex flex-col gap-1 text-[10px] font-medium text-slate-600">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-rose-500 rounded-full inline-block"></span>Bùng phát</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-400 rounded-full inline-block"></span>Cảnh báo</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        <WeatherDiseaseSection />
 
         <FarmerStories />
         {/* Final CTA */}

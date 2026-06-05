@@ -4,28 +4,53 @@ import com.phucnguyen.agriai.entity.Disease;
 import com.phucnguyen.agriai.entity.TreatmentPlan;
 import com.phucnguyen.agriai.repository.TreatmentPlanRepository;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class TreatmentLookupService {
 
     private final TreatmentPlanRepository treatmentPlanRepository;
 
-    // find treatment plan by disease
-    public TreatmentLookupService(TreatmentPlanRepository treatmentPlanRepository) {
-        this.treatmentPlanRepository = treatmentPlanRepository;
-    }
-    // get treatment plan by disease
     public List<TreatmentPlan> findByDisease(Disease disease) {
         if (disease == null || disease.getId() == null) {
             return List.of();
         }
-        return treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(disease.getId()).stream()
+        return findByDiseaseId(disease.getId());
+    }
+
+    public List<TreatmentPlan> findByDiseaseId(Integer diseaseId) {
+        if (diseaseId == null) {
+            return List.of();
+        }
+        return treatmentPlanRepository.findByDiseaseIdAndIsDeleteFalse(diseaseId).stream()
                 .sorted(Comparator.comparing(TreatmentPlan::getIsRequired, Comparator.nullsLast(Boolean::compareTo))
                         .reversed())
                 .toList();
+    }
+
+    // Lấy plans cho nhiều diseases cùng lúc, trả về Map<diseaseId, plans>
+    public Map<Integer, List<TreatmentPlan>> findByDiseaseIds(List<Integer> diseaseIds) {
+        if (diseaseIds == null || diseaseIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<TreatmentPlan> allPlans = treatmentPlanRepository
+                .findByDiseaseIdInAndIsDeleteFalse(diseaseIds);
+
+        // Group theo diseaseId, giữ thứ tự insert (LinkedHashMap)
+        return allPlans.stream()
+                .filter(plan -> plan.getDisease() != null)
+                .collect(Collectors.groupingBy(
+                        plan -> plan.getDisease().getId(),
+                        LinkedHashMap::new,
+                        Collectors.toList()));
     }
 }

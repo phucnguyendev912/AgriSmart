@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +21,10 @@ import org.springframework.web.multipart.MultipartException;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final String INVALID_IMAGE_MESSAGE = "Ảnh không hợp lệ, vui lòng thử lại";
+    private static final String MISSING_CROP_MESSAGE = "Vui lòng chọn loại cây trồng trước khi chẩn đoán";
+    private static final String SYSTEM_ERROR_MESSAGE = "Có lỗi xảy ra, vui lòng thử lại sau";
 
     // =========================================================================
     // MODULE: Toàn bộ service (AppException là exception chính của hệ thống)
@@ -66,7 +71,7 @@ public class GlobalExceptionHandler {
     // =========================================================================
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
-        return buildError(HttpStatus.PAYLOAD_TOO_LARGE, "File anh vuot qua kich thuoc cho phep.");
+        return buildError(HttpStatus.PAYLOAD_TOO_LARGE, INVALID_IMAGE_MESSAGE);
     }
 
     // =========================================================================
@@ -75,8 +80,7 @@ public class GlobalExceptionHandler {
     // =========================================================================
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<Map<String, Object>> handleMultipart(MultipartException ex) {
-        return buildError(HttpStatus.BAD_REQUEST,
-                "Anh gui len khong hop le hoac request khong dung dinh dang multipart.");
+        return buildError(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
     }
 
     // =========================================================================
@@ -105,7 +109,17 @@ public class GlobalExceptionHandler {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage,
                         (first, second) -> first, LinkedHashMap::new));
-        Map<String, Object> body = baseBody(HttpStatus.BAD_REQUEST, "Du lieu gui len khong hop le.");
+        Map<String, Object> body = baseBody(HttpStatus.BAD_REQUEST, resolveValidationMessage(fieldErrors));
+        body.put("fieldErrors", fieldErrors);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<Map<String, Object>> handleBindException(BindException ex) {
+        Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage,
+                        (first, second) -> first, LinkedHashMap::new));
+        Map<String, Object> body = baseBody(HttpStatus.BAD_REQUEST, resolveValidationMessage(fieldErrors));
         body.put("fieldErrors", fieldErrors);
         return ResponseEntity.badRequest().body(body);
     }
@@ -126,7 +140,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
         log.error("[RuntimeException] {}", ex.getMessage(), ex);
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Da xay ra loi he thong: " + ex.getMessage());
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
     }
 
     // =========================================================================
@@ -135,11 +149,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("[UnhandledException] {}", ex.getMessage(), ex);
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Da xay ra loi ngoai du kien.");
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
     }
 
     private ResponseEntity<Map<String, Object>> buildError(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(baseBody(status, message));
+    }
+
+    private String resolveValidationMessage(Map<String, String> fieldErrors) {
+        if (fieldErrors.containsKey("cropTypeId")) {
+            return MISSING_CROP_MESSAGE;
+        }
+        if (fieldErrors.containsKey("image")) {
+            return INVALID_IMAGE_MESSAGE;
+        }
+        return "Dữ liệu gửi lên không hợp lệ.";
     }
 
     private Map<String, Object> baseBody(HttpStatus status, String message) {
