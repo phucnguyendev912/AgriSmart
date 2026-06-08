@@ -34,7 +34,7 @@ describe('WeatherDiseaseSection', () => {
           diseaseCode: 'BLAST',
           diseaseName: 'Dao on la',
           conditionGroup: 'BLAST_HIGH_1',
-          recommendationNotes: 'Theo doi ruong sat hon',
+          diseaseDescription: 'Theo doi ruong sat hon',
         },
       ],
     });
