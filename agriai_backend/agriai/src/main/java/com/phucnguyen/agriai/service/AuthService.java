@@ -38,6 +38,8 @@ public class AuthService {
         String email = request.getEmail().trim().toLowerCase();
         if (userRepository.existsByEmail(email))
             throw new AppException(HttpStatus.CONFLICT, "Email này đã được sử dụng.");
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber()))
+            throw new AppException(HttpStatus.CONFLICT, "Số điện thoại này đã được sử dụng.");
         if (!request.getPassword().equals(request.getPasswordConfirm()))
             throw new AppException(HttpStatus.BAD_REQUEST, "Mật khẩu xác nhận không khớp.");
 

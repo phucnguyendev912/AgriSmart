@@ -15,6 +15,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     boolean existsByEmail(String email);
 
+    boolean existsByPhoneNumber(String phoneNumber);
+
     @Query("SELECT COUNT(u) FROM User u WHERE u.isDelete = false")
     long countTotalUsers();
 

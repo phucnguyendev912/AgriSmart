@@ -10,16 +10,26 @@ import { getMarkers, getDiseases } from "../services/diseaseMapService";
 
 const MARKER_COLOR = "#EF4444";
 
-// Pin icon cho Hoàng Sa & Trường Sa
-const islandPinIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [20, 32],
-  iconAnchor: [10, 32],
-  popupAnchor: [0, -32],
-  shadowSize: [32, 32],
-});
+// Custom label icon cho Hoàng Sa & Trường Sa (căn giữa tuyệt đối, chữ xám mờ, hiển thị 2 dòng)
+const createIslandLabelIcon = (name, zoom) => {
+  let fontSize = "text-[9px]";
+  if (zoom <= 5) {
+    fontSize = "text-[7.5px]";
+  } else if (zoom >= 8) {
+    fontSize = "text-[11px]";
+  } else if (zoom >= 7) {
+    fontSize = "text-[10px]";
+  }
+
+  const formattedName = name.replace("Quần đảo ", "Quần đảo<br/>");
+
+  return new L.divIcon({
+    className: "custom-island-label-icon",
+    html: `<div class="${fontSize} font-bold uppercase tracking-widest text-slate-500/80 text-center w-[120px] pointer-events-none" style="text-shadow: 1px 1px 0px rgba(255,255,255,0.8), -1px -1px 0px rgba(255,255,255,0.8), 1px -1px 0px rgba(255,255,255,0.8), -1px 1px 0px rgba(255,255,255,0.8); margin-left: -60px; margin-top: -12px; line-height: 1.2;">${formattedName}</div>`,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  });
+};
 
 const ISLAND_PINS = [
   { id: "hoang-sa", name: "Quần đảo Hoàng Sa", lat: 16.5, lng: 112.0 },
@@ -219,13 +229,14 @@ export default function DiseaseMapPage() {
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
           />
 
-          {/* Pin markers for Hoàng Sa & Trường Sa */}
-          {ISLAND_PINS.map((island) => (
-            <Marker key={island.id} position={[island.lat, island.lng]} icon={islandPinIcon}>
-              <Popup>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{island.name}</div>
-              </Popup>
-            </Marker>
+          {/* Permanent labels for Hoàng Sa & Trường Sa - Chỉ hiển thị khi zoom >= 6 */}
+          {mapState.zoom >= 6 && ISLAND_PINS.map((island) => (
+            <Marker
+              key={island.id}
+              position={[island.lat, island.lng]}
+              icon={createIslandLabelIcon(island.name, mapState.zoom)}
+              interactive={false}
+            />
           ))}
 
           {/* Listen for map bounds and zoom changes */}
