@@ -275,7 +275,6 @@ public class DiagnoseHistoryService {
         }
     }
 
-
     // Create unique key for deduplicating drug interaction warnings
     private String interactionWarningKey(InteractionWarningDTO warning) {
         String ingredientA = String.valueOf(warning.getIngredientAId());
