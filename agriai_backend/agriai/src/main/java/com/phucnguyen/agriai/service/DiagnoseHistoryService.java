@@ -178,11 +178,11 @@ public class DiagnoseHistoryService {
 
         for (DiagnoseHistoryDetail detail : details) {
             if (detail.getDisease() != null) {
-                String diseaseDisplayName = buildDiseaseDisplayName(detail.getDisease());
                 diseases.add(DiseaseResultDTO.builder()
                         .diseaseId(detail.getDisease().getId())
                         .diseaseCode(detail.getDisease().getDiseaseCode())
-                        .diseaseName(diseaseDisplayName)
+                        .diseaseName(detail.getDisease().getDiseaseName())
+                        .diseaseNameEn(detail.getDisease().getDiseaseNameEn())
                         .confidence(
                                 detail.getConfidenceScore() != null ? detail.getConfidenceScore().doubleValue() : null)
                         .severity(detail.getSeverity() != null ? detail.getSeverity().name() : null)
@@ -275,15 +275,6 @@ public class DiagnoseHistoryService {
         }
     }
 
-    // Build disease display name containing English name followed by Vietnamese name
-    private String buildDiseaseDisplayName(com.phucnguyen.agriai.entity.Disease disease) {
-        String nameEn = disease.getDiseaseNameEn();
-        String nameVi = disease.getDiseaseName();
-        if (nameEn != null && !nameEn.isBlank()) {
-            return nameEn + " (" + nameVi + ")";
-        }
-        return nameVi;
-    }
 
     // Create unique key for deduplicating drug interaction warnings
     private String interactionWarningKey(InteractionWarningDTO warning) {
