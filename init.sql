@@ -431,11 +431,11 @@ CREATE TABLE public.disease (
     is_delete boolean,
     updated_at timestamp(6) without time zone,
     updated_by integer,
-    description character varying(255),
+    description text,
     disease_code character varying(50),
     disease_name character varying(50),
     diseasename_en character varying(50),
-    symptoms character varying(255),
+    symptoms text,
     croptype_id integer,
     severity_level character varying(255),
     CONSTRAINT disease_severity_level_check CHECK (((severity_level)::text = ANY ((ARRAY['NHE'::character varying, 'TRUNG_BINH'::character varying, 'NANG'::character varying])::text[])))
@@ -1297,14 +1297,14 @@ COPY public.diagnose_treatment_recommendation (id, diagnose_history_detail_id, t
 --
 
 COPY public.disease (id, created_at, created_by, deleted_at, deleted_by, is_delete, updated_at, updated_by, description, disease_code, disease_name, diseasename_en, symptoms, croptype_id, severity_level) FROM stdin;
-2	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Bệnh vi khuẩn gây các vết sọc trong suốt trên lá	BLS_RICE	Sọc vi khuẩn	Bacterial Leaf Streak	Xuất hiện sọc dài trong suốt dọc theo gân lá	2	\N
-3	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Bệnh nấm phổ biến khi đất thiếu dinh dưỡng	BS_RICE	Đốm nâu	Brown Spot	Vết đốm nâu hình tròn hoặc bầu dục trên lá	2	\N
+2	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Là bệnh hại chủ yếu trên lá lúa, do vi khuẩn Xanthomonas oryzicola gây ra. Khi bệnh phát sinh, lá lúa có thể bị cháy, làm giảm khả năng quang hợp và ảnh hưởng đến năng suất.	BLS_RICE	Sọc vi khuẩn	Bacterial Leaf Streak	Triệu chứng của bệnh là các vết sọc nhỏ, ngắn, chạy dọc giữa các gân lá. Lúc đầu, vết bệnh có màu xanh tái, sau chuyển dần sang màu nâu, tạo thành các sọc nâu hẹp. Trên bề mặt vết bệnh có thể xuất hiện những giọt dịch nhỏ, tròn, màu vàng đục. Khi khô lại, các giọt dịch này trở thành các hạt keo vi khuẩn trong như hạt trứng cá, dễ rơi khỏi mặt lá và rơi xuống nước trong ruộng.	2	\N
+3	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Là bệnh hại phổ biến trên lúa, thường được nhắc đến trong các tài liệu đánh giá khả năng chống chịu sâu bệnh của giống lúa. Bệnh thường xuất hiện mạnh hơn khi cây lúa sinh trưởng yếu, điều kiện dinh dưỡng không cân đối hoặc gặp bất lợi về thời tiết. Trong sản xuất, bệnh đốm nâu được xem là một trong các chỉ tiêu cần theo dõi khi đánh giá sức chống chịu của giống lúa.	BS_RICE	Đốm nâu	Brown Spot	Bệnh chủ yếu gây hại trên lá, làm xuất hiện các vết đốm màu nâu, ảnh hưởng đến diện tích lá xanh và khả năng quang hợp của cây. Khi bệnh phát triển, các vết đốm có thể lan rộng, làm lá bị khô từng phần.	2	\N
 4	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Cây lúa phát triển bình thường, không có dấu hiệu bệnh	HEALTHY	Khỏe mạnh	Healthy	Không có triệu chứng bất thường	2	\N
-5	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Bệnh nấm nguy hiểm do Magnaporthe oryzae	BLAST_RICE	Đạo ôn	Leaf Blast	Vết bệnh hình thoi, tâm xám, viền nâu	2	\N
-6	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Bệnh nấm gây cháy từ mép lá	SCALD_RICE	Cháy bìa lá	Leaf Scald	Lá vàng từ mép vào, loang dần	2	\N
-7	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Bệnh nấm Rhizoctonia solani gây hại bẹ lá	SHEATH_BLIGHT	Khô vằn	Sheath Blight	Vết bệnh loang lổ dạng vằn trên bẹ lá	2	\N
-8	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Bệnh virus do rầy xanh truyền	TUNGRO	Tungro	Rice Tungro Virus	Cây lúa lùn, lá vàng, sinh trưởng kém	2	\N
-1	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Bệnh do vi khuẩn Xanthomonas oryzae gây ra, thường xuất hiện sau mưa bão	BLB_RICE	Bạc lá	Bacteria Leaf Blight	Lá cháy từ chóp, mép lá bạc trắng, lan dần vào trong	2	\N
+5	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Là một trong các loại dịch hại nguy hiểm đối với cây lúa tại Việt Nam nói riêng và các quốc gia khác nói chung. Bệnh chủ yếu do nấm Pyricularia oryzae gây ra.	BLAST_RICE	Đạo ôn	Leaf Blast	Bệnh có thể gây hại trên nhiều bộ phận của cây như lá, cổ lá, đốt thân và cổ bông. Trên lá, bệnh thường tạo các vết bệnh dạng hình thoi hoặc kéo dài. Khi bệnh nặng, nhiều vết bệnh liên kết lại làm lá bị cháy khô. Nếu bệnh xuất hiện ở cổ bông, bông lúa có thể bị lép, gãy cổ bông hoặc không vào chắc, ảnh hưởng nghiêm trọng đến năng suất.	2	\N
+6	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Thường do nấm Microdochium oryzae gây ra. Bệnh chủ yếu gây hại trên lá lúa, đặc biệt ở phần mép lá và chóp lá.	SCALD_RICE	Cháy bìa lá	Leaf Scald	Triệu chứng thường bắt đầu bằng các vết bệnh nhỏ ở mép lá, sau đó lan rộng thành các mảng cháy có màu nâu xám hoặc trắng xám. Vết bệnh có thể tạo thành các đường vân hoặc vùng loang không đều trên lá. Khi bệnh nặng, lá bị khô từng mảng, làm giảm diện tích quang hợp.	2	\N
+7	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Là bệnh do nấm Rhizoctonia solani gây ra, xuất hiện phổ biến ở hầu hết các vùng trồng lúa tại Việt Nam.	SHEATH_BLIGHT	Khô vằn	Sheath Blight	Loại nấm này thường tấn công ở phần gốc, bẹ lá, sau đó lan dần lên phần thân và lá, khiến cây lúa suy yếu nhanh chóng.	2	\N
+8	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Là do hai loại vi-rút gây ra, gồm vi-rút tungro dạng thẳng (RTBV) và vi-rút tungro dạng cầu (RTSV). Tác nhân truyền bệnh chủ yếu là rầy xanh đuôi đen.	TUNGRO	Tungro	Rice Tungro Virus	Cây lúa nhiễm đồng thời cả hai loại vi-rút thường biểu hiện triệu chứng điển hình của bệnh tungro như sinh trưởng còi cọc, ít nhánh, lá chuyển sang màu vàng hoặc vàng cam từ chóp lá rồi lan xuống phần dưới lá. Trên lá có thể xuất hiện các vết nâu đen nhỏ, không đều.	2	\N
+1	2026-04-18 12:54:05.796935	\N	\N	\N	f	2026-04-18 12:54:05.796935	\N	Là một trong những bệnh gây hại quan trọng trên cây lúa. Bệnh bạc lá do vi khuẩn Xanthomonas oryzae pv. oryzae gây ra và là một trong các bệnh gây hại lớn trong canh tác lúa.	BLB_RICE	Bạc lá	Bacteria Leaf Blight	Triệu chứng bệnh thường xuất hiện trên phiến lá, ban đầu ở hai bên mép lá phía trên, sau đó lan dần vào giữa lá. Vết bệnh lúc đầu có màu xanh đậm, khi gặp nắng thì héo dần, mô lá chết tạo thành vết dài màu trắng xám. Rìa vết bệnh thường có dạng gợn sóng. Khi thời tiết ẩm hoặc vào sáng sớm, trên vết bệnh có thể xuất hiện giọt dịch màu trắng đục, khi khô chuyển sang màu vàng hoặc nâu. Nếu bệnh nặng, toàn bộ phiến lá có thể bị khô cháy.	2	\N
 \.
 
 

@@ -18,4 +18,6 @@ public class DiseaseWeatherRiskDTO { // DTO để chứa thông tin về nguy c�
     private String conditionGroup;
     private List<String> matchedConditions;
     private String recommendationNotes;
+    private String diseaseDescription;
+    private String symptoms;
 }
