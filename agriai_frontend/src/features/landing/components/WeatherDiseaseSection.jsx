@@ -27,9 +27,8 @@ const mapRiskToDisease = (risk) => ({
   nameEn: risk.diseaseCode,
   icon: 'bug_report',
   matchedConditions: risk.matchedConditions || [],
-  description: risk.recommendationNotes
-    || (risk.matchedConditions || []).join(', ')
-    || 'Thời tiết hiện tại thuận lợi cho bệnh phát triển.',
+  description: risk.diseaseDescription || 'Chưa có thông tin mô tả cho bệnh này.',
+  symptoms: risk.symptoms || 'Chưa có thông tin triệu chứng nhận biết.',
 });
 
 const WeatherDiseaseSection = () => {
@@ -381,55 +380,25 @@ const WeatherDiseaseSection = () => {
 
             {/* Modal body */}
             <div className="space-y-5 px-5 py-5 overflow-y-auto max-h-[65vh]">
-              {/* Recommendations and guidelines */}
+              {/* Thông tin bệnh */}
               <div>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-400">
-                  Khuyến nghị
+                <p className="text-xs font-black uppercase tracking-widest text-emerald-600">
+                  Thông tin bệnh
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                <p className="mt-2 text-sm leading-relaxed text-slate-700">
                   {selectedDisease.description}
                 </p>
               </div>
 
-              {/* Associated weather conditions */}
-              {selectedDisease.matchedConditions && selectedDisease.matchedConditions.length > 0 && (
-                <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">
-                    Điều kiện thời tiết liên quan
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {selectedDisease.matchedConditions.map((cond) => (
-                      <span
-                        key={cond}
-                        className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-semibold text-amber-700"
-                      >
-                        <span className="material-symbols-outlined text-sm">wb_sunny</span>
-                        {cond}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Local weather parameters */}
-              {metrics && (
-                <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">
-                    Thời tiết khu vực hiện tại
-                  </p>
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    {metrics.map((m) => (
-                      <div key={m.icon} className={`rounded-xl border ${m.border} ${m.colorBg} p-3`}>
-                        <span className={`material-symbols-outlined text-lg ${m.colorText}`}>
-                          {m.icon}
-                        </span>
-                        <p className={`mt-1 text-sm font-black ${m.colorText}`}>{m.value}</p>
-                        <p className="mt-0.5 text-[11px] font-semibold text-slate-500">{m.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Triệu chứng nhận biết */}
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-amber-600">
+                  Triệu chứng nhận biết
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                  {selectedDisease.symptoms}
+                </p>
+              </div>
             </div>
           </div>
         </div>

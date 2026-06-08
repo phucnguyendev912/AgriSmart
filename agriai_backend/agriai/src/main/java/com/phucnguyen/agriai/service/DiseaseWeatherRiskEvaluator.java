@@ -92,6 +92,8 @@ public class DiseaseWeatherRiskEvaluator {
                 .diseaseId(first.getDisease().getId())
                 .diseaseCode(first.getDisease().getDiseaseCode())
                 .diseaseName(first.getDisease().getDiseaseName())
+                .diseaseDescription(first.getDisease().getDescription())
+                .symptoms(first.getDisease().getSymptoms())
                 .conditionGroup(first.getConditionGroup())
                 .matchedConditions(matchedDescriptions)
                 .recommendationNotes(firstMatched.getRecommendationNote())

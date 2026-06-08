@@ -31,10 +31,10 @@ public class Disease extends BaseEntity {
     @Column(name = "diseaseCode", length = 50)
     private String diseaseCode;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "symptoms", length = 255)
+    @Column(name = "symptoms", columnDefinition = "TEXT")
     private String symptoms;
 
     @Enumerated(EnumType.STRING)
