@@ -68,3 +68,10 @@ input::-ms-reveal,
 input::-ms-clear {
   display: none;
 }
+
+/* Custom class cho nhãn text quần đảo trên Leaflet */
+.custom-island-label-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}

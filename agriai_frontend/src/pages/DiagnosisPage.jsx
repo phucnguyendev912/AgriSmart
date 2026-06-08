@@ -49,6 +49,21 @@ const DiagnosisPage = () => {
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [showToast, setShowToast] = useState(false);
 
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     useEffect(() => {
         const fetchCropTypes = async () => {
             try {
@@ -244,21 +259,49 @@ const DiagnosisPage = () => {
                         <h2 className="text-3xl md:text-4xl font-black tracking-tight text-on-surface">Chẩn đoán bệnh</h2>
                         <p className="text-on-surface-variant mt-2 text-base md:text-lg">Sử dụng AI tiên tiến để bảo vệ mùa màng.</p>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="bg-surface-container-lowest p-1 rounded-xl shadow-sm border border-surface-container-highest flex items-center w-full md:w-auto">
-                            <label className="px-4 text-xs font-bold text-on-surface-variant tracking-widest uppercase whitespace-nowrap">Loại cây:</label>
-                            <select
-                                className="bg-transparent border-none focus:ring-0 text-primary font-bold pr-8 w-full md:w-auto"
-                                value={selectedCropTypeId}
-                                onChange={(e) => setSelectedCropTypeId(e.target.value ? Number(e.target.value) : '')}
-                            >
-                                <option value="" disabled hidden></option>
-                                {cropTypes.map(ct => (
-                                    <option key={ct.id} value={ct.id}>{ct.cropName}</option>
-                                ))}
-                            </select>
-                        </div>
+                    <div className="flex items-center gap-4" ref={dropdownRef}>
+                        <div className="relative bg-surface-container-lowest p-1.5 rounded-xl shadow-sm border border-surface-container-highest flex items-center w-full md:w-auto select-none">
+                            <span className="material-symbols-outlined text-primary text-xl pl-3 pr-1">grass</span>
+                            <label className="text-xs font-bold text-on-surface-variant tracking-widest uppercase whitespace-nowrap">Loại cây:</label>
+                            
+                            <div className="relative flex-grow md:flex-grow-0 min-w-[140px]">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                    className="flex items-center justify-between bg-transparent border-none text-primary font-black px-2 py-1.5 w-full cursor-pointer outline-none text-sm gap-2"
+                                >
+                                    <span className="truncate">
+                                        {cropTypes.find(ct => ct.id === selectedCropTypeId)?.cropName || 'Chọn loại cây...'}
+                                    </span>
+                                    <span className={`material-symbols-outlined text-primary text-xl transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>
+                                        expand_more
+                                    </span>
+                                </button>
 
+                                {isDropdownOpen && (
+                                    <div className="absolute left-0 right-0 md:left-auto md:right-0 mt-2.5 z-50 bg-surface-container-lowest border border-surface-container-highest shadow-xl rounded-2xl overflow-hidden min-w-[180px] py-1.5 animate-fade-in-down">
+                                        {cropTypes.map(ct => (
+                                            <button
+                                                key={ct.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedCropTypeId(ct.id);
+                                                    setIsDropdownOpen(false);
+                                                }}
+                                                className={`w-full text-left px-4 py-2.5 text-sm transition-all flex items-center gap-2 hover:bg-primary/5 active:scale-[0.98] ${
+                                                    selectedCropTypeId === ct.id
+                                                        ? 'text-primary font-extrabold bg-primary/10'
+                                                        : 'text-on-surface hover:text-primary font-medium'
+                                                }`}
+                                            >
+                                                <span className={`w-1.5 h-1.5 rounded-full bg-primary transition-transform ${selectedCropTypeId === ct.id ? 'scale-100' : 'scale-0'}`} />
+                                                {ct.cropName}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -412,6 +455,19 @@ const DiagnosisPage = () => {
                 @keyframes shimmer {
                     0% { transform: translateX(-100%) skewX(-20deg); }
                     100% { transform: translateX(250%) skewX(-20deg); }
+                }
+                @keyframes fade-in-down {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-8px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                .animate-fade-in-down {
+                    animation: fade-in-down 0.15s ease-out forwards;
                 }
             `}</style>
         </div>

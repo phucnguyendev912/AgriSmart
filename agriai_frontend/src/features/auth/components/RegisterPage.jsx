@@ -39,6 +39,13 @@ const RegisterPage = () => {
     e.preventDefault();
     const errors = {};
 
+    const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+    if (!formData.phoneNumber) {
+      errors.phoneNumber = 'Số điện thoại không được để trống.';
+    } else if (!phoneRegex.test(formData.phoneNumber)) {
+      errors.phoneNumber = 'Số điện thoại không hợp lệ. Phải gồm 10 chữ số và bắt đầu bằng đầu số hợp lệ (03, 05, 07, 08, 09).';
+    }
+
     if (formData.password !== formData.passwordConfirm) {
       errors.confirm_password = 'Mật khẩu không khớp.';
     }
@@ -159,7 +166,7 @@ const RegisterPage = () => {
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">call</span>
                 <input
-                  className="w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary transition-all text-on-surface placeholder:text-outline-variant text-base"
+                  className={`w-full pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 transition-all text-on-surface text-base ${formErrors.phoneNumber ? 'focus:ring-error ring-2 ring-error/50' : 'focus:ring-primary'}`}
                   id="phoneNumber"
                   placeholder="09xx xxx xxx"
                   type="tel"
@@ -168,6 +175,12 @@ const RegisterPage = () => {
                   onChange={handleChange}
                 />
               </div>
+              {formErrors.phoneNumber && (
+                <p className="text-error text-xs flex items-center gap-1 mt-1 ml-1 font-medium">
+                  <span className="material-symbols-outlined !text-sm">error</span>
+                  {formErrors.phoneNumber}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
