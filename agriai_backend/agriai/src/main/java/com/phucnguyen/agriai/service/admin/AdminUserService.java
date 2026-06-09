@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,19 @@ public class AdminUserService {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return userRepository.findAllByFilter(roleName, isActive, pageable)
                 .map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Long> getUserStats() {
+        List<Object[]> statsRaw = userRepository.getUserStats();
+        long totalUsers = 0;
+        long activeUsers = 0;
+        if (statsRaw != null && !statsRaw.isEmpty()) {
+            Object[] row = statsRaw.get(0);
+            totalUsers = ((Number) row[0]).longValue();
+            activeUsers = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+        }
+        return Map.of("totalUsers", totalUsers, "activeUsers", activeUsers);
     }
 
     @Transactional(readOnly = true)

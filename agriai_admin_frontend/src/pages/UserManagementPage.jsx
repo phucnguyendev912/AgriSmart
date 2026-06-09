@@ -19,14 +19,14 @@ const UserManagementPage = () => {
     error,
     refresh,
     deleteUser,
+    stats,
   } = useUsers();
 
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
 
-  // Derived stats from server data
-  const active = users.filter((u) => u.isActive).length;
+
 
   const handleEdit = (user) => {
     setEditingUser(user);
@@ -73,7 +73,7 @@ const UserManagementPage = () => {
       {/* Stats + Filters */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
         <div className="md:col-span-12 lg:col-span-8">
-          <UserStats total={totalElements} active={active} />
+          <UserStats total={stats.totalUsers} active={stats.activeUsers} />
         </div>
         <div className="md:col-span-12 lg:col-span-4">
           <UserFilters filters={filters} onChange={applyFilters} />

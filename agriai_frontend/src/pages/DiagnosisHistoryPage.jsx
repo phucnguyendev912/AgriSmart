@@ -59,7 +59,8 @@ const getPresetRange = (filterKey) => {
  * @param {string} severity - Severity level code.
  * @returns {string} Tailwind CSS class string.
  */
-const getSeverityClasses = (severity) => {
+const getSeverityClasses = (severity, diagnosisType) => {
+    if (diagnosisType === 'HEALTHY') return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
     if (severity === 'NANG') return 'bg-error-container text-on-error-container';
     if (severity === 'TRUNG_BINH') return 'bg-secondary-container text-on-secondary-container';
     if (severity === 'NHE') return 'bg-primary-container text-on-primary-container';
@@ -71,7 +72,8 @@ const getSeverityClasses = (severity) => {
  * @param {string} severity - Severity level code.
  * @returns {string} The localized label.
  */
-const getSeverityLabel = (severity) => {
+const getSeverityLabel = (severity, diagnosisType) => {
+    if (diagnosisType === 'HEALTHY') return 'Lá khỏe';
     if (severity === 'NANG') return 'Nặng';
     if (severity === 'TRUNG_BINH') return 'Trung bình';
     if (severity === 'NHE') return 'Nhẹ';
@@ -258,8 +260,8 @@ const DiagnosisHistoryPage = () => {
                                         </td>
                                         <td className="px-6 py-4 text-sm font-medium">{item.cropName || 'N/A'}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${getSeverityClasses(item.severity)}`}>
-                                                {getSeverityLabel(item.severity)}
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${getSeverityClasses(item.severity, item.diagnosisType)}`}>
+                                                {getSeverityLabel(item.severity, item.diagnosisType)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -316,8 +318,8 @@ const DiagnosisHistoryPage = () => {
                                             <p className="text-[9px] font-bold text-on-surface-variant uppercase tracking-tight">{parseVnDate(item.createdAt)?.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })}</p>
                                             <p className="text-xs text-on-surface-variant">{item.cropName || 'N/A'}</p>
                                         </div>
-                                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getSeverityClasses(item.severity)}`}>
-                                            {getSeverityLabel(item.severity)}
+                                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getSeverityClasses(item.severity, item.diagnosisType)}`}>
+                                            {getSeverityLabel(item.severity, item.diagnosisType)}
                                         </span>
                                     </div>
                                     <div className="mt-3 flex items-center justify-between border-t border-outline-variant/5 pt-2">

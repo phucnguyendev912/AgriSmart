@@ -4,6 +4,8 @@ import { ENDPOINTS } from '../../services/endpoints';
 export const userService = {
   getUsers: (params) => api.get(ENDPOINTS.ADMIN_USERS, { params }),
 
+  getUserStats: () => api.get(ENDPOINTS.ADMIN_USER_STATS),
+
   getUserById: (id) => api.get(ENDPOINTS.ADMIN_USER_BY_ID(id)),
 
   createUser: (data) => api.post(ENDPOINTS.ADMIN_USERS, data),

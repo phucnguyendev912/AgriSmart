@@ -9,6 +9,7 @@ export function useUsers() {
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState({ role: '', isActive: '' });
+  const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -22,10 +23,14 @@ export function useUsers() {
         ...(filters.role && { role: filters.role }),
         ...(filters.isActive !== '' && { isActive: filters.isActive === 'true' }),
       };
-      const res = await userService.getUsers(params);
-      setUsers(res.data.content);
-      setTotalElements(res.data.totalElements);
-      setTotalPages(res.data.totalPages);
+      const [usersRes, statsRes] = await Promise.all([
+        userService.getUsers(params),
+        userService.getUserStats()
+      ]);
+      setUsers(usersRes.data.content);
+      setTotalElements(usersRes.data.totalElements);
+      setTotalPages(usersRes.data.totalPages);
+      setStats(statsRes.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể tải danh sách người dùng.');
     } finally {
@@ -59,5 +64,6 @@ export function useUsers() {
     error,
     refresh: fetchUsers,
     deleteUser,
+    stats,
   };
 }

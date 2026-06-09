@@ -46,6 +46,15 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-8 bg-zinc-950/40 backdrop-blur-[2px]">
             <div className="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl flex flex-col relative max-h-full overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {/* Close Button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-on-surface-variant/70 hover:text-on-surface transition-colors p-1.5 rounded-full hover:bg-surface-container-high"
+                    aria-label="Đóng"
+                >
+                    <span className="material-symbols-outlined text-xl">close</span>
+                </button>
+
                 {/* Header */}
                 <div className="px-8 pt-8 pb-6 text-center">
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -62,7 +71,7 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
                     {/* Accuracy */}
                     <div className="space-y-3">
                         <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center block">
-                            Kết quả chẩn đoán có chính xác không?
+                             Kết quả chẩn đoán có chính xác không?
                         </label>
                         <div className="grid grid-cols-2 gap-4">
                             <button
@@ -124,22 +133,16 @@ const DiagnosisRatingModal = ({ historyId, onClose, onSuccess }) => {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col gap-3">
+                    <div className="pt-2">
                         <button
                             onClick={handleSubmit}
                             disabled={!accuracy && rating === 0}
-                            className={`w-full py-4 rounded-lg font-bold transition-all ${(!accuracy && rating === 0)
+                            className={`w-full py-3.5 rounded-xl font-bold transition-all ${(!accuracy && rating === 0)
                                 ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed opacity-60'
                                 : 'bg-primary text-on-primary shadow-lg hover:brightness-110 active:scale-[0.98]'
                                 }`}
                         >
                             Gửi đánh giá
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="w-full py-3 text-zinc-500 hover:text-zinc-800 text-sm font-medium transition-colors"
-                        >
-                            Bỏ qua
                         </button>
                     </div>
                 </div>
