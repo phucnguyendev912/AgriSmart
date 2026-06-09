@@ -28,7 +28,7 @@ const formatDateInput = (date) => {
 // Một số browser hiểu chuỗi này là UTC → lệch 7h. Hàm này gắn +07:00 để đảm bảo đúng giờ VN.
 const parseVnDate = (iso) => {
     if (!iso) return null;
-    const normalized = iso.endsWith('Z') || iso.includes('+') ? iso : iso + '+07:00';
+    const normalized = iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z';
     return new Date(normalized);
 };
 
@@ -250,7 +250,7 @@ const DiagnosisHistoryPage = () => {
                                 ) : historyList.map((item, index) => (
                                     <tr key={item.id || index} className="hover:bg-surface-container-low/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <p className="text-sm font-bold text-on-surface">{parseVnDate(item.createdAt)?.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</p>
+                                            <p className="text-sm font-bold text-on-surface">{parseVnDate(item.createdAt)?.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })}</p>
                                             <p className="text-[10px] text-on-surface-variant">ID: #{item.id}</p>
                                         </td>
                                         <td className="px-6 py-4">
@@ -313,7 +313,7 @@ const DiagnosisHistoryPage = () => {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <p className="text-[9px] font-bold text-on-surface-variant uppercase tracking-tight">{parseVnDate(item.createdAt)?.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</p>
+                                            <p className="text-[9px] font-bold text-on-surface-variant uppercase tracking-tight">{parseVnDate(item.createdAt)?.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })}</p>
                                             <p className="text-xs text-on-surface-variant">{item.cropName || 'N/A'}</p>
                                         </div>
                                         <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getSeverityClasses(item.severity)}`}>

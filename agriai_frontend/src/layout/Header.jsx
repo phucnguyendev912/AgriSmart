@@ -83,10 +83,7 @@ const Header = () => {
                 <div className="relative">
                   <button onClick={() => setDesktopMenuOpen(!desktopMenuOpen)} className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200 hover:bg-slate-50 transition-colors py-2 px-3 rounded-lg group cursor-pointer" title="Tuỳ chọn tài khoản">
                     <div className="flex flex-col items-end">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-slate-900 leading-none group-hover:text-primary transition-colors">{user.fullName || 'Người dùng'}</span>
-                        <span className="material-symbols-outlined text-slate-400 text-sm group-hover:text-primary transition-colors" style={{ transform: desktopMenuOpen ? 'rotate(180deg)' : 'rotate(0)' }}>expand_more</span>
-                      </div>
+                      <span className="text-sm font-bold text-slate-900 leading-none group-hover:text-primary transition-colors">{user.fullName || 'Người dùng'}</span>
                       <span className="text-[11px] text-slate-500 font-medium">{user.roleName === 'ADMIN' ? 'Quản trị viên' : user.roleName || 'Nông dân'}</span>
                     </div>
                     <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">

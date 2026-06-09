@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FarmerReviews as FarmerStories, WeatherDiseaseSection } from '../features/landing';
+import { FarmerReviews as FarmerStories, WeatherDiseaseSection, RoadmapSection } from '../features/landing';
 
 /**
  * HomePage Component
@@ -135,6 +135,7 @@ const HomePage = () => {
         <WeatherDiseaseSection />
 
         <FarmerStories />
+        <RoadmapSection />
       </main>
 
 

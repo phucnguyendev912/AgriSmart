@@ -32,7 +32,8 @@ export const submitReview = async (reviewData) => {
   return response;
 };
 
-export const getAllReviews = async () => {
-  const response = await api.get('/api/reviews/all');
+export const getAllReviews = async (params = { page: 0, size: 8 }) => {
+  const response = await api.get('/api/reviews/all', { params });
   return response;
 };
+
