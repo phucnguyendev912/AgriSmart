@@ -39,8 +39,14 @@ public class AdminDashboardService {
         LocalDateTime from = LocalDateTime.now().minusDays(periodDays);
 
         // Retrieve summary statistics.
-        long totalUsers = userRepository.countTotalUsers();
-        long activeUsers = userRepository.countActiveUsers();
+        List<Object[]> userStatsRaw = userRepository.getUserStats();
+        long totalUsers = 0;
+        long activeUsers = 0;
+        if (userStatsRaw != null && !userStatsRaw.isEmpty()) {
+            Object[] row = userStatsRaw.get(0);
+            totalUsers = ((Number) row[0]).longValue();
+            activeUsers = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+        }
         long totalDiagnoses = diagnoseHistoryDetailRepository.countTotalDiagnoses();
         long diagnosesInPeriod = diagnoseHistoryRepository.countInPeriod(from);
         long totalReviews = diagnoseReviewRepository.countTotalReviews();

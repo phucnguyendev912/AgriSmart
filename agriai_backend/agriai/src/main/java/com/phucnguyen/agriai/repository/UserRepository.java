@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -22,6 +23,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true AND u.isDelete = false")
     long countActiveUsers();
+
+    @Query("SELECT COUNT(u), SUM(CASE WHEN u.isActive = true THEN 1 ELSE 0 END) FROM User u WHERE u.isDelete = false")
+    List<Object[]> getUserStats();
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = false AND u.isDelete = false")
     long countLockedUsers();

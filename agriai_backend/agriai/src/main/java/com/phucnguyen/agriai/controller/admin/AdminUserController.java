@@ -34,6 +34,11 @@ public class AdminUserController {
         return ResponseEntity.ok(adminUserService.getUsers(page, size, role, isActive));
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Long>> getUserStats() {
+        return ResponseEntity.ok(adminUserService.getUserStats());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<AdminUserResponse> getUserById(@PathVariable Integer id) {
         return ResponseEntity.ok(adminUserService.getUserById(id));
