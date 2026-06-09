@@ -117,12 +117,9 @@ const LoginPage = () => {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label htmlFor="password" className="block text-[0.75rem] font-bold tracking-[0.05em] text-on-surface-variant uppercase">
-                  MẬT KHẨU
-                </label>
-                <Link to="/forgot-password" className="text-[0.75rem] font-bold text-tertiary hover:underline">Quên mật khẩu?</Link>
-              </div>
+              <label htmlFor="password" className="block text-[0.75rem] font-bold tracking-[0.05em] text-on-surface-variant uppercase">
+                MẬT KHẨU
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <span className="material-symbols-outlined text-outline" data-icon="lock">lock</span>
@@ -147,17 +144,6 @@ const LoginPage = () => {
                   </span>
                 </button>
               </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="remember-me"
-                className="h-6 w-6 sm:h-5 sm:w-5 rounded border-outline-variant text-primary focus:ring-primary/20"
-              />
-              <label htmlFor="remember-me" className="ml-3 block text-sm font-medium text-on-surface-variant select-none">
-                Ghi nhớ tôi
-              </label>
             </div>
 
             <button

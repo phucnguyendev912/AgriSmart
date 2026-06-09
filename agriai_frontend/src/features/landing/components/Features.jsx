@@ -69,35 +69,6 @@ const Features = () => {
         </div>
       </section>
       
-      {/* Testimonials Section */}
-      <section className="py-24 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-4xl font-black text-center mb-16">Niềm tin từ bà con nông dân</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="p-10 rounded-3xl bg-gray-50 border border-gray-100 relative">
-              <p className="text-lg italic text-on-surface-variant mb-8 leading-relaxed">"Nhờ AgriAI mà vụ lúa vừa rồi tôi phát hiện bệnh đạo ôn sớm cả tuần."</p>
-              <div className="flex items-center space-x-4">
-                <img alt="Nông dân" className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRagydOZa55nOqDNbeU0Ym3vgVp-kyk_rg3o5T8W-4TAG9aUAWo7gJaXNjlDUUP6TVCvJELoFqWJ4maFFm6o7TGAF1kvRpgyHQK17Wkf6_l3NE8kO_V-WD1sgs4AEA0xvd3ggR405BC0pgTG02xXkAB5FnCmmEky5mDxB-N-LngHG2aR7My67A1R2rNoiPaSst9c7sy_DyGXR2ifkIacKlDeXACHfCiho4qV3wtFH1zxIlv9d47Mge7bR2J1qGEvpIQD1081oA8gZ1" />
-                <div>
-                  <div className="font-black text-on-surface">Chú Ba Thành</div>
-                  <div className="text-sm text-gray-500 font-medium">Lúa, Đồng Tháp</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-10 rounded-3xl bg-gray-50 border border-gray-100 relative">
-              <p className="text-lg italic text-on-surface-variant mb-8 leading-relaxed">"Ban đầu ngại công nghệ nhưng dùng cái này dễ thiệt. Chụp cái là ra bệnh."</p>
-              <div className="flex items-center space-x-4">
-                <img alt="Nông dân" className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8ajAkZYRTb54QN8jNTH3QcnlPlz9CFKOYdguc416qRHk0S2XeQDnRJCTcEIcmp_dE2iahm2zN87D96NmQ48JBCOwUhBaKuGKLKxLesS5EffsfO0BydywfB5yi92hkFKB68rbRYo3VB8Oz87_OvfPh7Pk_hnBuBgquZPkQrKpaGI2MDmzohoFl0z9OLp_J5LlRxSEmDu6FSTVxGcEG_MD4v2rIiNz4M7-YiLhq1WV2MN4ycshd7lVQ593wGuHUlcq8ANQgTpFVjvuI" />
-                <div>
-                  <div className="font-black text-on-surface">Cô Lan</div>
-                  <div className="text-sm text-gray-500 font-medium">Hồ tiêu, Đắk Lắk</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </>
   );
 };

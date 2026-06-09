@@ -4,12 +4,16 @@ import com.phucnguyen.agriai.dto.request.DiagnoseReviewRequest;
 import com.phucnguyen.agriai.dto.response.DiagnoseReviewResponse;
 import com.phucnguyen.agriai.service.DiagnoseReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.GetMapping;
+
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -34,8 +38,11 @@ public class DiagnoseReviewController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<DiagnoseReviewResponse>> getAllReview() {
-        return ResponseEntity.ok(reviewService.getAllReview());
+    public ResponseEntity<Page<DiagnoseReviewResponse>> getAllReview(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ResponseEntity.ok(reviewService.getAllReviewPaged(pageable));
     }
 
 }

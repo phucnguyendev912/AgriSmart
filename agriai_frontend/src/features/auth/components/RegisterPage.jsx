@@ -16,8 +16,7 @@ const RegisterPage = () => {
     email: '',
     phoneNumber: '',
     password: '',
-    passwordConfirm: '',
-    terms: false
+    passwordConfirm: ''
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -48,11 +47,6 @@ const RegisterPage = () => {
 
     if (formData.password !== formData.passwordConfirm) {
       errors.confirm_password = 'Mật khẩu không khớp.';
-    }
-
-    if (!formData.terms) {
-      toast.warning('Bạn cần đồng ý với điều khoản dịch vụ.');
-      return;
     }
 
     if (Object.keys(errors).length > 0) {
@@ -243,19 +237,6 @@ const RegisterPage = () => {
                   </p>
                 )}
               </div>
-            </div>
-
-            <div className="flex items-start gap-3 py-2">
-              <input
-                className="mt-1 w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary bg-surface-container-low flex-shrink-0"
-                id="terms"
-                type="checkbox"
-                checked={formData.terms}
-                onChange={handleChange}
-              />
-              <label className="text-sm text-on-surface-variant leading-relaxed select-none" htmlFor="terms">
-                Tôi đồng ý với <Link to="#" className="text-primary font-semibold hover:underline">Điều khoản dịch vụ</Link> và <Link to="#" className="text-primary font-semibold hover:underline">Chính sách bảo mật</Link> của AgriAI.
-              </label>
             </div>
 
             <button

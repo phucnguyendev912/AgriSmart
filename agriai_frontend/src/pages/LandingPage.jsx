@@ -1,5 +1,5 @@
 import React from 'react';
-import { Hero, Features } from '../features/landing';
+import { Hero, Features, WeatherDiseaseSection, FarmerReviews, RoadmapSection } from '../features/landing';
 import SEO from '../components/common/SEO';
 
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +30,9 @@ const LandingPage = () => {
       />
       <Hero />
       <Features />
+      <WeatherDiseaseSection />
+      <FarmerReviews />
+      <RoadmapSection />
     </>
   );
 };
