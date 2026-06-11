@@ -5,7 +5,8 @@ import Header from "./layout/Header";
 import Footer from "./layout/Footer";
 import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/HomePage";
-import { LoginPage, RegisterPage } from "./features/auth";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import FarmingAreaPage from "./pages/FarmingAreaPage";
 import DiagnosisPage from "./pages/DiagnosisPage";
 import DiagnosisHistoryPage from "./pages/DiagnosisHistoryPage";
@@ -15,8 +16,8 @@ import DiseaseMapPage from "./pages/DiseaseMapPage";
 import ProfilePage from "./pages/ProfilePage";
 import AboutPage from "./pages/AboutPage";
 import { ChatBotWidget } from "./features/chat";
-import GlobalNotificationListener from "./layout/GlobalNotificationListener";
-import InitialLocationPrompt from "./layout/InitialLocationPrompt";
+import GlobalNotificationListener from "./context/GlobalNotificationListener";
+import useInitialLocationPrompt from "./hooks/useInitialLocationPrompt";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "./context/AuthContext";
@@ -50,6 +51,15 @@ function ScrollToTop() {
 }
 
 /**
+ * Bootstraps the one-time location permission prompt via hook.
+ * Extracted as a component so hooks can be called inside the Router context.
+ */
+function LocationBootstrap() {
+  useInitialLocationPrompt();
+  return null;
+}
+
+/**
  * Main Application Component
  * Sets up routing, providers, navigation layout, global modal listeners,
  * and toast notification container.
@@ -59,7 +69,7 @@ function App() {
     <HelmetProvider>
       <Router>
         <ScrollToTop />
-        <InitialLocationPrompt />
+        <LocationBootstrap />
         <GlobalNotificationListener />
         {/* Main application layout wrapper */}
         <div className="bg-surface text-on-surface font-sans min-h-screen flex flex-col">

@@ -18,16 +18,8 @@ import {
     getCultivationMeasures as getDiagnosisCultivationMeasures
 } from '../features/diagnosis';
 
-// eslint-disable-next-line no-unused-vars
-const getCultivationMeasures = (result) => {
-    if (!result) return [];
-    const { diagnosisType, sprayPrograms } = result;
-    const strategy = sprayPrograms && sprayPrograms.length > 0 ? sprayPrograms[0].strategy : '';
-    if (diagnosisType === 'HEALTHY') return ['Tiếp tục theo dõi lá và thân 2-3 ngày/lần, giữ ruộng thông thoáng.'];
-    if (diagnosisType === 'UNKNOWN') return ['Ảnh chưa đủ rõ để xác định bệnh. Nên chụp gần vùng tổn thương và chụp rõ nét hơn.'];
-    if (strategy === 'SEPARATE_SPRAY') return ['Đã tách lịch phun theo từng nhóm hoạt chất để tránh xung đột.'];
-    return ['Có thể xử lý trong một đợt phun, nhưng cần đọc kỹ cảnh báo trước khi pha.'];
-};
+
+
 
 const DiagnosisPage = () => {
     const { user } = useAuth();
