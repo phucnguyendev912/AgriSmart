@@ -85,3 +85,5 @@ docker/volumes/
 .docker/
 cloudflared/
 
+/.claude
+/.codex
