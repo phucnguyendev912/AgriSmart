@@ -71,6 +71,30 @@ function MapEventHandler({ onBoundsChange }) {
   return null;
 }
 
+function MapResizeHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    const invalidateMapSize = () => map.invalidateSize();
+    const initialResizeId = window.setTimeout(invalidateMapSize, 0);
+    const resizeObserver = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(invalidateMapSize)
+      : null;
+
+    resizeObserver?.observe(container);
+    window.addEventListener("resize", invalidateMapSize);
+
+    return () => {
+      window.clearTimeout(initialResizeId);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", invalidateMapSize);
+    };
+  }, [map]);
+
+  return null;
+}
+
 // -------------------------------------------------------------------
 export default function DiseaseMapPage() {
   const [markers, setMarkers] = useState([]);
@@ -141,7 +165,10 @@ export default function DiseaseMapPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface text-on-surface pt-20">
+    <div
+      className="flex h-screen min-h-0 w-full min-w-0 flex-col overflow-hidden bg-surface text-on-surface pt-20 pb-[72px] md:pb-0"
+      style={{ height: "100dvh" }}
+    >
       <SEO
         title="Bản đồ cảnh báo dịch bệnh cây trồng"
         description="Theo dõi phân bố dịch bệnh cây trồng theo thời gian thực trên bản đồ tương tác."
@@ -150,7 +177,7 @@ export default function DiseaseMapPage() {
       />
 
       {/* Header */}
-      <div className="px-6 py-5 border-b border-surface-variant/30 bg-surface-container-lowest">
+      <div className="shrink-0 px-6 py-5 border-b border-surface-variant/30 bg-surface-container-lowest">
         <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
           <span className="material-symbols-outlined text-3xl">map</span>
           Bản đồ cảnh báo dịch bệnh
@@ -161,7 +188,7 @@ export default function DiseaseMapPage() {
       </div>
 
       {/* Filters */}
-      <div className="px-6 py-4 bg-surface-container flex flex-wrap gap-4 items-center border-b border-surface-variant/20">
+      <div className="shrink-0 px-6 py-4 bg-surface-container flex flex-wrap gap-4 items-center border-b border-surface-variant/20">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-on-surface-variant">Thời gian:</span>
           {[7, 30, 90].map((d) => (
@@ -211,17 +238,17 @@ export default function DiseaseMapPage() {
 
       {/* Error */}
       {error && (
-        <div className="mx-6 mt-4 px-4 py-3 rounded-xl bg-error-container text-error text-sm">
+        <div className="shrink-0 mx-6 mt-4 px-4 py-3 rounded-xl bg-error-container text-error text-sm">
           {error}
         </div>
       )}
 
       {/* Map */}
-      <div className="flex-1 relative z-10" style={{ minHeight: "500px" }}>
+      <div className="relative z-10 min-h-0 w-full flex-1 overflow-hidden">
         <MapContainer
           center={[16.047079, 108.20623]}
           zoom={6}
-          style={{ width: "100%", height: "100%", minHeight: "500px" }}
+          style={{ width: "100%", height: "100%" }}
           scrollWheelZoom={true}
         >
           <TileLayer
@@ -241,6 +268,7 @@ export default function DiseaseMapPage() {
 
           {/* Listen for map bounds and zoom changes */}
           <MapEventHandler onBoundsChange={handleBoundsChange} />
+          <MapResizeHandler />
 
           {/* Render map cluster bubbles or single marker points */}
           {clusters.map((point) => {
@@ -299,7 +327,7 @@ export default function DiseaseMapPage() {
       </div>
 
       {/* Legend */}
-      <div className="px-6 py-3 bg-surface-container-lowest border-t border-surface-variant/20 flex flex-wrap gap-6 text-sm items-center">
+      <div className="shrink-0 px-6 py-3 bg-surface-container-lowest border-t border-surface-variant/20 flex flex-wrap gap-6 text-sm items-center">
         <div className="flex items-center gap-1.5 text-on-surface-variant">
           <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: MARKER_COLOR }} />
           Điểm dịch bệnh
