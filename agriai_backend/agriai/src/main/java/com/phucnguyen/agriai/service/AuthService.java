@@ -40,22 +40,18 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
 
-    private final RestTemplate restTemplate;
-
     // ── Constructor ────────────────────────────────────────────
     public AuthService(
             UserRepository userRepository,
             RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            AuthenticationManager authenticationManager,
-            RestTemplate restTemplate) {
+            AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
-        this.restTemplate = restTemplate;
     }
 
     @Value("${google.client-id}")
