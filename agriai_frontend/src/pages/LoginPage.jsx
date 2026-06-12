@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { login } from '../services/authService';
+import SocialLoginButtons from '../features/auth/components/SocialLoginButtons';
 
 
 const INVALID_CREDENTIALS_MESSAGE = 'Email hoặc mật khẩu không đúng';
@@ -154,6 +155,17 @@ const LoginPage = () => {
               <span className="material-symbols-outlined ml-2 text-xl" data-icon="arrow_forward">arrow_forward</span>
             </button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-outline-variant/20"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-surface-container-lowest px-2 text-on-surface-variant font-medium">Hoặc đăng nhập bằng</span>
+            </div>
+          </div>
+
+          <SocialLoginButtons />
 
           <div className="mt-8 pt-8 border-t border-outline-variant/15 text-center">
             <p className="text-sm text-on-surface-variant">

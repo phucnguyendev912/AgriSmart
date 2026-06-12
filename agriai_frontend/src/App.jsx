@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import Header from "./layout/Header";
 import Footer from "./layout/Footer";
 import LandingPage from "./pages/LandingPage";
@@ -66,8 +67,9 @@ function LocationBootstrap() {
  */
 function App() {
   return (
-    <HelmetProvider>
-      <Router>
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <HelmetProvider>
+        <Router>
         <ScrollToTop />
         <LocationBootstrap />
         <GlobalNotificationListener />
@@ -135,7 +137,8 @@ function App() {
           />
         </div>
       </Router>
-    </HelmetProvider>
+      </HelmetProvider>
+    </GoogleOAuthProvider>
   );
 }
 

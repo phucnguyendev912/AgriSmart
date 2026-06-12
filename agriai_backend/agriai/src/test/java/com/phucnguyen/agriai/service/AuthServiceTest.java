@@ -22,6 +22,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.phucnguyen.agriai.dto.response.LoginResponse;
+import com.phucnguyen.agriai.enums.AuthProvider;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.security.core.userdetails.UserDetails;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
@@ -39,6 +54,9 @@ class AuthServiceTest {
 
     @Mock
     private AuthenticationManager authenticationManager;
+
+    @Mock
+    private RestTemplate restTemplate;
 
     @InjectMocks
     private AuthService authService;
@@ -126,6 +144,71 @@ class AuthServiceTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("Mật khẩu xác nhận không khớp.", exception.getMessage());
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void loginWithGoogle_success_newUser() {
+        GoogleIdToken.Payload payload = new GoogleIdToken.Payload();
+        payload.setSubject("google-sub-123");
+        payload.setEmail("google@gmail.com");
+        payload.setEmailVerified(true);
+        payload.set("name", "Google User");
+
+        AuthService spyService = spy(authService);
+        doReturn(payload).when(spyService).verifyGoogleToken("valid-google-token");
+
+        when(userRepository.findByEmail("google@gmail.com")).thenReturn(Optional.empty());
+        when(userRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, "google-sub-123")).thenReturn(Optional.empty());
+        
+        Role role = Role.builder().id(1).roleName("USER").build();
+        when(roleRepository.findByRoleName("USER")).thenReturn(Optional.of(role));
+
+        User savedUser = User.builder()
+                .id(101)
+                .fullName("Google User")
+                .email("google@gmail.com")
+                .provider(AuthProvider.GOOGLE)
+                .providerId("google-sub-123")
+                .role(role)
+                .build();
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        when(jwtService.generateToken(any(UserDetails.class))).thenReturn("dummy-jwt-access-token");
+        when(jwtService.generateRefreshToken(any(UserDetails.class))).thenReturn("dummy-jwt-refresh-token");
+
+        LoginResponse response = spyService.loginWithGoogle("valid-google-token");
+
+        assertNotNull(response);
+        assertEquals("dummy-jwt-access-token", response.getToken());
+        assertEquals("dummy-jwt-refresh-token", response.getRefreshToken());
+        assertEquals("google@gmail.com", response.getUser().getEmail());
+        assertEquals("Google User", response.getUser().getFullName());
+
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void loginWithGoogle_emailExistsWithLocalProvider_throwsConflict() {
+        GoogleIdToken.Payload payload = new GoogleIdToken.Payload();
+        payload.setSubject("google-sub-123");
+        payload.setEmail("local@gmail.com");
+        payload.setEmailVerified(true);
+
+        AuthService spyService = spy(authService);
+        doReturn(payload).when(spyService).verifyGoogleToken("valid-google-token");
+
+        User existingLocalUser = User.builder()
+                .id(102)
+                .email("local@gmail.com")
+                .provider(AuthProvider.LOCAL)
+                .build();
+        when(userRepository.findByEmail("local@gmail.com")).thenReturn(Optional.of(existingLocalUser));
+
+        AppException exception = assertThrows(AppException.class, () -> spyService.loginWithGoogle("valid-google-token"));
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+        assertTrue(exception.getMessage().contains("đã được đăng ký bằng email/mật khẩu"));
 
         verify(userRepository, never()).save(any(User.class));
     }

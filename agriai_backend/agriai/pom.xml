@@ -118,8 +118,8 @@
 		</dependency>
 		<!-- 1. Flyway core (bắt buộc) -->
 		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
 		</dependency>
 		<!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
 		<dependency>
@@ -127,6 +127,12 @@
 			<artifactId>flyway-database-postgresql</artifactId>
 			<version>11.7.2</version>
 			<scope>runtime</scope>
+		</dependency>
+		<!-- Google OAuth2 — verify ID Token -->
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>2.2.0</version>
 		</dependency>
 	</dependencies>
 	<build>

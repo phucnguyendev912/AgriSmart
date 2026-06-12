@@ -88,3 +88,4 @@ cloudflared/
 /.claude
 /.codex
 /.init.sql
+/.openspec

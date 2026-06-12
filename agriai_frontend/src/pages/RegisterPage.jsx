@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { register } from '../services/authService';
+import SocialLoginButtons from '../features/auth/components/SocialLoginButtons';
 
 
 /**
@@ -246,6 +247,17 @@ const RegisterPage = () => {
               Đăng ký
             </button>
           </form>
+
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white/90 px-2 text-on-surface-variant font-medium">Hoặc đăng ký bằng</span>
+            </div>
+          </div>
+
+          <SocialLoginButtons />
 
           <div className="mt-6 text-center border-t border-gray-100 pt-5">
             <p className="text-on-surface-variant text-sm font-medium">
