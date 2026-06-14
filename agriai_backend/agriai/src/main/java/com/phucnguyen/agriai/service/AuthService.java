@@ -136,12 +136,18 @@ public class AuthService {
         if (Boolean.FALSE.equals(emailVerified))
             throw new AppException(HttpStatus.BAD_REQUEST, "Email Google chưa được xác minh.");
 
-        // 3. Kiểm tra email đã được đăng ký bằng LOCAL chưa (tránh account takeover)
+        // 3. Kiểm tra email đã tồn tại với tài khoản LOCAL → tự động link thay vì báo lỗi
         if (email != null) {
             Optional<User> existingByEmail = userRepository.findByEmail(email);
-            if (existingByEmail.isPresent() && existingByEmail.get().getProvider() == AuthProvider.LOCAL)
-                throw new AppException(HttpStatus.CONFLICT,
-                        "Email này đã được đăng ký. Vui lòng sử dụng chức năng đăng nhập với email và mật khẩu.");
+            if (existingByEmail.isPresent() && existingByEmail.get().getProvider() == AuthProvider.LOCAL) {
+                User localUser = existingByEmail.get();
+                // Kiểm tra tài khoản có bị khóa không
+                if (Boolean.FALSE.equals(localUser.getIsActive()))
+                    throw new AppException(HttpStatus.FORBIDDEN,
+                            "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.");
+                // Link tài khoản Google vào tài khoản LOCAL hiện có
+                return buildLoginResponse(linkGoogleToLocalUser(localUser, googleSub));
+            }
         }
 
         // 4. Tìm user theo providerId hoặc tạo mới (nếu chưa tồn tại)
@@ -173,11 +179,17 @@ public class AuthService {
         }
     }
 
-    // 1. Tạo user mới từ thông tin mạng xã hội
+    // Liên kết tài khoản Google vào tài khoản LOCAL hiện có
+    private User linkGoogleToLocalUser(User localUser, String googleSub) {
+        localUser.setProvider(AuthProvider.GOOGLE);
+        localUser.setProviderId(googleSub);
+        return userRepository.save(localUser);
+    }
+
+    // Tạo user mới từ thông tin mạng xã hội
     private User createSocialUser(String fullName, String email, AuthProvider provider, String providerId) {
         Role role = roleRepository.findByRoleName("USER")
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy quyền USER."));
-        // 2. Tạo user với thông tin mạng xã hội
         User user = User.builder()
                 .fullName(fullName != null ? fullName : "Người dùng")
                 .email(email)
@@ -186,7 +198,6 @@ public class AuthService {
                 .isActive(true)
                 .role(role)
                 .build();
-        // 3. Lưu user vào database
         return userRepository.save(user);
     }
 
