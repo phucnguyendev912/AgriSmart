@@ -30,9 +30,14 @@ const RegisterPage = () => {
       ...formData,
       [id]: type === 'checkbox' ? checked : value
     });
-    if (formErrors[id]) {
-      setFormErrors(prev => ({ ...prev, [id]: null }));
-    }
+    setFormErrors(prev => {
+      const copy = { ...prev };
+      delete copy[id];
+      if (id === 'password' || id === 'passwordConfirm') {
+        delete copy.confirm_password;
+      }
+      return copy;
+    });
   };
 
   const handleRegister = async (e) => {
@@ -74,6 +79,13 @@ const RegisterPage = () => {
         if (typeof errorData === 'object') {
           const fieldErrors = errorData.fieldErrors || {};
           
+          const msg = errorData.message || '';
+          if (msg.toLowerCase().includes('email')) {
+            fieldErrors.email = msg;
+          } else if (msg.toLowerCase().includes('số điện thoại') || msg.toLowerCase().includes('phone') || msg.toLowerCase().includes('sđt')) {
+            fieldErrors.phoneNumber = msg;
+          }
+
           if (Object.keys(fieldErrors).length > 0) {
             setFormErrors(prev => ({ ...prev, ...fieldErrors }));
           }

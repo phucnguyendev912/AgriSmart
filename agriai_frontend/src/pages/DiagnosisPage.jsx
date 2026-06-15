@@ -415,7 +415,7 @@ const DiagnosisPage = () => {
                 keywords="chẩn đoán bệnh cây trồng, phát hiện bệnh cây, AI phân tích lá cây, bệnh lúa, bệnh cà phê"
                 url="/diagnosis"
             />
-            <main className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+            <main className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 animate-page-enter">
 
                 {/* Page Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -503,7 +503,7 @@ const DiagnosisPage = () => {
                     <div className="lg:col-span-7 flex flex-col gap-6">
                         <DiagnoseWeatherCards weather={result?.weather} />
 
-                        <DiagnoseResultPanel result={result} />
+                        <DiagnoseResultPanel key={result?.id || 'empty-result'} result={result} />
 
                         {/* Placeholder */}
                         {!result && !loading && (
@@ -562,7 +562,7 @@ const DiagnosisPage = () => {
 
                 {/* Detail Section */}
                 {result && (
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div key={result.id || 'details'} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-page-enter">
                         {/* Left: Technical panels */}
                         <div className="lg:col-span-8 space-y-6">
                             <DiagnoseSprayProgramsPanel

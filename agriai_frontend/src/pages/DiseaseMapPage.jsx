@@ -7,6 +7,7 @@ import SEO from "../components/common/SEO";
 import { ClusterMarker, useMapClusters } from "../features/map";
 
 import { getMarkers, getDiseases } from "../services/diseaseMapService";
+import MapLoadingOverlay from "../components/ui/MapLoadingOverlay";
 
 const MARKER_COLOR = "#EF4444";
 
@@ -95,7 +96,7 @@ function MapResizeHandler() {
   return null;
 }
 
-// -------------------------------------------------------------------
+// -----------------------------------------------------------------
 export default function DiseaseMapPage() {
   const [markers, setMarkers] = useState([]);
   const [days, setDays] = useState(30);
@@ -144,13 +145,18 @@ export default function DiseaseMapPage() {
     const fetchDiseasesList = async () => {
       try {
         const res = await getDiseases();
-        setDiseasesList(res.data);
+        const list = Array.isArray(res.data)
+          ? res.data.filter(d => d.diseaseCode !== "HEALTHY" && d.diseaseName !== "Khỏe mạnh")
+          : [];
+        setDiseasesList(list);
       } catch (err) {
         console.error("Lỗi khi tải danh sách bệnh", err);
       }
     };
     fetchDiseasesList();
   }, []);
+
+
 
   const formatDate = (iso) => {
     if (!iso) return "—";
@@ -206,34 +212,34 @@ export default function DiseaseMapPage() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-grow overflow-hidden max-w-full">
           <span className="text-sm font-medium text-on-surface-variant flex-shrink-0">Bệnh:</span>
-          <div className="relative">
-            <select
-              value={diseaseId || ""}
-              onChange={(e) => setDiseaseId(e.target.value ? Number(e.target.value) : null)}
-              className="appearance-none px-4 py-2 pr-8 rounded-lg text-sm font-bold bg-surface-container-highest text-on-surface hover:bg-surface-variant/50 transition-colors cursor-pointer border-none outline-none focus:ring-2 focus:ring-primary/20 shadow-sm"
-              style={{ WebkitAppearance: "none", MozAppearance: "none" }}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 flex-1">
+            <button
+              onClick={() => setDiseaseId(null)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                diseaseId === null
+                  ? "bg-primary text-white"
+                  : "bg-surface-container-highest text-on-surface-variant hover:bg-primary/10"
+              }`}
             >
-              <option value="">Tất cả các loại bệnh</option>
-              {diseasesList.map((d) => (
-                <option key={d.id} value={d.id}>{d.diseaseName}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-base pointer-events-none">
-              expand_more
-            </span>
+              Tất cả
+            </button>
+            {diseasesList.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => setDiseaseId(d.id)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                  diseaseId === d.id
+                    ? "bg-primary text-white"
+                    : "bg-surface-container-highest text-on-surface-variant hover:bg-primary/10"
+                }`}
+              >
+                {d.diseaseName}
+              </button>
+            ))}
           </div>
         </div>
-
-        {loading && (
-          <span className="text-sm text-primary animate-pulse ml-auto">Đang tải dữ liệu...</span>
-        )}
-        {!loading && (
-          <span className="text-sm text-on-surface-variant ml-auto">
-            {markers.length} điểm bệnh
-          </span>
-        )}
       </div>
 
       {/* Error */}
@@ -245,6 +251,10 @@ export default function DiseaseMapPage() {
 
       {/* Map */}
       <div className="relative z-10 min-h-0 w-full flex-1 overflow-hidden">
+        <MapLoadingOverlay visible={loading} />
+
+
+
         <MapContainer
           center={[16.047079, 108.20623]}
           zoom={6}

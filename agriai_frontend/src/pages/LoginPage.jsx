@@ -39,11 +39,27 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
+
+  const handleEmailChange = (val) => {
+    setEmail(val);
+    if (fieldErrors.email) {
+      setFieldErrors(prev => ({ ...prev, email: null }));
+    }
+  };
+
+  const handlePasswordChange = (val) => {
+    setPassword(val);
+    if (fieldErrors.password) {
+      setFieldErrors(prev => ({ ...prev, password: null }));
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrors(null);
+    setFieldErrors({});
 
     try {
       const response = await login(email, password);
@@ -62,6 +78,17 @@ const LoginPage = () => {
       const errorMsg = getLoginErrorMessage(error);
       setErrors(errorMsg);
       toast.error(errorMsg);
+
+      if (error.response && error.response.status === 401) {
+        setFieldErrors({
+          email: 'Vui lòng kiểm tra lại email hoặc tên đăng nhập.',
+          password: 'Vui lòng kiểm tra lại mật khẩu.'
+        });
+      } else if (errorMsg.toLowerCase().includes('email') || errorMsg.toLowerCase().includes('tài khoản')) {
+        setFieldErrors(prev => ({ ...prev, email: errorMsg }));
+      } else if (errorMsg.toLowerCase().includes('mật khẩu') || errorMsg.toLowerCase().includes('password')) {
+        setFieldErrors(prev => ({ ...prev, password: errorMsg }));
+      }
 
       if (!error.response || error.response.status >= 500) {
         console.error(error);
@@ -109,12 +136,18 @@ const LoginPage = () => {
                   type="text"
                   id="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full min-h-[44px] pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary text-on-surface placeholder:text-outline/60"
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  className={`block w-full min-h-[44px] pl-11 pr-4 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 transition-all text-on-surface placeholder:text-outline/60 ${fieldErrors.email ? 'focus:ring-error ring-2 ring-error/50' : 'focus:ring-primary'}`}
                   placeholder=" Nhập email hoặc tên tài khoản"
                   required
                 />
               </div>
+              {fieldErrors.email && (
+                <p className="text-error text-xs flex items-center gap-1 mt-1 ml-1 font-medium animate-fade-in">
+                  <span className="material-symbols-outlined !text-sm">error</span>
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -129,8 +162,8 @@ const LoginPage = () => {
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full min-h-[44px] pl-11 pr-12 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary text-on-surface placeholder:text-outline/60"
+                  onChange={(e) => handlePasswordChange(e.target.value)}
+                  className={`block w-full min-h-[44px] pl-11 pr-12 py-3.5 bg-surface-container-low border-none rounded-lg focus:ring-2 transition-all text-on-surface placeholder:text-outline/60 ${fieldErrors.password ? 'focus:ring-error ring-2 ring-error/50' : 'focus:ring-primary'}`}
                   placeholder="••••••••"
                   required
                 />
@@ -145,6 +178,12 @@ const LoginPage = () => {
                   </span>
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="text-error text-xs flex items-center gap-1 mt-1 ml-1 font-medium animate-fade-in">
+                  <span className="material-symbols-outlined !text-sm">error</span>
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             <button

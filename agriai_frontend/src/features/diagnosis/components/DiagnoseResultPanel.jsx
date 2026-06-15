@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
  * Helper to determine CSS classes for severity badges.
@@ -50,12 +50,33 @@ const getWeatherRiskMessage = (diseases, diseaseWeatherRisks) => {
 };
 
 /**
+ * ConfidenceBar Component
+ * Renders an animated progress bar that increases from 0 to the target percentage.
+ */
+const ConfidenceBar = ({ confidence }) => {
+    const [width, setWidth] = useState(0);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setWidth(confidence * 100);
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [confidence]);
+
+    return (
+        <div className="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden mb-1">
+            <div 
+                className="bg-primary h-full transition-all duration-700 ease-out" 
+                style={{ width: `${width}%` }}
+            ></div>
+        </div>
+    );
+};
+
+/**
  * DiagnoseResultPanel Component
  * Displays the list of detected crop diseases, confidence percentages,
  * severity level indicators, and any associated weather or safety warnings.
- * 
- * @param {Object} props - Component properties.
- * @param {Object} props.result - Diagnosis API response object.
  */
 const DiagnoseResultPanel = ({ result }) => {
     if (!result) return null;
@@ -66,7 +87,7 @@ const DiagnoseResultPanel = ({ result }) => {
     const weatherRiskMessage = getWeatherRiskMessage(diseases, diseaseWeatherRisks);
 
     return (
-        <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-surface-container-highest flex-grow">
+        <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-surface-container-highest flex-grow animate-page-enter">
             <div className="flex items-center justify-between mb-5">
                 <h3 className="text-sm font-black text-on-surface uppercase tracking-wider flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-xl">biotech</span>
@@ -107,9 +128,7 @@ const DiagnoseResultPanel = ({ result }) => {
                                     </span>
                                 </div>
                                 {disease.confidence != null && (
-                                    <div className="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden mb-1">
-                                        <div className="bg-primary h-full transition-all duration-1000" style={{ width: `${disease.confidence * 100}%` }}></div>
-                                    </div>
+                                    <ConfidenceBar confidence={disease.confidence} />
                                 )}
                             </div>
                         ))}
