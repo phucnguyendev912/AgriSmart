@@ -1,3 +1,4 @@
+export { default as BentoFeatures } from './components/BentoFeatures';
 export { default as FarmerReviews } from './components/FarmerReviews';
 export { default as Features } from './components/Features';
 export { default as Hero } from './components/Hero';

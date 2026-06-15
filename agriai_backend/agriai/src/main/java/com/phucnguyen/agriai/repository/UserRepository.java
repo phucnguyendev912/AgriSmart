@@ -1,6 +1,7 @@
 package com.phucnguyen.agriai.repository;
 
 import com.phucnguyen.agriai.entity.User;
+import com.phucnguyen.agriai.enums.AuthProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,4 +41,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             @Param("roleName") String roleName,
             @Param("isActive") Boolean isActive,
             Pageable pageable);
+
+    Optional<User> findByProviderAndProviderId(AuthProvider provider, String providerId);
+
 }

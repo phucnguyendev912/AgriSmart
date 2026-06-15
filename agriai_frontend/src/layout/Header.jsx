@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { toast } from 'react-toastify';
 
 const Header = () => {
   const { user, logoutContext } = useAuth();
@@ -9,6 +8,22 @@ const Header = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
+  const desktopMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (desktopMenuRef.current && !desktopMenuRef.current.contains(event.target)) {
+        setDesktopMenuOpen(false);
+      }
+    };
+
+    if (desktopMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [desktopMenuOpen]);
 
   const handleLogout = async () => {
     await logoutContext();
@@ -45,30 +60,22 @@ const Header = () => {
             <div className="flex items-center space-x-6">
               <Link className={linkClass('/home')} to={homeRoute}>Trang chủ</Link>
               <Link className={linkClass('/diagnosis')} to="/diagnosis">Chẩn đoán bệnh</Link>
-              <button 
-                onClick={() => {
-                  if (!user) {
-                    toast.warning("🔒 Vui lòng đăng nhập để xem lịch sử chẩn đoán.", { position: "bottom-right", autoClose: 4000 });
-                  } else {
-                    navigate('/history');
-                  }
-                }}
-                className={linkClass('/history')}
-              >
-                Lịch sử chẩn đoán
-              </button>
-              <button
-                onClick={() => {
-                  if (!user) {
-                    toast.warning("🔒 Vui lòng đăng nhập để xem khu vực canh tác.", { position: "bottom-right", autoClose: 4000 });
-                  } else {
-                    navigate('/farming-areas');
-                  }
-                }}
-                className={linkClass('/farming-areas')}
-              >
-                Khu vực canh tác
-              </button>
+              {user && (
+                <>
+                  <button 
+                    onClick={() => navigate('/history')}
+                    className={linkClass('/history')}
+                  >
+                    Lịch sử chẩn đoán
+                  </button>
+                  <button
+                    onClick={() => navigate('/farming-areas')}
+                    className={linkClass('/farming-areas')}
+                  >
+                    Khu vực canh tác
+                  </button>
+                </>
+              )}
               <Link className={`${linkClass('/warning-map')} flex items-center gap-1`} to="/warning-map">
                 <span className="material-symbols-outlined text-base">map</span>
                 Bản đồ dịch bệnh
@@ -80,7 +87,7 @@ const Header = () => {
           <div className="flex items-center gap-2 md:gap-4">
             {user ? (
               <>
-                <div className="relative">
+                <div className="relative" ref={desktopMenuRef}>
                   <button onClick={() => setDesktopMenuOpen(!desktopMenuOpen)} className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200 hover:bg-slate-50 transition-colors py-2 px-3 rounded-lg group cursor-pointer" title="Tuỳ chọn tài khoản">
                     <div className="flex flex-col items-end">
                       <span className="text-sm font-bold text-slate-900 leading-none group-hover:text-primary transition-colors">{user.fullName || 'Người dùng'}</span>
@@ -144,32 +151,28 @@ const Header = () => {
             <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/diagnosis') ? 'text-primary' : 'text-slate-600'}`} to="/diagnosis" onClick={() => setMobileMenuOpen(false)}>
               Chẩn đoán bệnh <span className="material-symbols-outlined text-sm">chevron_right</span>
             </Link>
-            <div 
-              className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 cursor-pointer ${isActive('/history') ? 'text-primary' : 'text-slate-600'}`}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (!user) {
-                  toast.warning("🔒 Vui lòng đăng nhập để xem lịch sử chẩn đoán.", { position: "bottom-right", autoClose: 4000 });
-                } else {
-                  navigate('/history');
-                }
-              }}
-            >
-              Lịch sử chẩn đoán <span className="material-symbols-outlined text-sm">chevron_right</span>
-            </div>
-            <div
-              className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 cursor-pointer ${isActive('/farming-areas') ? 'text-primary' : 'text-slate-600'}`}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (!user) {
-                  toast.warning("🔒 Vui lòng đăng nhập để xem khu vực canh tác.", { position: "bottom-right", autoClose: 4000 });
-                } else {
-                  navigate('/farming-areas');
-                }
-              }}
-            >
-              Khu vực canh tác <span className="material-symbols-outlined text-sm">chevron_right</span>
-            </div>
+            {user && (
+              <>
+                <div 
+                  className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 cursor-pointer ${isActive('/history') ? 'text-primary' : 'text-slate-600'}`}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate('/history');
+                  }}
+                >
+                  Lịch sử chẩn đoán <span className="material-symbols-outlined text-sm">chevron_right</span>
+                </div>
+                <div
+                  className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 cursor-pointer ${isActive('/farming-areas') ? 'text-primary' : 'text-slate-600'}`}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate('/farming-areas');
+                  }}
+                >
+                  Khu vực canh tác <span className="material-symbols-outlined text-sm">chevron_right</span>
+                </div>
+              </>
+            )}
             <Link className={`flex items-center justify-between text-base font-bold py-2 border-b border-slate-50 ${isActive('/warning-map') ? 'text-primary' : 'text-slate-600'}`} to="/warning-map" onClick={() => setMobileMenuOpen(false)}>
               Bản đồ dịch bệnh <span className="material-symbols-outlined text-sm">chevron_right</span>
             </Link>

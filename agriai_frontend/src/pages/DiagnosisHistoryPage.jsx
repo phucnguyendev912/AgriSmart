@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { DiagnosisRatingModal } from '../features/diagnosis';
 import { getHistory } from '../services/diagnosisService';
+import SkeletonRow from '../components/ui/SkeletonRow';
+import EmptyState from '../components/ui/EmptyState';
 
 const DATE_FILTERS = [
     { key: 'today', label: 'Hôm nay' },
@@ -86,6 +88,7 @@ const getSeverityLabel = (severity, diagnosisType) => {
  */
 const DiagnosisHistoryPage = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [historyList, setHistoryList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
@@ -163,7 +166,7 @@ const DiagnosisHistoryPage = () => {
     }, [user, page, dateParams, isInvalidCustomRange]);
 
     return (
-        <main className="pt-24 lg:pt-32 pb-12 px-4 md:px-6 min-h-screen">
+        <main className="pt-24 lg:pt-32 pb-12 px-4 md:px-6 min-h-screen animate-page-enter">
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 space-y-4 md:space-y-0">
                     <div>
@@ -242,12 +245,20 @@ const DiagnosisHistoryPage = () => {
                             </thead>
                             <tbody className="divide-y divide-outline-variant/10">
                                 {loading ? (
-                                    <tr>
-                                        <td colSpan="6" className="px-6 py-8 text-center text-on-surface-variant font-medium">Đang tải lịch sử...</td>
-                                    </tr>
+                                    <SkeletonRow cols={6} rows={5} />
                                 ) : historyList.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" className="px-6 py-8 text-center text-on-surface-variant font-medium">Chưa có lịch sử chẩn đoán nào.</td>
+                                        <td colSpan="6" className="px-6 py-8">
+                                            <EmptyState
+                                                icon="history"
+                                                title="Chưa có lịch sử chẩn đoán"
+                                                description="Bạn chưa thực hiện chẩn đoán nào hoặc không tìm thấy dữ liệu trong khoảng thời gian này."
+                                                action={{
+                                                    label: 'Chẩn đoán ngay',
+                                                    onClick: () => navigate('/diagnosis')
+                                                }}
+                                            />
+                                        </td>
                                     </tr>
                                 ) : historyList.map((item, index) => (
                                     <tr key={item.id || index} className="hover:bg-surface-container-low/50 transition-colors">
@@ -306,9 +317,30 @@ const DiagnosisHistoryPage = () => {
 
                     <div className="md:hidden divide-y divide-outline-variant/10">
                         {loading ? (
-                            <div className="p-8 text-center text-on-surface-variant font-medium">Đang tải...</div>
+                            <div className="p-4 space-y-4">
+                                {Array.from({ length: 5 }).map((_, idx) => (
+                                    <div key={idx} className="flex space-x-4 animate-pulse">
+                                        <div className="w-16 h-16 bg-slate-200 rounded-xl shrink-0"></div>
+                                        <div className="flex-1 space-y-2 py-1">
+                                            <div className="h-3 bg-slate-200 rounded w-1/3"></div>
+                                            <div className="h-2 bg-slate-200 rounded w-2/3"></div>
+                                            <div className="h-2.5 bg-slate-200 rounded w-1/4 mt-2"></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         ) : historyList.length === 0 ? (
-                            <div className="p-8 text-center text-on-surface-variant font-medium">Chưa có lịch sử chẩn đoán nào.</div>
+                            <div className="p-4">
+                                <EmptyState
+                                    icon="history"
+                                    title="Chưa có lịch sử chẩn đoán"
+                                    description="Bạn chưa thực hiện chẩn đoán nào hoặc không tìm thấy dữ liệu trong khoảng thời gian này."
+                                    action={{
+                                        label: 'Chẩn đoán ngay',
+                                        onClick: () => navigate('/diagnosis')
+                                    }}
+                                />
+                            </div>
                         ) : historyList.map((item, index) => (
                             <div key={item.id || index} className="p-4 flex space-x-4">
                                 <img alt={`Plant sample mobile ${index}`} className="w-16 h-16 rounded-xl object-cover shrink-0" src={item.originalImageUrl || 'https://placehold.co/100x100?text=No+Image'} />

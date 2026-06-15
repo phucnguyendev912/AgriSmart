@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { register } from '../../../services/authService';
+import { register } from '../services/authService';
+import SocialLoginButtons from '../features/auth/components/SocialLoginButtons';
 
 
 /**
@@ -29,20 +30,25 @@ const RegisterPage = () => {
       ...formData,
       [id]: type === 'checkbox' ? checked : value
     });
-    if (formErrors[id]) {
-      setFormErrors(prev => ({ ...prev, [id]: null }));
-    }
+    setFormErrors(prev => {
+      const copy = { ...prev };
+      delete copy[id];
+      if (id === 'password' || id === 'passwordConfirm') {
+        delete copy.confirm_password;
+      }
+      return copy;
+    });
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     const errors = {};
 
-    const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+    const phoneRegex = /^(?!.*(\d)\1{4})(03|05|07|08|09)\d{8}$/;
     if (!formData.phoneNumber) {
       errors.phoneNumber = 'Số điện thoại không được để trống.';
     } else if (!phoneRegex.test(formData.phoneNumber)) {
-      errors.phoneNumber = 'Số điện thoại không hợp lệ. Phải gồm 10 chữ số và bắt đầu bằng đầu số hợp lệ (03, 05, 07, 08, 09).';
+      errors.phoneNumber = 'Số điện thoại không hợp lệ. Phải gồm 10 chữ số, bắt đầu bằng đầu số hợp lệ (03, 05, 07, 08, 09) và không chứa 5 chữ số trùng nhau liên tiếp.';
     }
 
     if (formData.password !== formData.passwordConfirm) {
@@ -73,6 +79,13 @@ const RegisterPage = () => {
         if (typeof errorData === 'object') {
           const fieldErrors = errorData.fieldErrors || {};
           
+          const msg = errorData.message || '';
+          if (msg.toLowerCase().includes('email')) {
+            fieldErrors.email = msg;
+          } else if (msg.toLowerCase().includes('số điện thoại') || msg.toLowerCase().includes('phone') || msg.toLowerCase().includes('sđt')) {
+            fieldErrors.phoneNumber = msg;
+          }
+
           if (Object.keys(fieldErrors).length > 0) {
             setFormErrors(prev => ({ ...prev, ...fieldErrors }));
           }
@@ -246,6 +259,17 @@ const RegisterPage = () => {
               Đăng ký
             </button>
           </form>
+
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white/90 px-2 text-on-surface-variant font-medium">Hoặc đăng ký bằng</span>
+            </div>
+          </div>
+
+          <SocialLoginButtons />
 
           <div className="mt-6 text-center border-t border-gray-100 pt-5">
             <p className="text-on-surface-variant text-sm font-medium">

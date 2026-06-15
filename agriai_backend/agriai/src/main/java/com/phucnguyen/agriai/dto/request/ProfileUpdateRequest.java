@@ -16,7 +16,7 @@ public class ProfileUpdateRequest {
     @NotBlank(message = "Họ tên không được để trống")
     private String fullName;
 
-    @Pattern(regexp = "^\\d{10}$", message = "Số điện thoại phải gồm 10 chữ số")
+    @Pattern(regexp = "^(?!.*(\\d)\\1{4})(03|05|07|08|09)\\d{8}$", message = "Số điện thoại không hợp lệ, phải gồm 10 chữ số, bắt đầu bằng các đầu số Việt Nam (03, 05, 07, 08, 09) và không chứa 5 chữ số trùng nhau liên tiếp")
     private String phoneNumber;
 
     private Integer avatarAttachmentId;

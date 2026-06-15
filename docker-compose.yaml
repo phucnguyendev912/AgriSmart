@@ -46,6 +46,7 @@ services:
       WEATHER_API_KEY: ${WEATHER_API_KEY}
       CHATBOT_MAX_CONTEXT_CHARS: ${CHATBOT_MAX_CONTEXT_CHARS:-3000}
       CHATBOT_HISTORY_SIZE: ${CHATBOT_HISTORY_SIZE:-6}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -58,6 +59,7 @@ services:
       context: ./agriai_frontend
       args:
         REACT_APP_API_URL: ${REACT_APP_API_URL}
+        REACT_APP_GOOGLE_CLIENT_ID: ${REACT_APP_GOOGLE_CLIENT_ID}
     container_name: agriai-frontend
     restart: unless-stopped
     depends_on:

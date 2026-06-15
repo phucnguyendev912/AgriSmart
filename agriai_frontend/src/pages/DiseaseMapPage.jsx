@@ -7,6 +7,7 @@ import SEO from "../components/common/SEO";
 import { ClusterMarker, useMapClusters } from "../features/map";
 
 import { getMarkers, getDiseases } from "../services/diseaseMapService";
+import MapLoadingOverlay from "../components/ui/MapLoadingOverlay";
 
 const MARKER_COLOR = "#EF4444";
 
@@ -71,7 +72,31 @@ function MapEventHandler({ onBoundsChange }) {
   return null;
 }
 
-// -------------------------------------------------------------------
+function MapResizeHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    const invalidateMapSize = () => map.invalidateSize();
+    const initialResizeId = window.setTimeout(invalidateMapSize, 0);
+    const resizeObserver = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(invalidateMapSize)
+      : null;
+
+    resizeObserver?.observe(container);
+    window.addEventListener("resize", invalidateMapSize);
+
+    return () => {
+      window.clearTimeout(initialResizeId);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", invalidateMapSize);
+    };
+  }, [map]);
+
+  return null;
+}
+
+// -----------------------------------------------------------------
 export default function DiseaseMapPage() {
   const [markers, setMarkers] = useState([]);
   const [days, setDays] = useState(30);
@@ -120,13 +145,18 @@ export default function DiseaseMapPage() {
     const fetchDiseasesList = async () => {
       try {
         const res = await getDiseases();
-        setDiseasesList(res.data);
+        const list = Array.isArray(res.data)
+          ? res.data.filter(d => d.diseaseCode !== "HEALTHY" && d.diseaseName !== "Khỏe mạnh")
+          : [];
+        setDiseasesList(list);
       } catch (err) {
         console.error("Lỗi khi tải danh sách bệnh", err);
       }
     };
     fetchDiseasesList();
   }, []);
+
+
 
   const formatDate = (iso) => {
     if (!iso) return "—";
@@ -141,7 +171,10 @@ export default function DiseaseMapPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface text-on-surface pt-20">
+    <div
+      className="flex h-screen min-h-0 w-full min-w-0 flex-col overflow-hidden bg-surface text-on-surface pt-20 pb-[72px] md:pb-0"
+      style={{ height: "100dvh" }}
+    >
       <SEO
         title="Bản đồ cảnh báo dịch bệnh cây trồng"
         description="Theo dõi phân bố dịch bệnh cây trồng theo thời gian thực trên bản đồ tương tác."
@@ -150,7 +183,7 @@ export default function DiseaseMapPage() {
       />
 
       {/* Header */}
-      <div className="px-6 py-5 border-b border-surface-variant/30 bg-surface-container-lowest">
+      <div className="shrink-0 px-6 py-5 border-b border-surface-variant/30 bg-surface-container-lowest">
         <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
           <span className="material-symbols-outlined text-3xl">map</span>
           Bản đồ cảnh báo dịch bệnh
@@ -161,7 +194,7 @@ export default function DiseaseMapPage() {
       </div>
 
       {/* Filters */}
-      <div className="px-6 py-4 bg-surface-container flex flex-wrap gap-4 items-center border-b border-surface-variant/20">
+      <div className="shrink-0 px-6 py-4 bg-surface-container flex flex-wrap gap-4 items-center border-b border-surface-variant/20">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-on-surface-variant">Thời gian:</span>
           {[7, 30, 90].map((d) => (
@@ -179,49 +212,53 @@ export default function DiseaseMapPage() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-grow overflow-hidden max-w-full">
           <span className="text-sm font-medium text-on-surface-variant flex-shrink-0">Bệnh:</span>
-          <div className="relative">
-            <select
-              value={diseaseId || ""}
-              onChange={(e) => setDiseaseId(e.target.value ? Number(e.target.value) : null)}
-              className="appearance-none px-4 py-2 pr-8 rounded-lg text-sm font-bold bg-surface-container-highest text-on-surface hover:bg-surface-variant/50 transition-colors cursor-pointer border-none outline-none focus:ring-2 focus:ring-primary/20 shadow-sm"
-              style={{ WebkitAppearance: "none", MozAppearance: "none" }}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 flex-1">
+            <button
+              onClick={() => setDiseaseId(null)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                diseaseId === null
+                  ? "bg-primary text-white"
+                  : "bg-surface-container-highest text-on-surface-variant hover:bg-primary/10"
+              }`}
             >
-              <option value="">Tất cả các loại bệnh</option>
-              {diseasesList.map((d) => (
-                <option key={d.id} value={d.id}>{d.diseaseName}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-base pointer-events-none">
-              expand_more
-            </span>
+              Tất cả
+            </button>
+            {diseasesList.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => setDiseaseId(d.id)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                  diseaseId === d.id
+                    ? "bg-primary text-white"
+                    : "bg-surface-container-highest text-on-surface-variant hover:bg-primary/10"
+                }`}
+              >
+                {d.diseaseName}
+              </button>
+            ))}
           </div>
         </div>
-
-        {loading && (
-          <span className="text-sm text-primary animate-pulse ml-auto">Đang tải dữ liệu...</span>
-        )}
-        {!loading && (
-          <span className="text-sm text-on-surface-variant ml-auto">
-            {markers.length} điểm bệnh
-          </span>
-        )}
       </div>
 
       {/* Error */}
       {error && (
-        <div className="mx-6 mt-4 px-4 py-3 rounded-xl bg-error-container text-error text-sm">
+        <div className="shrink-0 mx-6 mt-4 px-4 py-3 rounded-xl bg-error-container text-error text-sm">
           {error}
         </div>
       )}
 
       {/* Map */}
-      <div className="flex-1 relative z-10" style={{ minHeight: "500px" }}>
+      <div className="relative z-10 min-h-0 w-full flex-1 overflow-hidden">
+        <MapLoadingOverlay visible={loading} />
+
+
+
         <MapContainer
           center={[16.047079, 108.20623]}
           zoom={6}
-          style={{ width: "100%", height: "100%", minHeight: "500px" }}
+          style={{ width: "100%", height: "100%" }}
           scrollWheelZoom={true}
         >
           <TileLayer
@@ -241,6 +278,7 @@ export default function DiseaseMapPage() {
 
           {/* Listen for map bounds and zoom changes */}
           <MapEventHandler onBoundsChange={handleBoundsChange} />
+          <MapResizeHandler />
 
           {/* Render map cluster bubbles or single marker points */}
           {clusters.map((point) => {
@@ -299,7 +337,7 @@ export default function DiseaseMapPage() {
       </div>
 
       {/* Legend */}
-      <div className="px-6 py-3 bg-surface-container-lowest border-t border-surface-variant/20 flex flex-wrap gap-6 text-sm items-center">
+      <div className="shrink-0 px-6 py-3 bg-surface-container-lowest border-t border-surface-variant/20 flex flex-wrap gap-6 text-sm items-center">
         <div className="flex items-center gap-1.5 text-on-surface-variant">
           <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: MARKER_COLOR }} />
           Điểm dịch bệnh

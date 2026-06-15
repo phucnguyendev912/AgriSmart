@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { getAreas, deleteArea } from '../services/farmingAreaService';
 
 import { AddFarmingAreaModal, EditFarmingAreaModal } from '../features/farming-area';
-
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import SkeletonRow from '../components/ui/SkeletonRow';
+import EmptyState from '../components/ui/EmptyState';
 
 // Tọa độ trung tâm của các tỉnh/thành phố Việt Nam
 const PROVINCE_COORDS = [
@@ -102,7 +104,7 @@ const FarmingAreaPage = () => {
     const [loading, setLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, areaId: null });
 
     const fetchAreas = useCallback(async () => {
         try {
@@ -117,7 +119,6 @@ const FarmingAreaPage = () => {
         }
     }, []);
 
-
     useEffect(() => {
         fetchAreas();
     }, [fetchAreas]);
@@ -129,19 +130,26 @@ const FarmingAreaPage = () => {
     const handleEditSuccess = (updatedArea) => {
         setAreas((prev) => prev.map((a) => (a.id === updatedArea.id ? updatedArea : a)));
     };
-    const handleDelete = async (areaId) => {
-        if (!window.confirm('Bạn có chắc muốn xóa khu vực này?')) return;
+
+    const handleDeleteClick = (areaId) => {
+        setConfirmDialog({ open: true, areaId });
+    };
+
+    const handleConfirmDelete = async () => {
+        const { areaId } = confirmDialog;
+        if (!areaId) return;
         try {
             await deleteArea(areaId);
             setAreas((prev) => prev.filter((a) => a.id !== areaId));
         } catch (err) {
             console.error('Lỗi khi xóa:', err);
+        } finally {
+            setConfirmDialog({ open: false, areaId: null });
         }
     };
 
-
     return (
-        <div className="pt-20 min-h-screen bg-background relative">
+        <div className="pt-20 min-h-screen bg-background relative animate-page-enter">
             <AddFarmingAreaModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
@@ -152,6 +160,17 @@ const FarmingAreaPage = () => {
                 onClose={() => setIsEditModalOpen(false)}
                 area={isEditModalOpen || null}
                 onEditSuccess={handleEditSuccess}
+            />
+
+            <ConfirmDialog
+                isOpen={confirmDialog.open}
+                title="Xóa khu vực canh tác"
+                message="Bạn có chắc chắn muốn xóa khu vực này? Hành động này không thể hoàn tác."
+                confirmLabel="Xóa"
+                cancelLabel="Hủy"
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setConfirmDialog({ open: false, areaId: null })}
+                isDestructive={true}
             />
 
             {/* HEADER SYSTEM */}
@@ -188,17 +207,24 @@ const FarmingAreaPage = () => {
                                 </thead>
                                 <tbody className="divide-y divide-surface-variant/30">
                                     {loading ? (
-                                        <tr>
-                                            <td colSpan="7" className="px-6 py-10 text-center text-slate-500 font-medium">Đang tải dữ liệu...</td>
-                                        </tr>
+                                        <SkeletonRow cols={5} rows={3} />
                                     ) : areas.length === 0 ? (
                                         <tr>
-                                            <td colSpan="7" className="px-6 py-10 text-center text-slate-500 font-medium">Chưa có khu vực canh tác nào.</td>
+                                            <td colSpan="5" className="px-6 py-10">
+                                                <EmptyState
+                                                    icon="eco"
+                                                    title="Chưa có khu vực canh tác"
+                                                    description="Thêm khu vực đầu tiên để bắt đầu theo dõi."
+                                                    action={{
+                                                        label: 'Thêm khu vực',
+                                                        onClick: () => setIsAddModalOpen(true)
+                                                    }}
+                                                />
+                                            </td>
                                         </tr>
                                     ) : (
                                         areas.map((area) => (
                                             <tr key={area.id} className="hover:bg-surface-container-low/50 transition-colors">
-
                                                 <td className="px-6 py-4 font-semibold whitespace-nowrap">{area.areaName}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {getProvinceDisplay(area)}
@@ -217,7 +243,7 @@ const FarmingAreaPage = () => {
                                                         <button
                                                             className="w-8 h-8 rounded-lg bg-error-container/50 text-error flex items-center justify-center hover:bg-error hover:text-white transition-all"
                                                             title="Xóa"
-                                                            onClick={() => handleDelete(area.id)}
+                                                            onClick={() => handleDeleteClick(area.id)}
                                                         >
                                                             <span className="material-symbols-outlined text-[18px]">delete</span>
                                                         </button>

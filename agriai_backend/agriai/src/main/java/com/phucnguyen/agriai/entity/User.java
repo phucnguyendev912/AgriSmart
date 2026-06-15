@@ -1,6 +1,7 @@
 package com.phucnguyen.agriai.entity;
 
 import com.phucnguyen.agriai.common.BaseEntity;
+import com.phucnguyen.agriai.enums.AuthProvider;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -23,10 +24,18 @@ public class User extends BaseEntity {
     private String phoneNumber;
 
     @Column(name = "passwordHash", length = 255)
-    private String passwordHash;
+    private String passwordHash; // nullable for social login users
 
     @Column(name = "isActive")
     private Boolean isActive;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider", length = 20, nullable = false)
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    @Column(name = "provider_id", length = 255)
+    private String providerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "roleId")
@@ -36,3 +45,4 @@ public class User extends BaseEntity {
     @JoinColumn(name = "attachmentId")
     private Attachment attachment;
 }
+

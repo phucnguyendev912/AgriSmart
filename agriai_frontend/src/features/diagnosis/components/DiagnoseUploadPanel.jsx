@@ -1,20 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 /**
  * DiagnoseUploadPanel Component
  * Provides UI controls for uploading crop images, previewing selected images,
  * initiating diagnostic analysis, and indicating GPS/location services status.
- *
- * @param {Object} props - Component properties.
- * @param {Function} props.onFileChange - Handler for file input change.
- * @param {Function} props.onDiagnose - Handler to submit image for diagnosis.
- * @param {boolean} props.loading - Indicates if diagnostic API call is running.
- * @param {File} props.selectedFile - Currently selected image file.
- * @param {string} props.previewUrl - Object URL for previewing selected image.
- * @param {string} props.error - Diagnostic error message, if any.
- * @param {boolean} props.checkingLocation - Indicates if geolocation lookup is in progress.
- * @param {boolean} props.hasLocation - Indicates if fresh GPS coordinates are available.
- * @param {string} props.locationError - Geolocation error message, if any.
  */
 const DiagnoseUploadPanel = ({
     onFileChange,
@@ -26,18 +15,68 @@ const DiagnoseUploadPanel = ({
     checkingLocation,
     hasLocation
 }) => {
+    const [isDragging, setIsDragging] = useState(false);
     const isUploadDisabled = loading;
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isUploadDisabled) {
+            setIsDragging(true);
+        }
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (isUploadDisabled) return;
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                // Construct a synthetic event matching what the file input change handler expects
+                const syntheticEvent = {
+                    target: {
+                        files: [file]
+                    }
+                };
+                onFileChange(syntheticEvent);
+            }
+        }
+    };
 
     return (
         <div className="lg:col-span-5 flex flex-col gap-4">
             <div className="bg-surface-container-lowest rounded-xl p-3 shadow-sm border border-surface-container-highest">
-                <div className="relative group overflow-hidden rounded-lg bg-surface-container lg:min-h-0 h-64 flex items-center justify-center">
+                <div 
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`relative group overflow-hidden rounded-lg bg-surface-container lg:min-h-0 h-64 flex items-center justify-center transition-all ${
+                        isDragging ? 'border-primary border-2 bg-primary/5 scale-[0.99] shadow-inner' : ''
+                    }`}
+                >
                     {previewUrl ? (
                         <img alt="Xem trước" className="w-full h-full object-cover" src={previewUrl} />
                     ) : (
-                        <div className="text-center text-on-surface-variant p-8">
+                        <div className="text-center text-on-surface-variant p-8 select-none">
                             <span className="material-symbols-outlined text-5xl mb-2 block">add_photo_alternate</span>
                             <p className="text-sm font-medium">Chọn ảnh hoặc chụp ảnh cây trồng</p>
+                            <p className="text-xs text-on-surface-variant/60 mt-1.5 font-medium">hoặc kéo thả ảnh vào đây</p>
                         </div>
                     )}
 
@@ -65,6 +104,27 @@ const DiagnoseUploadPanel = ({
                         <input
                             type="file"
                             accept="image/*"
+                            className="hidden"
+                            onChange={onFileChange}
+                            disabled={isUploadDisabled}
+                        />
+                    </label>
+
+                    {/* Camera Button for Mobile Only */}
+                    <label
+                        aria-disabled={isUploadDisabled}
+                        className={`w-full py-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm md:hidden ${
+                            isUploadDisabled
+                                ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed'
+                                : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/25 cursor-pointer'
+                        }`}
+                    >
+                        <span className="material-symbols-outlined text-xl">photo_camera</span>
+                        Chụp ảnh ngay
+                        <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
                             className="hidden"
                             onChange={onFileChange}
                             disabled={isUploadDisabled}

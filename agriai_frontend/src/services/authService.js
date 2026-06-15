@@ -16,3 +16,9 @@ export const logout = async () => {
   const response = await api.post('/api/auth/logout');
   return response;
 };
+
+export const loginWithGoogle = async (idToken) => {
+  const response = await api.post('/api/auth/google', { idToken });
+  return response;
+};
+

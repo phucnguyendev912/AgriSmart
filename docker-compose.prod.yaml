@@ -17,6 +17,8 @@ services:
       retries: 5
 
   backend:
+    build:
+      context: ./agriai_backend/agriai
     image: phucnguyendev912/agriai-backend:latest
     container_name: agriai-backend
     restart: unless-stopped
@@ -43,12 +45,18 @@ services:
       WEATHER_API_KEY: ${WEATHER_API_KEY}
       CHATBOT_MAX_CONTEXT_CHARS: ${CHATBOT_MAX_CONTEXT_CHARS:-3000}
       CHATBOT_HISTORY_SIZE: ${CHATBOT_HISTORY_SIZE:-6}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./skills:/app/skills:ro
 
   frontend:
+    build:
+      context: ./agriai_frontend
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL}
+        REACT_APP_GOOGLE_CLIENT_ID: ${REACT_APP_GOOGLE_CLIENT_ID}
     image: phucnguyendev912/agriai-frontend:latest
     container_name: agriai-frontend
     restart: unless-stopped
@@ -56,6 +64,10 @@ services:
       - backend
 
   admin-frontend:
+    build:
+      context: ./agriai_admin_frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://api.agrismart.io.vn}
     image: phucnguyendev912/agriai-admin-frontend:latest
     container_name: agriai-admin-frontend
     restart: unless-stopped
