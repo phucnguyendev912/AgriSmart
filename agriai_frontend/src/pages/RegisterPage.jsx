@@ -44,11 +44,11 @@ const RegisterPage = () => {
     e.preventDefault();
     const errors = {};
 
-    const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+    const phoneRegex = /^(?!.*(\d)\1{4})(03|05|07|08|09)\d{8}$/;
     if (!formData.phoneNumber) {
       errors.phoneNumber = 'Số điện thoại không được để trống.';
     } else if (!phoneRegex.test(formData.phoneNumber)) {
-      errors.phoneNumber = 'Số điện thoại không hợp lệ. Phải gồm 10 chữ số và bắt đầu bằng đầu số hợp lệ (03, 05, 07, 08, 09).';
+      errors.phoneNumber = 'Số điện thoại không hợp lệ. Phải gồm 10 chữ số, bắt đầu bằng đầu số hợp lệ (03, 05, 07, 08, 09) và không chứa 5 chữ số trùng nhau liên tiếp.';
     }
 
     if (formData.password !== formData.passwordConfirm) {

@@ -28,9 +28,14 @@ export default function ProfilePage() {
     if (!fullName.trim()) {
       newErrors.fullName = 'Họ tên không được để trống';
     }
-    if (!/^\d{10}$/.test(phoneNumber)) {
-      newErrors.phoneNumber = 'Số điện thoại phải gồm 10 chữ số';
+    
+    const phoneRegex = /^(?!.*(\d)\1{4})(03|05|07|08|09)\d{8}$/;
+    if (!phoneNumber) {
+      newErrors.phoneNumber = 'Số điện thoại không được để trống.';
+    } else if (!phoneRegex.test(phoneNumber)) {
+      newErrors.phoneNumber = 'Số điện thoại không hợp lệ. Phải gồm 10 chữ số, bắt đầu bằng đầu số hợp lệ (03, 05, 07, 08, 09) và không chứa 5 chữ số trùng nhau liên tiếp.';
     }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
