@@ -267,6 +267,7 @@ const WeatherDiseaseSection = () => {
             Bạn đang ở khu vực
           </span>
           <select
+            aria-label="Chọn tỉnh/thành phố để xem thời tiết"
             value={selectedProvince?.id ?? ''}
             onChange={(e) => {
               const p = VIETNAM_PROVINCES.find((province) => province.id === Number(e.target.value));

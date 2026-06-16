@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { login } from '../services/authService';
+import SEO from '../components/common/SEO';
 import SocialLoginButtons from '../features/auth/components/SocialLoginButtons';
 
 
@@ -98,6 +99,12 @@ const LoginPage = () => {
 
   return (
     <div className="bg-surface text-on-background min-h-screen flex items-center justify-center p-6 pt-28 sm:pt-32">
+      <SEO
+        title="Đăng nhập"
+        description="Đăng nhập vào AgriSmart để chẩn đoán bệnh cây trồng bằng AI, xem bản đồ dịch bệnh và nhận phác đồ điều trị tức thì."
+        url="/login"
+        noIndex
+      />
       <div className="bg-agricultural-blur" data-alt="close-up of vibrant green rice plant leaves with dew drops in a sunlit field with soft bokeh background"></div>
       <div className="bg-overlay"></div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { register } from '../services/authService';
+import SEO from '../components/common/SEO';
 import SocialLoginButtons from '../features/auth/components/SocialLoginButtons';
 
 
@@ -110,6 +111,12 @@ const RegisterPage = () => {
 
   return (
     <div className="bg-background text-on-background min-h-screen flex items-center justify-center relative overflow-x-hidden pt-24 pb-12">
+      <SEO
+        title="Đăng ký tài khoản"
+        description="Tạo tài khoản AgriSmart miễn phí và bắt đầu chẩn đoán bệnh cây trồng bằng AI. Đăng ký ngay hôm nay!"
+        keywords="đăng ký AgriSmart, tạo tài khoản nông nghiệp, AI chẩn đoán cây trồng"
+        url="/register"
+      />
       <div className="fixed inset-0 z-0 opacity-15 grayscale bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCu1PkRAwaMPO7mw6Jcd_TBMWsdC7Q1YTmarn9Ie4GKC3EpVFHfHQLGKqPuHDLnYyxtHKi30rU6PnS8lE_ld3PSkl4Ap45VrczeK0aZ3xn9Nx8q7PHLw9o4DmbNXDyeWyChaP9K68iZdWRRxvT0tg73x6OMuXTkHHbPDajrypq8czlAPg0rrRRPsDathEm-Eo5Y0-xzompeOX5Hr5k9nKF-tJuJ3kSUFNDJkFSSNIWOVbV96c19QbWbxmy9eJe2bY85O5rfejCn2lti')" }}></div>
 
       <main className="relative z-10 w-full max-w-md md:p-2">

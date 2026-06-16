@@ -6,6 +6,7 @@ import { DiagnosisRatingModal } from '../features/diagnosis';
 import { getHistory } from '../services/diagnosisService';
 import SkeletonRow from '../components/ui/SkeletonRow';
 import EmptyState from '../components/ui/EmptyState';
+import SEO from '../components/common/SEO';
 
 const DATE_FILTERS = [
     { key: 'today', label: 'Hôm nay' },
@@ -167,10 +168,16 @@ const DiagnosisHistoryPage = () => {
 
     return (
         <main className="pt-24 lg:pt-32 pb-12 px-4 md:px-6 min-h-screen animate-page-enter">
+            <SEO
+                title="Lịch sử chẩn đoán"
+                description="Xem lại lịch sử chẩn đoán bệnh cây trồng của bạn trên AgriSmart. Theo dõi và quản lý sức khỏe cây trồng theo thời gian."
+                url="/history"
+                noIndex
+            />
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 space-y-4 md:space-y-0">
                     <div>
-                        <h2 className="text-2xl lg:text-3xl font-black text-on-surface tracking-tight leading-tight">Lịch sử chẩn đoán</h2>
+                        <h1 className="text-2xl lg:text-3xl font-black text-on-surface tracking-tight leading-tight">Lịch sử chẩn đoán</h1>
                         <p className="text-on-surface-variant mt-1 text-sm lg:text-base">Theo dõi và quản lý sức khỏe cây trồng qua thời gian.</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FarmerReviews as FarmerStories, WeatherDiseaseSection, RoadmapSection, BentoFeatures } from '../features/landing';
+import SEO from '../components/common/SEO';
 
 /**
  * HomePage Component
@@ -12,6 +13,12 @@ import { FarmerReviews as FarmerStories, WeatherDiseaseSection, RoadmapSection, 
 const HomePage = () => {
   return (
     <>
+      <SEO
+        title="Trang chủ"
+        description="Trang chủ AgriSmart - chẩn đoán bệnh cây trồng bằng AI, xem bản đồ dịch bệnh và nhận dự báo thời tiết nông nghiệp."
+        url="/home"
+        noIndex
+      />
       <main className="pt-20 min-h-screen bg-surface">
         {/* Hero Section */}
         <section className="relative h-[550px] flex items-center overflow-hidden">
