@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Trang chủ / Landing page -->
+  <url>
+    <loc>https://agrismart.io.vn/</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://agrismart.io.vn/" />
+  </url>
+
+  <!-- Trang giới thiệu -->
+  <url>
+    <loc>https://agrismart.io.vn/about</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://agrismart.io.vn/about" />
+  </url>
+
+  <!-- Trang chẩn đoán (public, không cần đăng nhập) -->
+  <url>
+    <loc>https://agrismart.io.vn/diagnosis</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://agrismart.io.vn/diagnosis" />
+  </url>
+
+  <!-- Bản đồ cảnh báo dịch bệnh (public) -->
+  <url>
+    <loc>https://agrismart.io.vn/warning-map</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://agrismart.io.vn/warning-map" />
+  </url>
+
+  <!-- Đăng nhập -->
+  <url>
+    <loc>https://agrismart.io.vn/login</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://agrismart.io.vn/login" />
+  </url>
+
+  <!-- Đăng ký -->
+  <url>
+    <loc>https://agrismart.io.vn/register</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://agrismart.io.vn/register" />
+  </url>
+
+</urlset>

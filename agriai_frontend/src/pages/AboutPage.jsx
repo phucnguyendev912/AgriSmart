@@ -70,7 +70,7 @@ export default function AboutPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
                   <span className="material-symbols-outlined text-primary text-3xl font-bold">flag</span>
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-4">Sứ Mệnh Của Chúng Tôi</h3>
+                <h2 className="text-2xl font-black text-slate-900 mb-4">Sứ Mệnh Của Chúng Tôi</h2>
                 <p className="text-slate-600 leading-relaxed">
                   Ứng dụng các tiến bộ công nghệ mới nhất về Trí tuệ Nhân tạo (AI) và Phân tích dữ liệu lớn để hỗ trợ người nông dân dễ dàng theo dõi sức khỏe cây trồng, nhận diện sâu bệnh sớm và đưa ra phác đồ điều trị kịp thời, thân thiện với môi trường, giảm bớt sự phụ thuộc vào hóa chất độc hại.
                 </p>
@@ -82,7 +82,7 @@ export default function AboutPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
                   <span className="material-symbols-outlined text-primary text-3xl font-bold">visibility</span>
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-4">Tầm Nhìn Chiến Lược</h3>
+                <h2 className="text-2xl font-black text-slate-900 mb-4">Tầm Nhìn Chiến Lược</h2>
                 <p className="text-slate-600 leading-relaxed">
                   Xây dựng AgriAI trở thành nền tảng nông nghiệp số thông minh hàng đầu tại Việt Nam và Đông Nam Á. Chúng tôi định hướng tạo dựng một hệ sinh thái kết nối chặt chẽ giữa Nhà khoa học, Nhà nông, và Doanh nghiệp phân phối vật tư, góp phần thúc đẩy sản lượng nông nghiệp sạch đạt tiêu chuẩn xuất khẩu quốc tế.
                 </p>
@@ -99,7 +99,7 @@ export default function AboutPage() {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="material-symbols-outlined text-primary text-3xl font-bold">verified_user</span>
               </div>
-              <h4 className="text-xl font-bold text-slate-900 mb-3">Chính Xác & Tin Cậy</h4>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Chính Xác & Tin Cậy</h3>
               <p className="text-sm text-slate-500 leading-relaxed">
                 Mô hình AI được huấn luyện liên tục dựa trên hàng trăm ngàn hình ảnh mẫu kiểm duyệt bởi các chuyên gia nông nghiệp hàng đầu.
               </p>
@@ -109,7 +109,7 @@ export default function AboutPage() {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="material-symbols-outlined text-primary text-3xl font-bold">rocket_launch</span>
               </div>
-              <h4 className="text-xl font-bold text-slate-900 mb-3">Đột Phá Công Nghệ</h4>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Đột Phá Công Nghệ</h3>
               <p className="text-sm text-slate-500 leading-relaxed">
                 Luôn tiên phong đưa các giải pháp số hóa thông minh, bản đồ phân bố và chatbot trợ lý 24/7 trực quan tới tay người nông dân Việt.
               </p>
@@ -119,7 +119,7 @@ export default function AboutPage() {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="material-symbols-outlined text-primary text-3xl font-bold">nature_people</span>
               </div>
-              <h4 className="text-xl font-bold text-slate-900 mb-3">Đồng Hành Bền Vững</h4>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Đồng Hành Bền Vững</h3>
               <p className="text-sm text-slate-500 leading-relaxed">
                 Hướng tới mô hình canh tác xanh, tối thiểu hóa chi phí đầu vào, bảo vệ đất đai, nguồn nước và bảo đảm sức khỏe cho cộng đồng.
               </p>
@@ -132,7 +132,7 @@ export default function AboutPage() {
           <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white rounded-2xl overflow-hidden shadow-xl flex flex-col lg:flex-row border border-emerald-800">
             <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col justify-center">
               <span className="text-emerald-400 font-bold mb-2 text-sm uppercase tracking-wide">ỨNG DỤNG CÔNG NGHỆ CAO</span>
-              <h3 className="text-3xl font-extrabold mb-6 leading-tight">Giải Pháp Trí Tuệ Nhân Tạo Thông Minh Cho Cây Trồng</h3>
+              <h2 className="text-3xl font-extrabold mb-6 leading-tight">Giải Pháp Trí Tuệ Nhân Tạo Thông Minh Cho Cây Trồng</h2>
               <ul className="space-y-4">
                 <li className="flex items-start space-x-3 text-emerald-100">
                   <span className="material-symbols-outlined text-emerald-400 font-bold">check_circle</span>
@@ -162,7 +162,7 @@ export default function AboutPage() {
         {/* CTA Section */}
         <section className="px-6 md:px-12 py-16 text-center bg-emerald-50 border-t border-emerald-100">
           <div className="max-w-3xl mx-auto">
-            <h3 className="text-3xl font-extrabold text-slate-900 mb-4">Trải Nghiệm Hệ Sinh Thái AgriAI Ngay Hôm Nay</h3>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-4">Trải Nghiệm Hệ Sinh Thái AgriAI Ngay Hôm Nay</h2>
             <p className="text-slate-600 mb-8 max-w-xl mx-auto">
               Chỉ mất vài giây để nhận diện bệnh hại cây trồng của bạn và nhận phác đồ chăm sóc toàn diện hoàn toàn miễn phí.
             </p>
