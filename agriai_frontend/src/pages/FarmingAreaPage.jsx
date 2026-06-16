@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getAreas, deleteArea } from '../services/farmingAreaService';
-
+import SEO from '../components/common/SEO';
 import { AddFarmingAreaModal, EditFarmingAreaModal } from '../features/farming-area';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import SkeletonRow from '../components/ui/SkeletonRow';
@@ -150,6 +150,12 @@ const FarmingAreaPage = () => {
 
     return (
         <div className="pt-20 min-h-screen bg-background relative animate-page-enter">
+      <SEO
+        title="Khu vực canh tác"
+        description="Quản lý khu vực canh tác của bạn trên AgriSmart. Theo dõi và quản lý không gian nông nghiệp."
+        url="/farming-areas"
+        noIndex
+      />
             <AddFarmingAreaModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}

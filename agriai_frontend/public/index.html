@@ -22,7 +22,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://agrismart.vn/" />
+    <meta property="og:url" content="https://agrismart.io.vn/" />
     <meta
       property="og:title"
       content="AgriSmart - Chẩn Đoán Bệnh Cây Trồng Bằng AI"
@@ -37,7 +37,7 @@
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://agrismart.vn/" />
+    <meta property="twitter:url" content="https://agrismart.io.vn/" />
     <meta
       property="twitter:title"
       content="AgriSmart - Chẩn Đoán Bệnh Cây Trồng Bằng AI"
@@ -56,16 +56,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Inter font -->
+    <!-- Inter font — load async để tránh render-blocking (tiết kiệm ~400ms LCP) -->
     <link
+      rel="preload"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
     <!-- Material Symbols: display=block để ẩn icon thay vì hiện text thô khi font chưa load -->
     <link
+      rel="preload"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
-      rel="stylesheet"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
+        rel="stylesheet"
+      />
+    </noscript>
   </head>
   <body>
     <noscript>Bạn cần bật JavaScript để chạy ứng dụng này.</noscript>

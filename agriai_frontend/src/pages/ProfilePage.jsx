@@ -101,9 +101,10 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col min-h-screen bg-surface text-on-surface">
       <SEO 
-        title="Hồ sơ cá nhân - AgriAI" 
-        description="Quản lý và cập nhật hồ sơ cá nhân của bạn trên AgriAI." 
-        url="/profile" 
+        title="Hồ sơ cá nhân" 
+        description="Quản lý và cập nhật hồ sơ cá nhân của bạn trên AgriSmart." 
+        url="/profile"
+        noIndex
       />
 
       <main className="pt-28 pb-20 px-4 flex-1 animate-page-enter">

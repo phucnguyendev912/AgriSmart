@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/common/SEO';
 
 /**
  * NotificationsPage Component
@@ -91,11 +92,17 @@ const NotificationsPage = () => {
 
     return (
         <div className="pt-16 min-h-screen bg-surface-container-low relative">
+            <SEO
+                title="Thông báo"
+                description="Thông báo và cảnh báo bệnh cây trồng từ AgriSmart. Nhận thông tin về dịch bệnh và thời tiết cực đoan."
+                url="/notifications"
+                noIndex
+            />
             <main className="max-w-5xl mx-auto p-4 md:p-8">
                 {/* Page Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
-                        <h2 className="text-3xl md:text-4xl font-black tracking-tight text-on-surface">Thông báo</h2>
+                        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-on-surface">Thông báo</h1>
                         <p className="text-on-surface-variant mt-2 text-base">
                             {unreadCount > 0 ? `Bạn có ${unreadCount} thông báo chưa đọc.` : 'Bạn không có thông báo mới nào.'}
                         </p>

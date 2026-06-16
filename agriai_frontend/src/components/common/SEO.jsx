@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-const BASE_URL = 'https://agrismart.vn';
+const BASE_URL = 'https://agrismart.io.vn';
 const DEFAULT_IMAGE = `${BASE_URL}/logo512.png`;
 
 /**
@@ -11,6 +11,7 @@ const DEFAULT_IMAGE = `${BASE_URL}/logo512.png`;
  * @param {string} keywords - Từ khóa bổ sung
  * @param {string} url - Đường dẫn trang (ví dụ: "/diagnosis")
  * @param {string} image - URL ảnh preview cho social media
+ * @param {boolean} noIndex - Nếu true, ngăn search engine index trang (dùng cho trang private)
  */
 const SEO = ({
   title = 'Chẩn Đoán Bệnh Cây Trồng Bằng AI',
@@ -18,6 +19,7 @@ const SEO = ({
   keywords = 'chẩn đoán bệnh cây trồng, AI nông nghiệp, nông nghiệp thông minh, AgriSmart',
   url = '/',
   image = DEFAULT_IMAGE,
+  noIndex = false,
 }) => {
   const fullTitle = title === 'AgriSmart'
     ? 'AgriSmart - Chẩn Đoán Bệnh Cây Trồng Bằng AI'
@@ -32,6 +34,12 @@ const SEO = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <link rel="canonical" href={canonicalUrl} />
+
+      {/* Robots: noindex cho trang private */}
+      {noIndex
+        ? <meta name="robots" content="noindex, nofollow" />
+        : <meta name="robots" content="index, follow" />
+      }
 
       {/* OpenGraph */}
       <meta property="og:type" content="website" />

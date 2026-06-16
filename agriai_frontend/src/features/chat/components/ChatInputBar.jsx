@@ -16,6 +16,7 @@ const ChatInputBar = ({ input, selectedSkill, isTyping, onInputChange, onSkillCh
       {/* skill selector row */}
       <div className="flex items-center gap-2">
         <select
+          aria-label="Chọn chủ đề hỏi đáp"
           value={selectedSkill}
           onChange={(e) => onSkillChange(e.target.value)}
           className="flex-1 bg-surface-container-low border border-outline-variant/30 rounded-full px-4 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 focus:outline-none cursor-pointer"
