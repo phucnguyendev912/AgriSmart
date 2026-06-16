@@ -3,13 +3,6 @@ import { Link } from 'react-router-dom';
 import { FarmerReviews as FarmerStories, WeatherDiseaseSection, RoadmapSection, BentoFeatures } from '../features/landing';
 import SEO from '../components/common/SEO';
 
-/**
- * HomePage Component
- * Renders the primary landing experience, including a hero section,
- * quick access features (AI Diagnosis, Weather, Chatbot, Disease Map),
- * and links to sub-modules.
- * Includes lightweight hero entrance animations and bento grid hover improvements.
- */
 const HomePage = () => {
   return (
     <>
