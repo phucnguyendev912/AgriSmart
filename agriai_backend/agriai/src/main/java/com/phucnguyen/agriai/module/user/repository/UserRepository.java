@@ -1,12 +1,7 @@
 package com.phucnguyen.agriai.module.user.repository;
 
-<<<<<<< HEAD:agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/module/user/repository/UserRepository.java
 import com.phucnguyen.agriai.module.user.entity.User;
 import com.phucnguyen.agriai.module.auth.enums.AuthProvider;
-=======
-import com.phucnguyen.agriai.entity.User;
-import com.phucnguyen.agriai.enums.AuthProvider;
->>>>>>> origin/main:agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/repository/UserRepository.java
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,20 +1,11 @@
 package com.phucnguyen.agriai.module.auth.controller;
 
-<<<<<<< HEAD:agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/module/auth/controller/AuthController.java
 import com.phucnguyen.agriai.module.auth.dto.request.GoogleLoginRequest;
 import com.phucnguyen.agriai.module.auth.dto.request.LoginRequest;
 import com.phucnguyen.agriai.module.auth.dto.request.RegisterRequest;
 import com.phucnguyen.agriai.module.auth.dto.response.LoginResponse;
 import com.phucnguyen.agriai.module.user.dto.response.UserResponse;
 import com.phucnguyen.agriai.module.auth.service.AuthService;
-=======
-import com.phucnguyen.agriai.dto.request.GoogleLoginRequest;
-import com.phucnguyen.agriai.dto.request.LoginRequest;
-import com.phucnguyen.agriai.dto.request.RegisterRequest;
-import com.phucnguyen.agriai.dto.response.LoginResponse;
-import com.phucnguyen.agriai.dto.response.UserResponse;
-import com.phucnguyen.agriai.service.AuthService;
->>>>>>> origin/main:agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/controller/AuthController.java
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
