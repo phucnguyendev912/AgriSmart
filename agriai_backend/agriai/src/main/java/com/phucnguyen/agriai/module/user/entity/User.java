@@ -1,8 +1,13 @@
 package com.phucnguyen.agriai.module.user.entity;
 import com.phucnguyen.agriai.module.attachment.entity.Attachment;
 
+<<<<<<< HEAD:agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/module/user/entity/User.java
 import com.phucnguyen.agriai.shared.entity.BaseEntity;
 import com.phucnguyen.agriai.module.auth.enums.AuthProvider;
+=======
+import com.phucnguyen.agriai.common.BaseEntity;
+import com.phucnguyen.agriai.enums.AuthProvider;
+>>>>>>> origin/main:agriai_backend/agriai/src/main/java/com/phucnguyen/agriai/entity/User.java
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;

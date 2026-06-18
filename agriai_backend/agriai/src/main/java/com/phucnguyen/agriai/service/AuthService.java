@@ -1,20 +1,20 @@
-package com.phucnguyen.agriai.module.auth.service;
+package com.phucnguyen.agriai.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.phucnguyen.agriai.module.auth.dto.request.LoginRequest;
-import com.phucnguyen.agriai.module.auth.dto.request.RegisterRequest;
-import com.phucnguyen.agriai.module.auth.dto.response.LoginResponse;
-import com.phucnguyen.agriai.module.user.dto.response.UserResponse;
-import com.phucnguyen.agriai.module.user.entity.Role;
-import com.phucnguyen.agriai.module.user.entity.User;
-import com.phucnguyen.agriai.module.auth.enums.AuthProvider;
-import com.phucnguyen.agriai.infrastructure.exception.AppException;
-import com.phucnguyen.agriai.module.user.repository.RoleRepository;
-import com.phucnguyen.agriai.module.user.repository.UserRepository;
-import com.phucnguyen.agriai.infrastructure.security.JwtService;
+import com.phucnguyen.agriai.dto.request.LoginRequest;
+import com.phucnguyen.agriai.dto.request.RegisterRequest;
+import com.phucnguyen.agriai.dto.response.LoginResponse;
+import com.phucnguyen.agriai.dto.response.UserResponse;
+import com.phucnguyen.agriai.entity.Role;
+import com.phucnguyen.agriai.entity.User;
+import com.phucnguyen.agriai.enums.AuthProvider;
+import com.phucnguyen.agriai.exception.AppException;
+import com.phucnguyen.agriai.repository.RoleRepository;
+import com.phucnguyen.agriai.repository.UserRepository;
+import com.phucnguyen.agriai.security.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -135,8 +136,7 @@ public class AuthService {
         if (Boolean.FALSE.equals(emailVerified))
             throw new AppException(HttpStatus.BAD_REQUEST, "Email Google chưa được xác minh.");
 
-        // 3. Kiểm tra email đã tồn tại với tài khoản LOCAL → tự động link thay vì báo
-        // lỗi
+        // 3. Kiểm tra email đã tồn tại với tài khoản LOCAL → tự động link thay vì báo lỗi
         if (email != null) {
             Optional<User> existingByEmail = userRepository.findByEmail(email);
             if (existingByEmail.isPresent() && existingByEmail.get().getProvider() == AuthProvider.LOCAL) {
