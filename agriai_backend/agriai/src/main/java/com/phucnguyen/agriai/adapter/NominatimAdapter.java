@@ -2,8 +2,8 @@ package com.phucnguyen.agriai.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.phucnguyen.agriai.port.NominatimPort;
-import com.phucnguyen.agriai.port.NominatimResult;
+import com.phucnguyen.agriai.module.area.port.NominatimPort;
+import com.phucnguyen.agriai.module.area.port.NominatimResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

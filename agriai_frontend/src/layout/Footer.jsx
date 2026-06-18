@@ -32,7 +32,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 pt-6 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 font-medium">
         <p>© 2026 AgriSmart Diagnostic Ecosystem. Bảo lưu mọi quyền.</p>
         <div className="flex space-x-6 mt-4 md:mt-0">
-          <a className="hover:text-primary" href="#">Chính sách bảo mật</a>
+          <Link className="hover:text-primary" to="/privacy">Chính sách bảo mật</Link>
         </div>
       </div>
     </footer>

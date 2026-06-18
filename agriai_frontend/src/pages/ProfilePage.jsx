@@ -9,7 +9,6 @@ import { toast } from 'react-toastify';
 export default function ProfilePage() {
   const { user, updateUserContext } = useAuth();
   const [fullName, setFullName] = useState(user?.fullName || '');
-  const [email] = useState(user?.email || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
   const [avatarAttachmentId, setAvatarAttachmentId] = useState(null);
