@@ -8,3 +8,4 @@ public class GoogleLoginRequest {
     @NotBlank(message = "Google ID token không được để trống.")
     private String idToken;
 }
+

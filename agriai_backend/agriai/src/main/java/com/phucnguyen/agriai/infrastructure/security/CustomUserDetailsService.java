@@ -24,14 +24,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     // @Transactional to prevent LazyInitializationException when loading
     // user.getRole() in SecurityContext
     @Transactional
+    // tìm user trong database 
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản: " + email));
-
+        
         if (Boolean.TRUE.equals(user.getIsDelete())) {
             throw new UsernameNotFoundException("Không tìm thấy tài khoản: " + email);
         }
-
+        // lấy quyền của user
         String roleName = user.getRole() != null ? user.getRole().getRoleName() : "USER";
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())

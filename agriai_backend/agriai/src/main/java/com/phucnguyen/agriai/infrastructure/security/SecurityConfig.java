@@ -54,18 +54,24 @@ public class SecurityConfig {
     }
 
     @Bean
+    // chỉ cho spring biết cách thức để kiểm tra xem 1 user có hợp lệ hay không
     public AuthenticationProvider authenticationProvider() {
+        // Sử dụng DaoAuthenticationProvider để gọp thông tin userDetails với
+        // passwordEncoder
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
     @Bean
+    // Công khai hóa 1 authenticationmanager, sử dụng để xác thực khi user đăng
+    // nhập
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
     @Bean
+    // Chỉ cho spring biết cách thức để mã hóa và giải mã password
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }

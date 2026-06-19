@@ -19,7 +19,7 @@ public class DiagnoseController {
     public DiagnoseController(DiagnoseService diagnoseService) {
         this.diagnoseService = diagnoseService;
     }
-
+    // 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DiagnoseResponse> diagnose(
             Principal principal,

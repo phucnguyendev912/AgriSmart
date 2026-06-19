@@ -1,4 +1,5 @@
 package com.phucnguyen.agriai.module.diagnose.service;
+
 import com.phucnguyen.agriai.module.chat.service.RuleEngineService;
 import com.phucnguyen.agriai.module.area.service.GeocodingService;
 
@@ -22,8 +23,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -46,38 +49,33 @@ public class DiagnoseService {
     private final DiagnoseResponseBuilder diagnoseResponseBuilder;
     private final DiagnoseHistoryPersistenceService historyPersistenceService;
     private final GeocodingService geocodingService;
+    @Qualifier("ioExecutor")
+    private final Executor ioExecutor;
 
     public DiagnoseResponse diagnose(String email, DiagnoseRequest request) {
+        // Gọi validate để kiểm tra request gửi về có hợp lệ không và trả về context
+        // chứa dữ liệu
         DiagnosisValidationService.DiagnosisContext context = diagnosisValidationService.validate(email, request);
+        // Kiểm tra xem user có đăng nhập không dựa vào context trả về
         boolean isAuthenticated = context.user() != null;
 
-        long startTotal = System.currentTimeMillis();
-        long stepStart;
-
         try {
-            stepStart = System.currentTimeMillis();
             String imageUrl = imageStoragePort.upload(request.getImage());
-            log.info("TIME_TRACK: upload() took {} ms", (System.currentTimeMillis() - stepStart));
 
-            stepStart = System.currentTimeMillis();
             CompletableFuture<List<VisionResultDTO>> visionFuture = CompletableFuture.supplyAsync(
-                    () -> visionDetectionPort.detect(imageUrl));
+                    () -> visionDetectionPort.detect(imageUrl), ioExecutor);
             CompletableFuture<WeatherDTO> weatherFuture = CompletableFuture.supplyAsync(
-                    () -> fetchWeatherSafely(request));
+                    () -> fetchWeatherSafely(request), ioExecutor);
 
             List<VisionResultDTO> visionResults = visionFuture.join();
             WeatherDTO weather = weatherFuture.join();
-            log.info("TIME_TRACK: vision + weather (parallel) took {} ms", (System.currentTimeMillis() - stepStart));
 
             DiagnosisAnalysis analysis = analyzeVisionResults(visionResults);
 
-            stepStart = System.currentTimeMillis();
             RuleEngineService.RuleEngineResult ruleResult = analysis.detectedDiseases().isEmpty()
                     ? RuleEngineService.RuleEngineResult.empty()
                     : ruleEngineService.process(toDiseaseContexts(analysis), weather);
-            log.info("TIME_TRACK: ruleEngineService() took {} ms", (System.currentTimeMillis() - stepStart));
 
-            stepStart = System.currentTimeMillis();
             DiagnoseResponse response = diagnoseResponseBuilder.buildResponse(
                     null,
                     imageUrl,
@@ -86,22 +84,17 @@ public class DiagnoseService {
                     analysis,
                     ruleResult);
             response.setUserGuidance(guidancePort.generateGuidance(response));
-            log.info("TIME_TRACK: buildResponse & guidance() took {} ms", (System.currentTimeMillis() - stepStart));
 
             if (isAuthenticated) {
-                stepStart = System.currentTimeMillis();
                 DiagnoseHistory history = historyPersistenceService.saveCompletedHistory(
                         context, request, imageUrl, weather, response, analysis);
-                log.info("TIME_TRACK: saveCompletedHistory (DB WRITES) took {} ms",
-                        (System.currentTimeMillis() - stepStart));
                 response.setId(history.getId());
                 runGeocodingInBackground(context, request);
             }
 
-            log.info("TIME_TRACK: TOTAL DIAGNOSE TOOK {} ms", (System.currentTimeMillis() - startTotal));
             return response;
         } catch (Exception exception) {
-            log.error("Lỗi khi chẩn đoán: {}", exception.getMessage(), exception);
+            log.error("Error occurred during diagnosis for user {}: {}", email, exception.getMessage(), exception);
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
         }
     }
@@ -124,7 +117,7 @@ public class DiagnoseService {
         try {
             return weatherPort.getCurrentWeather(request.getLatitude(), request.getLongitude());
         } catch (Exception exception) {
-            log.warn("Không lấy được dữ liệu thời tiết: {}", exception.getMessage());
+            log.error("Failed to fetch weather for coordinates {}, {}", request.getLatitude(), request.getLongitude(), exception);
             return null;
         }
     }
@@ -143,11 +136,10 @@ public class DiagnoseService {
                         request.getLatitude(),
                         request.getLongitude());
             } catch (Exception exception) {
-                log.error("Geocoding thất bại: {}", exception.getMessage());
+                log.error("Failed to run geocoding in background for user {}", context.user().getId(), exception);
             }
-        });
+        }, ioExecutor);
     }
-
 
     private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults) {
         List<VisionResultDTO> safeResults = visionResults != null ? visionResults : List.of();
