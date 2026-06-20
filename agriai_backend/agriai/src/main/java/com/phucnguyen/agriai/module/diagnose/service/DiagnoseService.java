@@ -1,6 +1,8 @@
 package com.phucnguyen.agriai.module.diagnose.service;
+
 import com.phucnguyen.agriai.module.chat.service.RuleEngineService;
 import com.phucnguyen.agriai.module.area.service.GeocodingService;
+
 import com.phucnguyen.agriai.module.diagnose.dto.DiseaseContextDTO;
 import com.phucnguyen.agriai.module.ai.dto.VisionResultDTO;
 import com.phucnguyen.agriai.module.weather.dto.WeatherDTO;
