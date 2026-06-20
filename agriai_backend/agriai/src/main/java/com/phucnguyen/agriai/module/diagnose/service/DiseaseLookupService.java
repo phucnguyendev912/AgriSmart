@@ -16,11 +16,13 @@ public class DiseaseLookupService {
 
     private final DiseaseRepository diseaseRepository;
 
-    // resolve explicit disease
+    // Giải quyết bệnh cụ thể
     public Optional<Disease> resolveExplicitDisease(String diseaseName, CropType cropType) {
+        // Kiểm tra nếu diseaseName null hoặcisBlank thì return Optional.empty()
         if (diseaseName == null || diseaseName.isBlank()) {
             return Optional.empty();
         }
+        // Tìm kiếm bệnh dựa trên diseaseName, diseaseNameEn, diseaseCode
         List<Optional<Disease>> matches = List.of(
                 diseaseRepository.findByDiseaseNameIgnoreCaseAndIsDeleteFalse(diseaseName.trim()),
                 diseaseRepository.findByDiseaseNameEnIgnoreCaseAndIsDeleteFalse(diseaseName.trim()),

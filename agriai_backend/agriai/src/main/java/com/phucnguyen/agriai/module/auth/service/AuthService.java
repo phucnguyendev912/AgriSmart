@@ -69,28 +69,33 @@ public class AuthService {
 
         Role role = roleRepository.findByRoleName("USER")
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy quyền USER."));
-
+        // tạo 1 user mới
         User newUser = User.builder()
                 .fullName(request.getFullName().trim()).email(email)
                 .phoneNumber(request.getPhoneNumber())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .isActive(true).role(role).build();
-
+        // Lưu vào database
         User saved = userRepository.save(newUser);
+        // Trả về response cho user
         return UserResponse.builder().id(saved.getId()).fullName(saved.getFullName())
                 .email(saved.getEmail()).phoneNumber(saved.getPhoneNumber())
                 .role(saved.getRole().getRoleName())
                 .avatarUrl(saved.getAttachment() != null ? saved.getAttachment().getFileUrl() : null).build();
     }
 
+    // Đăng nhập
     public LoginResponse login(LoginRequest request) {
+        // Lấy email với kí tự thường
         String email = request.getEmail().trim().toLowerCase();
+        // Xác thực email và mật khẩu
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, request.getPassword()));
-
+        // Tìm user trong database
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy tài khoản."));
-
+        // Tạo Spring Security UserDetails
         UserDetails springUser = toSpringUser(user);
+        // Tạo response trả về cho user
         return LoginResponse.builder()
                 .token(jwtService.generateToken(springUser))
                 .refreshToken(jwtService.generateRefreshToken(springUser))
@@ -99,20 +104,22 @@ public class AuthService {
     }
 
     public LoginResponse refreshToken(String refreshToken) {
+        // khai bao email và kiểm tra xem trong refresh token có email hợp lệ không
         String userEmail;
         try {
             userEmail = jwtService.extractUsername(refreshToken);
         } catch (Exception ex) {
             throw new AppException(HttpStatus.UNAUTHORIZED, "Refresh token không hợp lệ.");
         }
-
+        // Tìm user trong database
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy tài khoản."));
-
+        // Tạo Spring Security UserDetails
         UserDetails springUser = toSpringUser(user);
+        // Kiểm tra refresh token còn hợp lệ không
         if (!jwtService.isTokenValid(refreshToken, springUser))
             throw new AppException(HttpStatus.UNAUTHORIZED, "Refresh token không hợp lệ.");
-
+        // Tạo response trả về cho user
         return LoginResponse.builder()
                 .token(jwtService.generateToken(springUser))
                 .refreshToken(refreshToken)
@@ -120,7 +127,7 @@ public class AuthService {
                 .build();
     }
 
-    // ── Google OAuth2 ─────────────────────────────────────────────
+    // Google OAuth2
 
     public LoginResponse loginWithGoogle(String idToken) {
         // 1. Xác thực Google token

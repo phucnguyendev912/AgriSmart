@@ -54,13 +54,10 @@ public class ChatbotService {
     public ChatResponse chatForSession(String email, Integer sessionId, SendChatMessageRequest request) {
         String userText = request.getMessageContent().trim();
 
-        
         SessionContext ctx = self.loadHistoryAndSaveUser(email, sessionId, userText, request.getAttachmentId());
 
-        
         String answer = buildContextAndGenerateWithHistory(userText, ctx.history(), request.getSelectedSkill());
 
-       
         ChatMessage aiMessage = self.saveAiResponse(ctx.session(), answer);
 
         return ChatResponse.builder()
@@ -73,7 +70,8 @@ public class ChatbotService {
     }
 
     @Transactional
-    protected SessionContext loadHistoryAndSaveUser(String email, Integer sessionId, String userText, Integer attachmentId) {
+    protected SessionContext loadHistoryAndSaveUser(String email, Integer sessionId, String userText,
+            Integer attachmentId) {
         ChatSession session = chatSessionService.getSessionOrThrow(email, sessionId);
         List<ChatMessage> history = chatMessageService.getRecentMessages(session, historySize);
         ChatMessage userMessage = chatMessageService.saveUserMessage(session, userText, attachmentId);

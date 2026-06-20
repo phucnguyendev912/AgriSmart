@@ -72,7 +72,8 @@ class DiagnoseServiceTest {
                 diseaseMapper,
                 new DiagnoseResponseBuilder(),
                 historyPersistenceService,
-                geocodingService);
+                geocodingService,
+                Runnable::run); // dummy synchronous executor for testing
     }
 
     @Test

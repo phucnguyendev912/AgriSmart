@@ -36,25 +36,30 @@ public class TreatmentRankingService {
             List<DiseaseContextDTO> diseases, WeatherDTO weather) {
         
         List<TreatmentDTO> finalResults = new ArrayList<>();
-
+        // Kiểm tra nếu batchEnabled = false thì chạy sequential path
         if (!batchEnabled) {
-            // Legacy sequential path
             for (Map.Entry<Integer, List<TreatmentPlan>> entry : plansByDisease.entrySet()) {
                 if (entry.getValue().isEmpty()) continue;
                 Integer diseaseId = entry.getKey();
                 List<TreatmentPlan> plans = entry.getValue();
+                // tìm diseaseContextDTO từ diseaseId nếu không tìm được thì tạo mới
                 DiseaseContextDTO context = diseases.stream()
+                    // lọc theo id bệnh khớp với id đang xử lý
                         .filter(d -> d.diseaseId().equals(diseaseId))
-                        .findFirst()
+                        .findFirst() // lấy đối tượng đầu tiên trả về
                         .orElse(new DiseaseContextDTO(diseaseId, "Chưa rõ", "Chưa rõ", null));
+                // Gọi function legacy xử lý từng bệnh một
                 finalResults.addAll(processDiseasePlansLegacy(plans, context, weather));
             }
             return finalResults;
         }
 
-        // Batch path: Sort diseases by priority (confidence desc)
+        // xử lý batch
+        // Sắp xếp các bệnh theo độ tin cậy giảm dần
         List<DiseaseContextDTO> sortedDiseases = diseases.stream()
+                // Lọc các bệnh có trong plansByDisease
                 .filter(d -> plansByDisease.containsKey(d.diseaseId()) && !plansByDisease.get(d.diseaseId()).isEmpty())
+                // Sắp xếp theo confidence giảm dần
                 .sorted(Comparator.comparing(
                         (DiseaseContextDTO d) -> d.confidence() != null ? d.confidence() : 0.0)
                         .reversed())

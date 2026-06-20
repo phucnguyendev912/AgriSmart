@@ -183,7 +183,7 @@ export default function DiseaseMapPage() {
       />
 
       {/* Header */}
-      <div className="shrink-0 px-6 py-5 border-b border-surface-variant/30 bg-surface-container-lowest">
+      <div className="shrink-0 px-6 py-3 border-b border-surface-variant/30 bg-surface-container-lowest">
         <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
           <span className="material-symbols-outlined text-3xl">map</span>
           Bản đồ cảnh báo dịch bệnh
@@ -194,7 +194,7 @@ export default function DiseaseMapPage() {
       </div>
 
       {/* Filters */}
-      <div className="shrink-0 px-6 py-4 bg-surface-container flex flex-wrap gap-4 items-center border-b border-surface-variant/20">
+      <div className="shrink-0 px-6 py-2 bg-surface-container flex flex-wrap gap-4 items-center border-b border-surface-variant/20">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-on-surface-variant">Thời gian:</span>
           {[7, 30, 90].map((d) => (

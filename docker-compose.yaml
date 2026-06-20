@@ -47,12 +47,14 @@ services:
       CHATBOT_MAX_CONTEXT_CHARS: ${CHATBOT_MAX_CONTEXT_CHARS:-3000}
       CHATBOT_HISTORY_SIZE: ${CHATBOT_HISTORY_SIZE:-6}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./skills:/app/skills:ro
     ports:
       - "8080:8080"
+      - "5005:5005"  # Remote Debug port
 
   frontend:
     build:

@@ -1,7 +1,6 @@
 package com.phucnguyen.agriai.module.diagnose.service;
 import com.phucnguyen.agriai.module.chat.service.RuleEngineService;
 import com.phucnguyen.agriai.module.area.service.GeocodingService;
-
 import com.phucnguyen.agriai.module.diagnose.dto.DiseaseContextDTO;
 import com.phucnguyen.agriai.module.ai.dto.VisionResultDTO;
 import com.phucnguyen.agriai.module.weather.dto.WeatherDTO;
@@ -22,8 +21,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -46,38 +47,35 @@ public class DiagnoseService {
     private final DiagnoseResponseBuilder diagnoseResponseBuilder;
     private final DiagnoseHistoryPersistenceService historyPersistenceService;
     private final GeocodingService geocodingService;
+    @Qualifier("ioExecutor")
+    private final Executor ioExecutor;
 
     public DiagnoseResponse diagnose(String email, DiagnoseRequest request) {
+        // Gọi validate để kiểm tra request gửi về có hợp lệ không và trả về context
+        // chứa dữ liệu
         DiagnosisValidationService.DiagnosisContext context = diagnosisValidationService.validate(email, request);
+        // Kiểm tra xem user có đăng nhập không dựa vào context trả về
         boolean isAuthenticated = context.user() != null;
 
-        long startTotal = System.currentTimeMillis();
-        long stepStart;
-
         try {
-            stepStart = System.currentTimeMillis();
+            // upload ảnh lên cloudinary và lấy url của ảnh
             String imageUrl = imageStoragePort.upload(request.getImage());
-            log.info("TIME_TRACK: upload() took {} ms", (System.currentTimeMillis() - stepStart));
-
-            stepStart = System.currentTimeMillis();
+            // gọi model để dự đoán bệnh dựa vào url ảnh
             CompletableFuture<List<VisionResultDTO>> visionFuture = CompletableFuture.supplyAsync(
-                    () -> visionDetectionPort.detect(imageUrl));
+                    () -> visionDetectionPort.detect(imageUrl), ioExecutor);
+            // gọi api thời tiết dựa vào gps
             CompletableFuture<WeatherDTO> weatherFuture = CompletableFuture.supplyAsync(
-                    () -> fetchWeatherSafely(request));
-
+                    () -> fetchWeatherSafely(request), ioExecutor);
+            // lấy kết quả vision và thời tiết
             List<VisionResultDTO> visionResults = visionFuture.join();
             WeatherDTO weather = weatherFuture.join();
-            log.info("TIME_TRACK: vision + weather (parallel) took {} ms", (System.currentTimeMillis() - stepStart));
-
+            // phân tích kết quả vision
             DiagnosisAnalysis analysis = analyzeVisionResults(visionResults);
-
-            stepStart = System.currentTimeMillis();
+            // xử lý nghiệp vụ dựa trên kết quả vision và thời tiết
             RuleEngineService.RuleEngineResult ruleResult = analysis.detectedDiseases().isEmpty()
                     ? RuleEngineService.RuleEngineResult.empty()
                     : ruleEngineService.process(toDiseaseContexts(analysis), weather);
-            log.info("TIME_TRACK: ruleEngineService() took {} ms", (System.currentTimeMillis() - stepStart));
-
-            stepStart = System.currentTimeMillis();
+            // build response
             DiagnoseResponse response = diagnoseResponseBuilder.buildResponse(
                     null,
                     imageUrl,
@@ -86,26 +84,22 @@ public class DiagnoseService {
                     analysis,
                     ruleResult);
             response.setUserGuidance(guidancePort.generateGuidance(response));
-            log.info("TIME_TRACK: buildResponse & guidance() took {} ms", (System.currentTimeMillis() - stepStart));
-
+            // Nếu đã đăng nhập thì lưu lịch sử và chạy để lấy địa chỉ nền
             if (isAuthenticated) {
-                stepStart = System.currentTimeMillis();
                 DiagnoseHistory history = historyPersistenceService.saveCompletedHistory(
                         context, request, imageUrl, weather, response, analysis);
-                log.info("TIME_TRACK: saveCompletedHistory (DB WRITES) took {} ms",
-                        (System.currentTimeMillis() - stepStart));
                 response.setId(history.getId());
                 runGeocodingInBackground(context, request);
             }
 
-            log.info("TIME_TRACK: TOTAL DIAGNOSE TOOK {} ms", (System.currentTimeMillis() - startTotal));
             return response;
         } catch (Exception exception) {
-            log.error("Lỗi khi chẩn đoán: {}", exception.getMessage(), exception);
+            log.error("Error occurred during diagnosis for user {}: {}", email, exception.getMessage(), exception);
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, SYSTEM_ERROR_MESSAGE);
         }
     }
 
+    // chuyển đổi DiseaseContextDTO từ DiagnosisAnalysis
     private List<DiseaseContextDTO> toDiseaseContexts(DiagnosisAnalysis analysis) {
         return analysis.detectedDiseases().stream()
                 .map(match -> new DiseaseContextDTO(
@@ -124,7 +118,8 @@ public class DiagnoseService {
         try {
             return weatherPort.getCurrentWeather(request.getLatitude(), request.getLongitude());
         } catch (Exception exception) {
-            log.warn("Không lấy được dữ liệu thời tiết: {}", exception.getMessage());
+            log.error("Failed to fetch weather for coordinates {}, {}", request.getLatitude(), request.getLongitude(),
+                    exception);
             return null;
         }
     }
@@ -143,51 +138,51 @@ public class DiagnoseService {
                         request.getLatitude(),
                         request.getLongitude());
             } catch (Exception exception) {
-                log.error("Geocoding thất bại: {}", exception.getMessage());
+                log.error("Failed to run geocoding in background for user {}", context.user().getId(), exception);
             }
-        });
+        }, ioExecutor);
     }
 
-
+    // phân tích kết quả vision và trả về DiagnosisAnalysis
     private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults) {
+        // xử lý list vision kết quả trả về từ model
         List<VisionResultDTO> safeResults = visionResults != null ? visionResults : List.of();
+        // kiểm tra xem có kết quả nào là cây khỏe không
         boolean containsHealthyLabel = safeResults.stream()
                 .map(VisionResultDTO::getLabel)
                 .filter(Objects::nonNull)
                 .map(this::normalizeLabel)
                 .anyMatch(HEALTHY_LABELS::contains);
-
+        // group kết quả theo disease id và lấy confidence cao nhất
         Map<String, VisionResultDTO> groupedResults = diseaseMapper.groupByMaxConfidence(safeResults.stream()
                 .filter(result -> result.getLabel() != null)
                 .filter(result -> !HEALTHY_LABELS.contains(normalizeLabel(result.getLabel())))
                 .filter(result -> result.getConfidence() != null && result.getConfidence() >= MIN_CONFIDENCE)
                 .toList());
-
+        // chuyển đổi sang list DetectedDiseaseMatch
         List<DetectedDiseaseMatch> detectedDiseases = groupedResults.values().stream()
                 .map(this::toDetectedDiseaseMatch)
-                .filter(Objects::nonNull)
+                .flatMap(Optional::stream)
                 .toList();
-
+        // kiểm tra xem có cây khỏe không
         boolean healthy = containsHealthyLabel && detectedDiseases.isEmpty();
         return new DiagnosisAnalysis(healthy, detectedDiseases.isEmpty(), detectedDiseases);
     }
 
-    // Map a vision prediction result to a database Disease entity match
-    private DetectedDiseaseMatch toDetectedDiseaseMatch(VisionResultDTO result) {
-        Optional<Disease> diseaseOptional = diseaseMapper.findDisease(result.getLabel());
-        if (diseaseOptional.isEmpty()) {
-            return null;
-        }
-        return new DetectedDiseaseMatch(diseaseOptional.get(), result);
+    private Optional<DetectedDiseaseMatch> toDetectedDiseaseMatch(VisionResultDTO result) {
+        return diseaseMapper.findDisease(result.getLabel())
+                .map(disease -> new DetectedDiseaseMatch(disease, result));
     }
 
     private String normalizeLabel(String label) {
         return label.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 
+    // return a object with disease and visionResult
     record DetectedDiseaseMatch(Disease disease, VisionResultDTO visionResult) {
     }
 
+    // return a object with isHealthy and isUnknown and detectedDiseases
     record DiagnosisAnalysis(boolean isHealthy, boolean isUnknown, List<DetectedDiseaseMatch> detectedDiseases) {
     }
 }
