@@ -55,6 +55,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    environment:
+      - REACT_APP_GOOGLE_CLIENT_ID=${REACT_APP_GOOGLE_CLIENT_ID}
 
   admin-frontend:
     image: ghcr.io/phucnguyendev912/agrismart/agriai-admin-frontend:latest
@@ -62,6 +64,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-https://api.agrismart.io.vn}
 
   nginx-gateway:
     image: nginx:alpine

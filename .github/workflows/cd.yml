@@ -57,9 +57,9 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: true
           build-args: |
-            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
-            REACT_APP_GOOGLE_CLIENT_ID=${{ secrets.REACT_APP_GOOGLE_CLIENT_ID }}
-            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            REACT_APP_API_URL=
+            REACT_APP_GOOGLE_CLIENT_ID=__PLACEHOLDER_GOOGLE_CLIENT_ID__
+            VITE_API_URL=__PLACEHOLDER_VITE_API_URL__
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/agrismart/${{ matrix.name }}:latest
             ghcr.io/${{ env.OWNER_LC }}/agrismart/${{ matrix.name }}:${{ github.sha }}
