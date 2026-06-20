@@ -17,9 +17,7 @@ services:
       retries: 5
 
   backend:
-    build:
-      context: ./agriai_backend/agriai
-    image: phucnguyendev912/agriai-backend:latest
+    image: ghcr.io/phucnguyendev912/agrismart/agriai-backend:latest
     container_name: agriai-backend
     restart: unless-stopped
     depends_on:
@@ -52,23 +50,14 @@ services:
       - ./skills:/app/skills:ro
 
   frontend:
-    build:
-      context: ./agriai_frontend
-      args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL}
-        REACT_APP_GOOGLE_CLIENT_ID: ${REACT_APP_GOOGLE_CLIENT_ID}
-    image: phucnguyendev912/agriai-frontend:latest
+    image: ghcr.io/phucnguyendev912/agrismart/agriai-frontend:latest
     container_name: agriai-frontend
     restart: unless-stopped
     depends_on:
       - backend
 
   admin-frontend:
-    build:
-      context: ./agriai_admin_frontend
-      args:
-        VITE_API_URL: ${VITE_API_URL:-https://api.agrismart.io.vn}
-    image: phucnguyendev912/agriai-admin-frontend:latest
+    image: ghcr.io/phucnguyendev912/agrismart/agriai-admin-frontend:latest
     container_name: agriai-admin-frontend
     restart: unless-stopped
     depends_on:
