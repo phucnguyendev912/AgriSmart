@@ -60,22 +60,24 @@ public class DiagnoseService {
         boolean isAuthenticated = context.user() != null;
 
         try {
+            // upload ảnh lên cloudinary và lấy url của ảnh
             String imageUrl = imageStoragePort.upload(request.getImage());
-
+            // gọi model để dự đoán bệnh dựa vào url ảnh
             CompletableFuture<List<VisionResultDTO>> visionFuture = CompletableFuture.supplyAsync(
                     () -> visionDetectionPort.detect(imageUrl), ioExecutor);
+            // gọi api thời tiết dựa vào gps
             CompletableFuture<WeatherDTO> weatherFuture = CompletableFuture.supplyAsync(
                     () -> fetchWeatherSafely(request), ioExecutor);
-
+            // lấy kết quả vision và thời tiết
             List<VisionResultDTO> visionResults = visionFuture.join();
             WeatherDTO weather = weatherFuture.join();
-
+            // phân tích kết quả vision
             DiagnosisAnalysis analysis = analyzeVisionResults(visionResults);
-
+            // xử lý nghiệp vụ dựa trên kết quả vision và thời tiết
             RuleEngineService.RuleEngineResult ruleResult = analysis.detectedDiseases().isEmpty()
                     ? RuleEngineService.RuleEngineResult.empty()
                     : ruleEngineService.process(toDiseaseContexts(analysis), weather);
-
+            // build response
             DiagnoseResponse response = diagnoseResponseBuilder.buildResponse(
                     null,
                     imageUrl,
@@ -84,7 +86,7 @@ public class DiagnoseService {
                     analysis,
                     ruleResult);
             response.setUserGuidance(guidancePort.generateGuidance(response));
-
+            // Nếu đã đăng nhập thì lưu lịch sử và chạy để lấy địa chỉ nền
             if (isAuthenticated) {
                 DiagnoseHistory history = historyPersistenceService.saveCompletedHistory(
                         context, request, imageUrl, weather, response, analysis);
@@ -99,6 +101,7 @@ public class DiagnoseService {
         }
     }
 
+    // chuyển đổi DiseaseContextDTO từ DiagnosisAnalysis
     private List<DiseaseContextDTO> toDiseaseContexts(DiagnosisAnalysis analysis) {
         return analysis.detectedDiseases().stream()
                 .map(match -> new DiseaseContextDTO(
@@ -117,7 +120,8 @@ public class DiagnoseService {
         try {
             return weatherPort.getCurrentWeather(request.getLatitude(), request.getLongitude());
         } catch (Exception exception) {
-            log.error("Failed to fetch weather for coordinates {}, {}", request.getLatitude(), request.getLongitude(), exception);
+            log.error("Failed to fetch weather for coordinates {}, {}", request.getLatitude(), request.getLongitude(),
+                    exception);
             return null;
         }
     }
@@ -141,45 +145,46 @@ public class DiagnoseService {
         }, ioExecutor);
     }
 
+    // phân tích kết quả vision và trả về DiagnosisAnalysis
     private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults) {
+        // xử lý list vision kết quả trả về từ model
         List<VisionResultDTO> safeResults = visionResults != null ? visionResults : List.of();
+        // kiểm tra xem có kết quả nào là cây khỏe không
         boolean containsHealthyLabel = safeResults.stream()
                 .map(VisionResultDTO::getLabel)
                 .filter(Objects::nonNull)
                 .map(this::normalizeLabel)
                 .anyMatch(HEALTHY_LABELS::contains);
-
+        // group kết quả theo disease id và lấy confidence cao nhất
         Map<String, VisionResultDTO> groupedResults = diseaseMapper.groupByMaxConfidence(safeResults.stream()
                 .filter(result -> result.getLabel() != null)
                 .filter(result -> !HEALTHY_LABELS.contains(normalizeLabel(result.getLabel())))
                 .filter(result -> result.getConfidence() != null && result.getConfidence() >= MIN_CONFIDENCE)
                 .toList());
-
+        // chuyển đổi sang list DetectedDiseaseMatch
         List<DetectedDiseaseMatch> detectedDiseases = groupedResults.values().stream()
                 .map(this::toDetectedDiseaseMatch)
-                .filter(Objects::nonNull)
+                .flatMap(Optional::stream)
                 .toList();
-
+        // kiểm tra xem có cây khỏe không
         boolean healthy = containsHealthyLabel && detectedDiseases.isEmpty();
         return new DiagnosisAnalysis(healthy, detectedDiseases.isEmpty(), detectedDiseases);
     }
 
-    // Map a vision prediction result to a database Disease entity match
-    private DetectedDiseaseMatch toDetectedDiseaseMatch(VisionResultDTO result) {
-        Optional<Disease> diseaseOptional = diseaseMapper.findDisease(result.getLabel());
-        if (diseaseOptional.isEmpty()) {
-            return null;
-        }
-        return new DetectedDiseaseMatch(diseaseOptional.get(), result);
+    private Optional<DetectedDiseaseMatch> toDetectedDiseaseMatch(VisionResultDTO result) {
+        return diseaseMapper.findDisease(result.getLabel())
+                .map(disease -> new DetectedDiseaseMatch(disease, result));
     }
 
     private String normalizeLabel(String label) {
         return label.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 
+    // return a object with disease and visionResult
     record DetectedDiseaseMatch(Disease disease, VisionResultDTO visionResult) {
     }
 
+    // return a object with isHealthy and isUnknown and detectedDiseases
     record DiagnosisAnalysis(boolean isHealthy, boolean isUnknown, List<DetectedDiseaseMatch> detectedDiseases) {
     }
 }
