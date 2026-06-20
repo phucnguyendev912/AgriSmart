@@ -38,7 +38,7 @@ public class ChatbotService {
     @Nullable
     private final ChatLanguageModel chatModel;
 
-    @Autowired
+    
     @Lazy
     private ChatbotService self;
 
