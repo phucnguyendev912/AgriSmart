@@ -24,8 +24,8 @@ public class TreatmentRankingService {
     public TreatmentRankingService(
             TreatmentMapper treatmentMapper,
             AIService aiService,
-            @Value("${gemini.recommend.batch.enabled:true}") boolean batchEnabled,
-            @Value("${gemini.recommend.max-diseases:5}") int maxDiseases) {
+            @Value("${llm.recommend.batch.enabled:true}") boolean batchEnabled,
+            @Value("${llm.recommend.max-diseases:5}") int maxDiseases) {
         this.treatmentMapper = treatmentMapper;
         this.aiService = aiService;
         this.batchEnabled = batchEnabled;

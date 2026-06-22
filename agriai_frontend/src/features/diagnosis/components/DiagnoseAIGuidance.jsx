@@ -18,7 +18,6 @@ const DiagnoseAIGuidance = ({ guidance }) => {
                     <span className="material-symbols-outlined text-primary text-lg">smart_toy</span>
                     TƯ VẤN CHUYÊN GIA AI
                 </h4>
-                <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-md">Gemini Flash</span>
             </div>
 
             <div className="prose prose-slate dark:prose-invert max-w-none">

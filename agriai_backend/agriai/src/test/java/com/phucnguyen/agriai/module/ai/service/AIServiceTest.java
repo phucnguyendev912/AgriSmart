@@ -18,7 +18,7 @@ class AIServiceTest {
     @BeforeEach
     void setUp() {
         // Initialize with dummy values
-        aiService = new AIService("dummy-key", "gemini-1.5-flash", 0.1, 20, 2048, 30);
+        aiService = new AIService("dummy-key", "https://dummy.api", "gemini-1.5-flash", 0.1, 20, 2048, 30);
     }
 
     @Test
