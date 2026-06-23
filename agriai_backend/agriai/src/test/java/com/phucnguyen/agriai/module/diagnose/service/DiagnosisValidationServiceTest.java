@@ -68,4 +68,39 @@ class DiagnosisValidationServiceTest {
 
         assertTrue(context.cropType().getId().equals(1));
     }
+
+    @Test
+    @DisplayName("Validate loi khi dung luong anh vuot qua 10MB")
+    void validate_imageTooLarge() {
+        DiagnoseRequest request = new DiagnoseRequest();
+        request.setCropTypeId(1);
+        // 11MB file
+        byte[] largeBytes = new byte[11 * 1024 * 1024];
+        request.setImage(new MockMultipartFile("image", "leaf.jpg", "image/jpeg", largeBytes));
+
+        AppException exception = assertThrows(AppException.class, () -> validationService.validate(null, request));
+        assertTrue(exception.getMessage().contains("Dung lượng ảnh vượt quá giới hạn"));
+    }
+
+    @Test
+    @DisplayName("Validate loi khi sai dinh dang extension")
+    void validate_invalidExtension() {
+        DiagnoseRequest request = new DiagnoseRequest();
+        request.setCropTypeId(1);
+        request.setImage(new MockMultipartFile("image", "leaf.pdf", "image/jpeg", new byte[] {1, 2, 3}));
+
+        AppException exception = assertThrows(AppException.class, () -> validationService.validate(null, request));
+        assertTrue(exception.getMessage().contains("Định dạng ảnh không được hỗ trợ"));
+    }
+
+    @Test
+    @DisplayName("Validate loi khi sai content type")
+    void validate_invalidContentType() {
+        DiagnoseRequest request = new DiagnoseRequest();
+        request.setCropTypeId(1);
+        request.setImage(new MockMultipartFile("image", "leaf.jpg", "application/pdf", new byte[] {1, 2, 3}));
+
+        AppException exception = assertThrows(AppException.class, () -> validationService.validate(null, request));
+        assertTrue(exception.getMessage().contains("Định dạng ảnh không được hỗ trợ"));
+    }
 }

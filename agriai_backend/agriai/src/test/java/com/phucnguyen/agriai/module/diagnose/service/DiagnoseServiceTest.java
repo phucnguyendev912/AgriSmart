@@ -89,6 +89,7 @@ class DiagnoseServiceTest {
                 .diseaseCode("BLAST")
                 .diseaseName("Dao on")
                 .diseaseNameEn("Leaf Blast")
+                .cropType(cropType)
                 .build();
         WeatherDTO weather = WeatherDTO.builder()
                 .temperature(29.0)
@@ -102,7 +103,7 @@ class DiagnoseServiceTest {
         when(visionDetectionPort.detect("https://example.test/leaf.jpg")).thenReturn(List.of(visionResult));
         when(weatherPort.getCurrentWeather(10.5, 106.5)).thenReturn(weather);
         when(diseaseMapper.groupByMaxConfidence(anyList())).thenReturn(Map.of("BLAST", visionResult));
-        when(diseaseMapper.findDisease("BLAST")).thenReturn(Optional.of(disease));
+        when(diseaseMapper.findDisease("BLAST", 1)).thenReturn(Optional.of(disease));
         when(ruleEngineService.process(anyList(), eq(weather))).thenReturn(emptyRuleResult());
         when(guidancePort.generateGuidance(any(DiagnoseResponse.class)))
                 .thenReturn("Remove infected leaves and monitor the field.");

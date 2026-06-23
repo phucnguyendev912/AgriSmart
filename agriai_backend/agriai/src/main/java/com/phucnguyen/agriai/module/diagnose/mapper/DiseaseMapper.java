@@ -17,24 +17,24 @@ public class DiseaseMapper {
 
     private final DiseaseRepository diseaseRepository;
 
-    public Optional<Disease> findDisease(String label) {
+    public Optional<Disease> findDisease(String label, Integer cropTypeId) {
         String cleanLabel = label.trim();
         String underscoreLabel = cleanLabel.replace(" ", "_");
         String spaceLabel = cleanLabel.replace("_", " ");
 
         List<String> candidates = List.of(
                 cleanLabel, underscoreLabel, spaceLabel);
-
+            
         for (String candidate : candidates) {
-            Optional<Disease> result = diseaseRepository.findByDiseaseCodeIgnoreCaseAndIsDeleteFalse(candidate);
+            Optional<Disease> result = diseaseRepository.findByDiseaseCodeIgnoreCaseAndCropTypeIdAndIsDeleteFalse(candidate, cropTypeId);
             if (result.isPresent())
                 return result;
 
-            result = diseaseRepository.findByDiseaseNameEnIgnoreCaseAndIsDeleteFalse(candidate);
+            result = diseaseRepository.findByDiseaseNameEnIgnoreCaseAndCropTypeIdAndIsDeleteFalse(candidate, cropTypeId);
             if (result.isPresent())
                 return result;
 
-            result = diseaseRepository.findByDiseaseNameIgnoreCaseAndIsDeleteFalse(candidate);
+            result = diseaseRepository.findByDiseaseNameIgnoreCaseAndCropTypeIdAndIsDeleteFalse(candidate, cropTypeId);
             if (result.isPresent())
                 return result;
         }

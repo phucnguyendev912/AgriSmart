@@ -17,6 +17,7 @@ public class DiagnosisValidationService {
 
     private static final String INVALID_IMAGE_MESSAGE = "Ảnh không hợp lệ, vui lòng thử lại";
     private static final String MISSING_CROP_MESSAGE = "Vui lòng chọn loại cây trồng trước khi chẩn đoán";
+    private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
     private final UserRepository userRepository;
     private final CropTypeRepository cropTypeRepository;
@@ -42,14 +43,34 @@ public class DiagnosisValidationService {
         return new DiagnosisContext(user, cropType);
     }
 
-    // Validate the uploaded image file (null check, empty check, and mimetype verification)
+    // Validate the uploaded image file (null check, empty check, size check, and format verification)
     private void validateImage(MultipartFile image) {
         if (image == null || image.isEmpty()) {
             throw new AppException(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
         }
+
+        if (image.getSize() > MAX_IMAGE_SIZE) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Dung lượng ảnh vượt quá giới hạn cho phép (tối đa 10MB).");
+        }
+
         String contentType = image.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
+        if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png") && !contentType.equals("image/webp") && !contentType.equals("image/jpg"))) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Định dạng ảnh không được hỗ trợ. Chỉ cho phép JPEG, PNG, WEBP.");
+        }
+
+        String originalFilename = image.getOriginalFilename();
+        if (originalFilename == null) {
             throw new AppException(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
+        }
+
+        int lastIndexOf = originalFilename.lastIndexOf(".");
+        if (lastIndexOf == -1) {
+            throw new AppException(HttpStatus.BAD_REQUEST, INVALID_IMAGE_MESSAGE);
+        }
+
+        String extension = originalFilename.substring(lastIndexOf + 1).toLowerCase(java.util.Locale.ROOT);
+        if (!java.util.List.of("jpg", "jpeg", "png", "webp").contains(extension)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Định dạng ảnh không được hỗ trợ. Chỉ cho phép JPEG, PNG, WEBP.");
         }
     }
 

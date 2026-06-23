@@ -1,7 +1,10 @@
 package com.phucnguyen.agriai.module.diagnose.service;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -27,6 +30,7 @@ import com.phucnguyen.agriai.module.diagnose.dto.TreatmentDTO;
 import com.phucnguyen.agriai.module.diagnose.dto.TreatmentProgramDTO;
 import com.phucnguyen.agriai.module.weather.dto.WeatherAlertDTO;
 import com.phucnguyen.agriai.module.weather.dto.WeatherDTO;
+import com.phucnguyen.agriai.module.diagnose.dto.response.DiagnoseHistoryResponse;
 import com.phucnguyen.agriai.module.diagnose.dto.response.DiagnoseResponse;
 import com.phucnguyen.agriai.module.diagnose.entity.DiagnoseTreatmentRecommendation;
 import com.phucnguyen.agriai.module.diagnose.repository.DiagnoseTreatmentRecommendationRepository;
@@ -62,56 +66,76 @@ public class DiagnoseHistoryService {
 
         Integer userId = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."))
-                .getId();   
+                .getId();
 
-        return findHistoryPage(userId, pageable, fromDate, toDate)
-                .map(history -> {
-                    List<DiagnoseHistoryDetail> details = diagnoseHistoryDetailRepository
-                            .findByDiagnoseHistoryIdAndIsDeleteFalse(history.getId());
-                    String diseaseName = null;
-                    Double confidence = null;
-                    String severity = null;
-                    String diagnosisType = null;
+        Page<DiagnoseHistory> historyPage = findHistoryPage(userId, pageable, fromDate, toDate);
+        List<DiagnoseHistory> histories = historyPage.getContent();
+        if (histories.isEmpty()) {
+            return historyPage.map(h -> mapToHistoryResponse(h, List.of(), false));
+        }
 
-                    if (details != null && !details.isEmpty()) {
-                        DiagnoseHistoryDetail topDetail = details.get(0);
-                        DiagnosisDetailSnapshotDTO snapshot = parseSnapshot(topDetail.getTreatmentData());
-                        if (snapshot != null) {
-                            diagnosisType = snapshot.getDiagnosisType();
-                        }
+        List<Integer> historyIds = histories.stream()
+                .map(DiagnoseHistory::getId)
+                .collect(Collectors.toList());
 
-                        if (topDetail.getDisease() != null) {
-                            diseaseName = topDetail.getDisease().getDiseaseName();
-                            confidence = topDetail.getConfidenceScore() != null
-                                     ? topDetail.getConfidenceScore().doubleValue()
-                                     : null;
-                            severity = topDetail.getSeverity() != null ? topDetail.getSeverity().name() : null;
-                        } else {
-                            if ("HEALTHY".equals(diagnosisType)) {
-                                diseaseName = "Cây khỏe mạnh";
-                            } else {
-                                diseaseName = "Không xác định";
-                            }
-                        }
-                    }
+        List<DiagnoseHistoryDetail> allDetails = diagnoseHistoryDetailRepository
+                .findByDiagnoseHistoryIdInAndIsDeleteFalse(historyIds);
 
-                    boolean isReviewed = diagnoseReviewRepository.existsByHistoryId(history.getId());
+        Map<Integer, List<DiagnoseHistoryDetail>> detailsMap = allDetails.stream()
+                .collect(Collectors.groupingBy(detail -> detail.getDiagnoseHistory().getId()));
 
-                    return com.phucnguyen.agriai.module.diagnose.dto.response.DiagnoseHistoryResponse.builder()
-                            .id(history.getId())
-                            .createdAt(history.getCreatedAt())
-                            .originalImageUrl(history.getOriginalImageUrl())
-                            .cropName(history.getCropType() != null ? history.getCropType().getCropName() : null)
-                            .diseaseName(diseaseName)
-                            .confidence(confidence)
-                            .severity(severity)
-                            .status(history.getStatus() != null ? history.getStatus().name() : null)
-                            .diagnosisType(diagnosisType)
-                            .latitude(history.getLatitude())
-                            .longitude(history.getLongitude())
-                            .isReviewed(isReviewed)
-                            .build();
-                });
+        Set<Integer> reviewedHistoryIds = diagnoseReviewRepository.findReviewedHistoryIds(historyIds);
+
+        return historyPage.map(history -> {
+            List<DiagnoseHistoryDetail> details = detailsMap.getOrDefault(history.getId(), List.of());
+            boolean isReviewed = reviewedHistoryIds.contains(history.getId());
+            return mapToHistoryResponse(history, details, isReviewed);
+        });
+    }
+
+    private DiagnoseHistoryResponse mapToHistoryResponse(
+            DiagnoseHistory history, List<DiagnoseHistoryDetail> details, boolean isReviewed) {
+        String diseaseName = null;
+        Double confidence = null;
+        String severity = null;
+        String diagnosisType = null;
+
+        if (details != null && !details.isEmpty()) {
+            DiagnoseHistoryDetail topDetail = details.get(0);
+            DiagnosisDetailSnapshotDTO snapshot = parseSnapshot(topDetail.getTreatmentData());
+            if (snapshot != null) {
+                diagnosisType = snapshot.getDiagnosisType();
+            }
+
+            if (topDetail.getDisease() != null) {
+                diseaseName = topDetail.getDisease().getDiseaseName();
+                confidence = topDetail.getConfidenceScore() != null
+                        ? topDetail.getConfidenceScore().doubleValue()
+                        : null;
+                severity = topDetail.getSeverity() != null ? topDetail.getSeverity().name() : null;
+            } else {
+                if ("HEALTHY".equals(diagnosisType)) {
+                    diseaseName = "Cây khỏe mạnh";
+                } else {
+                    diseaseName = "Không xác định";
+                }
+            }
+        }
+
+        return DiagnoseHistoryResponse.builder()
+                .id(history.getId())
+                .createdAt(history.getCreatedAt())
+                .originalImageUrl(history.getOriginalImageUrl())
+                .cropName(history.getCropType() != null ? history.getCropType().getCropName() : null)
+                .diseaseName(diseaseName)
+                .confidence(confidence)
+                .severity(severity)
+                .status(history.getStatus() != null ? history.getStatus().name() : null)
+                .diagnosisType(diagnosisType)
+                .latitude(history.getLatitude())
+                .longitude(history.getLongitude())
+                .isReviewed(isReviewed)
+                .build();
     }
 
     // Find database history entries with date range filters
@@ -226,6 +250,7 @@ public class DiagnoseHistoryService {
 
         List<String> distinctWarnings = warnings.stream().filter(Objects::nonNull).distinct().toList();
         List<TreatmentProgramDTO> distinctPrograms = sprayPrograms.stream()
+                .filter(program -> program.getProgramCode() != null)
                 .collect(Collectors.toMap(TreatmentProgramDTO::getProgramCode, program -> program,
                         (left, right) -> left, LinkedHashMap::new))
                 .values().stream().toList();

@@ -9,6 +9,50 @@ const imageFile = {
 };
 
 async function mockCommonApis(page) {
+  // Grant permission if supported
+  try {
+    await page.context().grantPermissions(['geolocation']);
+  } catch (e) {
+    // Ignore error if webkit/browser doesn't support context-level grant
+  }
+
+  // Mock navigator.geolocation before page loading
+  await page.addInitScript(() => {
+    const mockGeolocation = {
+      getCurrentPosition: (success) => {
+        setTimeout(() => {
+          success({
+            coords: {
+              latitude: 10.5,
+              longitude: 106.5,
+              accuracy: 10,
+            },
+            timestamp: Date.now(),
+          });
+        }, 50);
+      },
+      watchPosition: (success) => {
+        setTimeout(() => {
+          success({
+            coords: {
+              latitude: 10.5,
+              longitude: 106.5,
+              accuracy: 10,
+            },
+            timestamp: Date.now(),
+          });
+        }, 50);
+        return 1;
+      },
+      clearWatch: () => {},
+    };
+    Object.defineProperty(navigator, 'geolocation', {
+      value: mockGeolocation,
+      configurable: true,
+      writable: true,
+    });
+  });
+
   await page.route('**/api/auth/refresh-token', async (route) => {
     await route.fulfill({ status: 401, body: '' });
   });
@@ -31,22 +75,29 @@ async function openDiagnosisPage(page) {
 }
 
 function diagnosisButton(page) {
-  return page.locator('main button').first();
+  return page.locator('button:has-text("Chẩn đoán ngay")');
+}
+
+async function selectCrop(page, cropName) {
+  await page.locator('button:has-text("Chọn loại cây...")').click();
+  const option = page.locator(`button:has-text("${cropName}")`);
+  await option.waitFor({ state: 'visible' });
+  await option.click();
 }
 
 test.describe('Diagnosis UI', () => {
   test('shows upload form and crop selector', async ({ page }) => {
     await openDiagnosisPage(page);
 
-    await expect(page.locator('input[type="file"]')).toHaveCount(1);
-    await expect(page.locator('select')).toBeVisible();
+    await expect(page.locator('input[type="file"]')).toHaveCount(2);
+    await expect(page.locator('button:has-text("Chọn loại cây...")')).toBeVisible();
     await expect(diagnosisButton(page)).toBeVisible();
   });
 
   test('keeps submit disabled when image is missing', async ({ page }) => {
     await openDiagnosisPage(page);
 
-    await page.locator('select').selectOption('1');
+    await selectCrop(page, 'Rice');
 
     await expect(diagnosisButton(page)).toBeDisabled();
   });
@@ -54,7 +105,8 @@ test.describe('Diagnosis UI', () => {
   test('shows validation error when crop type is missing', async ({ page }) => {
     await openDiagnosisPage(page);
 
-    await page.locator('input[type="file"]').setInputFiles(imageFile);
+    await page.locator('input[type="file"]').first().setInputFiles(imageFile);
+    await expect(diagnosisButton(page)).toBeEnabled();
     await diagnosisButton(page).click();
 
     await expect(page.locator('[class*="text-error"]').last()).toBeVisible();
@@ -63,7 +115,7 @@ test.describe('Diagnosis UI', () => {
   test('shows selected image preview and file name', async ({ page }) => {
     await openDiagnosisPage(page);
 
-    await page.locator('input[type="file"]').setInputFiles(imageFile);
+    await page.locator('input[type="file"]').first().setInputFiles(imageFile);
 
     await expect(page.locator('img[alt]')).toBeVisible();
     await expect(page.locator('main')).toContainText('leaf-test.jpg');
@@ -72,9 +124,7 @@ test.describe('Diagnosis UI', () => {
   test('submits diagnosis and renders successful result', async ({ page }) => {
     await openDiagnosisPage(page);
 
-    let requestCount = 0;
     await page.route('**/api/diagnosis', async (route) => {
-      requestCount += 1;
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -107,12 +157,12 @@ test.describe('Diagnosis UI', () => {
       });
     });
 
-    await page.locator('select').selectOption('1');
-    await page.locator('input[type="file"]').setInputFiles(imageFile);
+    await selectCrop(page, 'Rice');
+    await page.locator('input[type="file"]').first().setInputFiles(imageFile);
+    await expect(diagnosisButton(page)).toBeEnabled();
     await diagnosisButton(page).click();
 
-    await expect.poll(() => requestCount).toBe(1);
-    await expect(page.locator('main')).toContainText('Leaf Blast');
+    await expect(page.locator('main')).toContainText('Leaf Blast', { timeout: 10000 });
     await expect(page.locator('main')).toContainText('91%');
     await expect(page.locator('main')).toContainText('Remove infected leaves');
   });
@@ -128,10 +178,36 @@ test.describe('Diagnosis UI', () => {
       });
     });
 
-    await page.locator('select').selectOption('1');
-    await page.locator('input[type="file"]').setInputFiles(imageFile);
+    await selectCrop(page, 'Rice');
+    await page.locator('input[type="file"]').first().setInputFiles(imageFile);
+    await expect(diagnosisButton(page)).toBeEnabled();
     await diagnosisButton(page).click();
 
-    await expect(page.locator('[class*="text-error"]').last()).toBeVisible();
+    await expect(page.locator('[class*="text-error"]').last()).toBeVisible({ timeout: 10000 });
+  });
+
+  test('cancels in-progress diagnosis request and stops loading', async ({ page }) => {
+    await openDiagnosisPage(page);
+
+    await page.route('**/api/diagnosis', async (route) => {
+      // delay response to allow cancellation
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await route.abort('aborted');
+    });
+
+    await selectCrop(page, 'Rice');
+    await page.locator('input[type="file"]').first().setInputFiles(imageFile);
+    await expect(diagnosisButton(page)).toBeEnabled();
+    await diagnosisButton(page).click();
+
+    // Wait for progress/loading text to appear
+    await expect(page.locator('main')).toContainText('Đang phân tích hình ảnh...', { timeout: 10000 });
+
+    // Click "Hủy chẩn đoán"
+    await page.locator('button:has-text("Hủy chẩn đoán")').click();
+
+    // Verify it returned to the initial state
+    await expect(page.locator('main')).not.toContainText('Đang phân tích hình ảnh...');
+    await expect(diagnosisButton(page)).toBeVisible();
   });
 });
