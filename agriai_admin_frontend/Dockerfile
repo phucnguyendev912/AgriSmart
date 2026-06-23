@@ -16,4 +16,4 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/bin/sh", "-c", "find /usr/share/nginx/html -type f -name '*.js' -exec sed -i \"s|__PLACEHOLDER_VITE_API_URL__|$VITE_API_URL|g\" {} + && nginx -g 'daemon off;'"]

@@ -39,6 +39,10 @@ jobs:
           context: ./agriai_backend/agriai
           file: ./agriai_backend/agriai/Dockerfile
           push: true
+          build-args: |
+            REACT_APP_API_URL=
+            REACT_APP_GOOGLE_CLIENT_ID=__PLACEHOLDER_GOOGLE_CLIENT_ID__
+            VITE_API_URL=__PLACEHOLDER_VITE_API_URL__
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/agrismart/agriai-backend:latest
             ghcr.io/${{ env.OWNER_LC }}/agrismart/agriai-backend:${{ github.sha }}

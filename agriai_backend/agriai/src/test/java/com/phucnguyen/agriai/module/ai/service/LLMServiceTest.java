@@ -18,7 +18,7 @@ class LLMServiceTest {
     @Test
     @DisplayName("TC1: No API key → fallback guidance for healthy plant")
     void generateGuidance_noApiKey_healthyPlant() {
-        AIService service = new AIService("", "gemini-2.0-flash", 0.1, 20, 2048, 30);
+        AIService service = new AIService("", "https://dummy.api", "gemini-2.0-flash", 0.1, 20, 2048, 30);
 
         DiagnoseResponse response = DiagnoseResponse.builder()
                 .diseases(List.of())
@@ -34,7 +34,7 @@ class LLMServiceTest {
     @Test
     @DisplayName("TC2: No API key → fallback guidance for diseased plant")
     void generateGuidance_noApiKey_diseasedPlant() {
-        AIService service = new AIService(null, "gemini-2.0-flash", 0.1, 20, 2048, 30);
+        AIService service = new AIService(null, "https://dummy.api", "gemini-2.0-flash", 0.1, 20, 2048, 30);
 
         DiagnoseResponse response = DiagnoseResponse.builder()
                 .diseases(List.of(
@@ -59,19 +59,19 @@ class LLMServiceTest {
     @Test
     @DisplayName("TC3: Null API key creates service without crash")
     void constructor_nullApiKey_doesNotCrash() {
-        assertDoesNotThrow(() -> new AIService(null, null, 0.1, 20, 2048, 30));
+        assertDoesNotThrow(() -> new AIService(null, null, null, 0.1, 20, 2048, 30));
     }
 
     @Test
     @DisplayName("TC4: Empty API key creates service without crash")
     void constructor_emptyApiKey_doesNotCrash() {
-        assertDoesNotThrow(() -> new AIService("", "", 0.1, 20, 2048, 30));
+        assertDoesNotThrow(() -> new AIService("", "", "", 0.1, 20, 2048, 30));
     }
 
     @Test
     @DisplayName("TC5: Blank API key triggers fallback")
     void generateGuidance_blankApiKey_fallback() {
-        AIService service = new AIService("   ", "gemini-2.0-flash", 0.1, 20, 2048, 30);
+        AIService service = new AIService("   ", "https://dummy.api", "gemini-2.0-flash", 0.1, 20, 2048, 30);
 
         DiagnoseResponse response = DiagnoseResponse.builder()
                 .diseases(List.of(
@@ -97,7 +97,7 @@ class LLMServiceTest {
     @Test
     @DisplayName("TC6: No API key → fallback guidance for unknown state")
     void generateGuidance_noApiKey_unknownState() {
-        AIService service = new AIService("", "gemini-2.0-flash", 0.1, 20, 2048, 30);
+        AIService service = new AIService("", "https://dummy.api", "gemini-2.0-flash", 0.1, 20, 2048, 30);
 
         DiagnoseResponse response = DiagnoseResponse.builder()
                 .diseases(List.of())
