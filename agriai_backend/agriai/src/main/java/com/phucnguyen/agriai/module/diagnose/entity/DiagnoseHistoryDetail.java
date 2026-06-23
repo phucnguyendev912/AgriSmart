@@ -38,8 +38,6 @@ public class DiagnoseHistoryDetail extends BaseEntity {
     @Column(name = "riskWarning", length = 255)
     private String riskWarning;
 
-    // @deprecated Use DiagnoseTreatmentRecommendation intermediate table instead
-    @Deprecated(since = "Phase 1.5", forRemoval = true)
     @Column(name = "treatmentData", columnDefinition = "TEXT")
     private String treatmentData;
 
