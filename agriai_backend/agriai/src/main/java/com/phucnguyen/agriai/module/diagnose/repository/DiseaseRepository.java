@@ -16,6 +16,12 @@ public interface DiseaseRepository extends JpaRepository<Disease, Integer> {
 
     Optional<Disease> findByDiseaseNameIgnoreCaseAndIsDeleteFalse(String diseaseName);
 
+    Optional<Disease> findByDiseaseCodeIgnoreCaseAndCropTypeIdAndIsDeleteFalse(String diseaseCode, Integer cropTypeId);
+
+    Optional<Disease> findByDiseaseNameEnIgnoreCaseAndCropTypeIdAndIsDeleteFalse(String diseaseNameEn, Integer cropTypeId);
+
+    Optional<Disease> findByDiseaseNameIgnoreCaseAndCropTypeIdAndIsDeleteFalse(String diseaseName, Integer cropTypeId);
+
     List<Disease> findByCropTypeIdAndIsDeleteFalse(Integer cropTypeId);
 
     @Query("""

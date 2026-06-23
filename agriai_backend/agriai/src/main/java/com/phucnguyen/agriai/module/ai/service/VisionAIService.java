@@ -28,7 +28,24 @@ public class VisionAIService implements VisionDetectionPort {
     @Value("${vision.ai.url:http://localhost:8010/predict}")
     private String predictUrl;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Value("${vision.ai.connect-timeout-ms:10000}")
+    private int connectTimeout;
+
+    @Value("${vision.ai.read-timeout-ms:30000}")
+    private int readTimeout;
+
+    private RestTemplate restTemplate;
+
+    private RestTemplate getRestTemplate() {
+        if (restTemplate == null) {
+            org.springframework.http.client.SimpleClientHttpRequestFactory factory = 
+                    new org.springframework.http.client.SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(connectTimeout);
+            factory.setReadTimeout(readTimeout);
+            restTemplate = new RestTemplate(factory);
+        }
+        return restTemplate;
+    }
 
     @Override
     public List<VisionResultDTO> detect(String imageUrl) {
@@ -49,7 +66,7 @@ public class VisionAIService implements VisionDetectionPort {
             body.add("image", new HttpEntity<>(imageResource, createFileHeaders()));
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-            ResponseEntity<String> response = restTemplate.exchange(
+            ResponseEntity<String> response = getRestTemplate().exchange(
                     predictUrl, HttpMethod.POST, requestEntity, String.class);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -65,9 +82,13 @@ public class VisionAIService implements VisionDetectionPort {
 
             List<VisionResultDTO> results = new ArrayList<>();
             for (JsonNode detection : detections) {
+                Double confidence = null;
+                if (detection.has("confidence") && !detection.path("confidence").isNull()) {
+                    confidence = detection.path("confidence").asDouble();
+                }
                 results.add(VisionResultDTO.builder()
                         .label(detection.path("class_name").asText())
-                        .confidence(detection.path("confidence").asDouble(0.95))
+                        .confidence(confidence)
                         .severity(null)
                         .build());
             }
@@ -81,7 +102,10 @@ public class VisionAIService implements VisionDetectionPort {
 
     private byte[] downloadImage(String imageUrl) throws Exception {
         URL url = new URL(imageUrl);
-        try (InputStream inputStream = url.openStream()) {
+        java.net.URLConnection connection = url.openConnection();
+        connection.setConnectTimeout(connectTimeout);
+        connection.setReadTimeout(readTimeout);
+        try (InputStream inputStream = connection.getInputStream()) {
             return inputStream.readAllBytes();
         }
     }

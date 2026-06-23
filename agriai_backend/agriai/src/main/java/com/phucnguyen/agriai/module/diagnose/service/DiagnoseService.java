@@ -72,7 +72,7 @@ public class DiagnoseService {
             List<VisionResultDTO> visionResults = visionFuture.join();
             WeatherDTO weather = weatherFuture.join();
             // phân tích kết quả vision
-            DiagnosisAnalysis analysis = analyzeVisionResults(visionResults);
+            DiagnosisAnalysis analysis = analyzeVisionResults(visionResults, request.getCropTypeId());
             // xử lý nghiệp vụ dựa trên kết quả vision và thời tiết
             RuleEngineService.RuleEngineResult ruleResult = analysis.detectedDiseases().isEmpty()
                     ? RuleEngineService.RuleEngineResult.empty()
@@ -146,7 +146,7 @@ public class DiagnoseService {
     }
 
     // phân tích kết quả vision và trả về DiagnosisAnalysis
-    private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults) {
+    private DiagnosisAnalysis analyzeVisionResults(List<VisionResultDTO> visionResults, Integer cropTypeId) {
         // xử lý list vision kết quả trả về từ model
         List<VisionResultDTO> safeResults = visionResults != null ? visionResults : List.of();
         // kiểm tra xem có kết quả nào là cây khỏe không
@@ -163,7 +163,7 @@ public class DiagnoseService {
                 .toList());
         // chuyển đổi sang list DetectedDiseaseMatch
         List<DetectedDiseaseMatch> detectedDiseases = groupedResults.values().stream()
-                .map(this::toDetectedDiseaseMatch)
+                .map(result -> toDetectedDiseaseMatch(result, cropTypeId))
                 .flatMap(Optional::stream)
                 .toList();
         // kiểm tra xem có cây khỏe không
@@ -171,8 +171,8 @@ public class DiagnoseService {
         return new DiagnosisAnalysis(healthy, detectedDiseases.isEmpty(), detectedDiseases);
     }
 
-    private Optional<DetectedDiseaseMatch> toDetectedDiseaseMatch(VisionResultDTO result) {
-        return diseaseMapper.findDisease(result.getLabel())
+    private Optional<DetectedDiseaseMatch> toDetectedDiseaseMatch(VisionResultDTO result, Integer cropTypeId) {
+        return diseaseMapper.findDisease(result.getLabel(), cropTypeId)
                 .map(disease -> new DetectedDiseaseMatch(disease, result));
     }
 

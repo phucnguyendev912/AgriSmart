@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useBlocker } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import SEO from '../components/common/SEO';
@@ -26,6 +27,7 @@ const LS_INPUT_KEY = 'agrismart_last_diagnosis_input';
 // ─── Module-level variable: giữ tham chiếu Promise chẩn đoán đang chạy ngầm ───
 // Tồn tại suốt vòng đời SPA, không bị mất khi component unmount.
 let activeDiagnosisPromise = null;
+let activeAbortController = null;
 
 // ─── Helper: Lưu kết quả và input vào LocalStorage ────────────────────────────
 function saveResultToLS(result, inputData) {
@@ -134,9 +136,14 @@ const DiagnosisPage = () => {
                     setResult(res.data);
                     clearResultFromLS();
                     activeDiagnosisPromise = null;
+                    activeAbortController = null;
                 })
-                .catch(() => {
+                .catch((err) => {
+                    if (axios.isCancel(err)) {
+                        console.log('Diagnosis request cancelled');
+                    }
                     activeDiagnosisPromise = null;
+                    activeAbortController = null;
                 })
                 .finally(() => {
                     setLoading(false);
@@ -315,13 +322,20 @@ const DiagnosisPage = () => {
             formData.append('longitude', finalCoords.longitude);
         }
 
+        if (activeAbortController) {
+            activeAbortController.abort();
+        }
+        const controller = new AbortController();
+        activeAbortController = controller;
+
         // Lưu Promise vào biến module-level để giữ tham chiếu ngay cả khi component unmount
-        const diagnosisPromise = submitDiagnosis(formData);
+        const diagnosisPromise = submitDiagnosis(formData, controller.signal);
         activeDiagnosisPromise = diagnosisPromise;
 
         // Gắn callback lưu kết quả vào LocalStorage khi chạy ngầm xong
         diagnosisPromise
             .then((res) => {
+                if (activeDiagnosisPromise !== diagnosisPromise) return; // ignore stale response
                 if (userHasLeftRef.current) {
                     // Người dùng đã rời trang → lưu kết quả vào LocalStorage
                     const inputData = {
@@ -339,6 +353,11 @@ const DiagnosisPage = () => {
                 }
             })
             .catch((err) => {
+                if (axios.isCancel(err)) {
+                    console.log('Diagnosis request cancelled');
+                    return;
+                }
+                if (activeDiagnosisPromise !== diagnosisPromise) return; // ignore stale response
                 if (!userHasLeftRef.current) {
                     const message = err.response?.data?.message;
                     setError(err.response?.status >= 500
@@ -347,11 +366,12 @@ const DiagnosisPage = () => {
                 }
             })
             .finally(() => {
-                if (!userHasLeftRef.current) {
-                    setLoading(false);
-                }
                 if (activeDiagnosisPromise === diagnosisPromise) {
+                    if (!userHasLeftRef.current) {
+                        setLoading(false);
+                    }
                     activeDiagnosisPromise = null;
+                    activeAbortController = null;
                 }
             });
     };
@@ -374,6 +394,10 @@ const DiagnosisPage = () => {
 
     // ─── Hủy chẩn đoán / Chẩn đoán mới ─────────────────────────────────────────
     const handleReset = () => {
+        if (activeAbortController) {
+            activeAbortController.abort();
+            activeAbortController = null;
+        }
         setResult(null);
         setSelectedFile(null);
         setPreviewUrl(null);

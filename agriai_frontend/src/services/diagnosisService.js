@@ -5,9 +5,10 @@ export const getCropTypes = async () => {
   return response;
 };
 
-export const submitDiagnosis = async (formData) => {
+export const submitDiagnosis = async (formData, signal) => {
   const response = await api.post('/api/diagnosis', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    signal,
   });
   return response;
 };
