@@ -72,9 +72,9 @@ Các Docker image được xuất bản tại:
 
 2. **Kéo image mới nhất:**
    ```bash
-   docker pull ghcr.io/djwin2609/agrismart/agriai-backend:latest
-   docker pull ghcr.io/djwin2609/agrismart/agriai-frontend:latest
-   docker pull ghcr.io/djwin2609/agrismart/agriai-admin-frontend:latest
+   docker pull ghcr.io/phucnguyendev912/agrismart/agriai-backend:latest
+   docker pull ghcr.io/phucnguyendev912/agrismart/agriai-frontend:latest
+   docker pull ghcr.io/phucnguyendev912/agrismart/agriai-admin-frontend:latest
    ```
 
 3. **Cập nhật `docker-compose.prod.yaml`** (nếu deploy bằng file compose): Thay đổi trường `image` của các service tương ứng thành các đường dẫn GHCR trên.

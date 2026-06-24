@@ -14,8 +14,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
-import dev.langchain4j.model.chat.request.ResponseFormat;
-import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -30,11 +29,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class AIService implements GuidancePort {
 
-    private final GoogleAiGeminiChatModel chatModel;
-    private final GoogleAiGeminiChatModel recommendModel;
+    private final OpenAiChatModel chatModel;
+    private final OpenAiChatModel recommendModel;
     private final long cooldownMs;
 
-    // Lightweight circuit breaker: skip Gemini when unavailable
+    // Lightweight circuit breaker: skip LLM when unavailable
     private final AtomicLong recommendUnavailableUntil = new AtomicLong(0);
 
     // Singleton ObjectMapper for parsing AI JSON responses
@@ -44,29 +43,32 @@ public class AIService implements GuidancePort {
             .build();
 
     public AIService(
-            @Value("${gemini.api.key:}") String apiKey,
-            @Value("${gemini.model.name:gemini-2.0-flash}") String modelName,
-            @Value("${gemini.recommend.temperature:0.1}") double recommendTemperature,
-            @Value("${gemini.recommend.timeout-seconds:20}") int recommendTimeoutSeconds,
-            @Value("${gemini.recommend.max-output-tokens:2048}") int recommendMaxTokens,
-            @Value("${gemini.recommend.cooldown-seconds:30}") int cooldownSeconds) {
+            @Value("${llm.api.key:}") String apiKey,
+            @Value("${llm.base-url:}") String baseUrl,
+            @Value("${llm.model.name:qwen-plus}") String modelName,
+            @Value("${llm.recommend.temperature:0.1}") double recommendTemperature,
+            @Value("${llm.recommend.timeout-seconds:20}") int recommendTimeoutSeconds,
+            @Value("${llm.recommend.max-output-tokens:2048}") int recommendMaxTokens,
+            @Value("${llm.recommend.cooldown-seconds:30}") int cooldownSeconds) {
         this.cooldownMs = cooldownSeconds * 1000L;
         if (apiKey == null || apiKey.isBlank()) {
             this.chatModel = null;
             this.recommendModel = null;
         } else {
-            this.chatModel = GoogleAiGeminiChatModel.builder()
+            this.chatModel = OpenAiChatModel.builder()
                     .apiKey(apiKey)
+                    .baseUrl(baseUrl != null && !baseUrl.isBlank() ? baseUrl : null)
                     .modelName(modelName)
                     .temperature(0.7)
                     .build();
-            this.recommendModel = GoogleAiGeminiChatModel.builder()
+            this.recommendModel = OpenAiChatModel.builder()
                     .apiKey(apiKey)
+                    .baseUrl(baseUrl != null && !baseUrl.isBlank() ? baseUrl : null)
                     .modelName(modelName)
                     .temperature(recommendTemperature)
                     .timeout(Duration.ofSeconds(recommendTimeoutSeconds))
-                    .maxOutputTokens(recommendMaxTokens)
-                    .responseFormat(ResponseFormat.JSON)
+                    .maxTokens(recommendMaxTokens)
+                    .responseFormat("json_object")
                     .build();
         }
     }
@@ -118,7 +120,7 @@ public class AIService implements GuidancePort {
 
         // Cooldown check
         if (System.currentTimeMillis() < recommendUnavailableUntil.get()) {
-            log.warn("[AI_RECOMMEND_LEGACY] Cooldown active, skipping Gemini");
+            log.warn("[AI_RECOMMEND_LEGACY] Cooldown active, skipping LLM");
             return null;
         }
 
@@ -171,7 +173,7 @@ public class AIService implements GuidancePort {
 
         // Cooldown check
         if (System.currentTimeMillis() < recommendUnavailableUntil.get()) {
-            log.warn("[AI_RECOMMEND_TOTAL_FALLBACK] Cooldown active, skipping Gemini batch. "
+            log.warn("[AI_RECOMMEND_TOTAL_FALLBACK] Cooldown active, skipping LLM batch. "
                     + "diseaseCount={}", diseases.size());
             return Map.of();
         }
@@ -499,7 +501,8 @@ public class AIService implements GuidancePort {
         sb.append("[YÊU CẦU ĐẦU RA]\n");
         sb.append("- NGÔN NGỮ: Dùng tiếng Việt có dấu đầy đủ, chuẩn xác.\n");
         sb.append("- PHONG CÁCH: Đơn giản, gần gũi, nông dân dễ hiểu, mang tính động viên.\n");
-        sb.append("- ĐỘ DÀI: Viết ngắn gọn, súc tích (khoảng 3-4 câu), không dùng markdown.\n");
+        sb.append("- CHỦ NGỮ: Phải viết câu có chủ ngữ rõ ràng (ví dụ: xưng \"chuyên gia\" khuyên \"bà con\", hoặc nêu rõ \"Bà con nên...\", \"Anh/chị hãy...\", tránh viết các câu cụt thiếu chủ ngữ).\n");
+        sb.append("- ĐỊNH DẠNG: Viết ngắn gọn, súc tích (khoảng 3-4 câu). Sử dụng ngắt dòng (\\n) để phân chia các phần, không viết liền thành một khối văn bản.\n");
         sb.append("- NỘI DUNG: Chúc mừng nông dân, nhắc nhở giữ đồng ruộng thông thoáng, dọn cỏ dại sạch sẽ, bón phân cân đối (tránh bón thừa đạm) và theo dõi định kỳ để phòng ngừa sâu bệnh từ sớm. Nhắc nhở KHÔNG sử dụng các loại thuốc bảo vệ thực vật hóa học khi cây đang khỏe mạnh.\n\n");
 
         if (response.getWeather() != null) {
@@ -526,7 +529,8 @@ public class AIService implements GuidancePort {
         sb.append("[YÊU CẦU ĐẦU RA]\n");
         sb.append("- NGÔN NGỮ: Dùng tiếng Việt có dấu đầy đủ, chuẩn xác.\n");
         sb.append("- PHONG CÁCH: Lịch sự, ân cần, hướng dẫn chi tiết nhưng dễ hiểu.\n");
-        sb.append("- ĐỘ DÀI: Viết ngắn gọn, súc tích (khoảng 3-4 câu), không dùng markdown.\n");
+        sb.append("- CHỦ NGỮ: Phải viết câu có chủ ngữ rõ ràng (ví dụ: xưng \"chuyên gia\" khuyên \"bà con\", hoặc nêu rõ \"Bà con nên...\", \"Anh/chị hãy...\", tránh viết các câu cụt thiếu chủ ngữ).\n");
+        sb.append("- ĐỊNH DẠNG: Viết ngắn gọn, súc tích (khoảng 3-4 câu). Sử dụng ngắt dòng (\\n) để phân chia các phần, không viết liền thành một khối văn bản.\n");
         sb.append("- NỘI DUNG: Giải thích rằng hình ảnh tải lên chưa đủ rõ nét hoặc góc chụp chưa bao quát được vết bệnh để hệ thống nhận diện chính xác. Hướng dẫn nông dân chụp lại ảnh cận cảnh vết bệnh, rõ nét dưới ánh sáng tự nhiên đầy đủ, kiểm tra thêm các bộ phận khác của cây (thân, lá, rễ) xem có triệu chứng bất thường không, và khuyên theo dõi sát sao ruộng vườn. Nhấn mạnh KHÔNG tự ý mua và phun thuốc hóa học khi chưa rõ nguyên nhân gây bệnh.\n\n");
 
         return sb.toString();
@@ -551,7 +555,8 @@ public class AIService implements GuidancePort {
         sb.append("[YÊU CẦU ĐẦU RA]\n");
         sb.append("- NGÔN NGỮ: Dùng tiếng Việt có dấu đầy đủ, chuẩn xác.\n");
         sb.append("- PHONG CÁCH: Đơn giản, nông dân dễ hiểu, không dùng thuật ngữ kỹ thuật phức tạp.\n");
-        sb.append("- ĐỘ DÀI: Viết ngắn gọn, súc tích (khoảng 5-7 câu), không dùng markdown.\n");
+        sb.append("- CHỦ NGỮ: Phải viết tất cả các câu có chủ ngữ rõ ràng (ví dụ: xưng \"chuyên gia\" khuyên \"bà con\", hoặc nêu rõ \"Bà con cần...\", \"Anh/chị nên...\", tránh viết các câu cụt thiếu chủ ngữ).\n");
+        sb.append("- ĐỊNH DẠNG: Sử dụng ngắt dòng (\\n) và dấu gạch đầu dòng (-) rõ ràng để phân tách các phần: Cách pha chế, Lịch phun chi tiết, Lưu ý thời tiết, Lưu ý an toàn. Tuyệt đối không viết dồn hết thông tin vào một khối văn bản duy nhất.\n");
         sb.append(
                 "- Mỗi loại thuốc phải ghi đủ: tên thuốc, liều lượng, lượng nước pha, cách dùng, thời điểm phun, tần suất.\n");
         sb.append("- Nếu có xung đột: giải thích lý do KHÔNG được phun chung và hướng dẫn lịch tách đợt cụ thể.\n");
