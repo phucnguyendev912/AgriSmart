@@ -38,8 +38,8 @@ public class ChatbotService {
     @Nullable
     private final ChatLanguageModel chatModel;
 
-    
     @Lazy
+    @Autowired
     private ChatbotService self;
 
     @Value("${agriai.chatbot.history-size:6}")

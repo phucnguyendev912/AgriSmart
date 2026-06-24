@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
  */
 const useScrollReveal = ({ threshold = 0.15, once = true } = {}) => {
   const ref = useRef(null);
+  // 
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
