@@ -13,10 +13,11 @@ const DiagnoseUploadPanel = ({
     previewUrl,
     error,
     checkingLocation,
-    hasLocation
+    hasLocation,
+    isCompressing
 }) => {
     const [isDragging, setIsDragging] = useState(false);
-    const isUploadDisabled = loading;
+    const isUploadDisabled = loading || isCompressing;
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -100,7 +101,7 @@ const DiagnoseUploadPanel = ({
                         }`}
                     >
                         <span className="material-symbols-outlined text-xl">file_upload</span>
-                        {isUploadDisabled ? 'Đang chẩn đoán...' : 'Chọn ảnh từ thiết bị'}
+                        {isUploadDisabled ? (isCompressing ? 'Đang xử lý ảnh...' : 'Đang chẩn đoán...') : 'Chọn ảnh từ thiết bị'}
                         <input
                             type="file"
                             accept="image/*"
@@ -145,6 +146,11 @@ const DiagnoseUploadPanel = ({
                         <>
                             <span className="material-symbols-outlined text-xl animate-spin">progress_activity</span>
                             Đang chẩn đoán...
+                        </>
+                    ) : isCompressing ? (
+                        <>
+                            <span className="material-symbols-outlined text-xl animate-spin">progress_activity</span>
+                            Đang xử lý ảnh...
                         </>
                     ) : (
                         <>

@@ -7,6 +7,8 @@ import SEO from '../components/common/SEO';
 import { useLocationPermission } from '../context/LocationPermissionContext';
 import { getCropTypes, submitDiagnosis } from '../services/diagnosisService';
 import { fileToBase64 } from '../utils/helpers';
+import imageCompression from 'browser-image-compression';
+import heic2any from 'heic2any';
 
 import {
     DiagnoseUploadPanel,
@@ -80,6 +82,7 @@ const DiagnosisPage = () => {
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
     const [progress, setProgress] = useState(0);
+    const [isCompressing, setIsCompressing] = useState(false);
 
     const [diagnosisCoords, setDiagnosisCoords] = useState({ latitude: null, longitude: null, accuracy: null, timestamp: null });
     const [checkingLocation, setCheckingLocation] = useState(true);
@@ -262,8 +265,40 @@ const DiagnosisPage = () => {
 
     // ─── Xử lý chọn file ────────────────────────────────────────────
     const handleFileChange = async (e) => {
-        const file = e.target.files[0];
+        let file = e.target.files[0];
         if (file) {
+            setIsCompressing(true);
+            try {
+                // Kiểm tra nếu là HEIC thì convert sang JPEG
+                if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+                    const convertedBlob = await heic2any({
+                        blob: file,
+                        toType: 'image/jpeg',
+                        quality: 0.8
+                    });
+                    
+                    // heic2any có thể trả về mảng Blob nếu có nhiều frame, lấy frame đầu
+                    const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+                    
+                    file = new File([blob], file.name.replace(/\.heic$/i, '.jpeg'), {
+                        type: 'image/jpeg'
+                    });
+                }
+                
+                // Nén ảnh xuống dưới 1MB
+                const options = {
+                    maxSizeMB: 0.8, // 800KB
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true
+                };
+                file = await imageCompression(file, options);
+            } catch (error) {
+                console.error('[Diagnosis] Lỗi xử lý ảnh (heic2any hoặc compression):', error);
+                // Nếu lỗi, vẫn dùng file gốc để tránh block user (backend sẽ validate sau)
+            } finally {
+                setIsCompressing(false);
+            }
+
             setSelectedFile(file);
             const objectUrl = URL.createObjectURL(file);
             setPreviewUrl(objectUrl);
@@ -516,6 +551,7 @@ const DiagnosisPage = () => {
                         onFileChange={handleFileChange}
                         onDiagnose={handleDiagnose}
                         loading={loading}
+                        isCompressing={isCompressing}
                         selectedFile={selectedFile}
                         previewUrl={previewUrl}
                         error={error}
